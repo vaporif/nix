@@ -62,17 +62,18 @@ return {
     },
   },
   config = function()
-    require('neotest').setup {
-      adapters = {
-        require 'rustaceanvim.neotest',
-        require 'neotest-golang',
-        require 'neotest-python' {
-          dap = { justMyCode = false },
-          pytest_discover_instances = true,
-        },
-        require 'neotest-vitest',
-        require 'neotest-foundry',
+    local adapters = {
+      require 'rustaceanvim.neotest',
+      require 'neotest-python' {
+        dap = { justMyCode = false },
+        pytest_discover_instances = true,
       },
+      require 'neotest-vitest',
+      require 'neotest-foundry',
     }
+    if vim.fn.executable 'go' == 1 then
+      table.insert(adapters, require 'neotest-golang')
+    end
+    require('neotest').setup { adapters = adapters }
   end,
 }

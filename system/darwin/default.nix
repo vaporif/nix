@@ -7,7 +7,7 @@
   imports = [
     ../../modules/nix.nix
     ../../modules/theme.nix
-    ./defaults.nix
+    ./preferences.nix
     ./services.nix
     ./activation.nix
     ./security.nix

@@ -1,5 +1,5 @@
 # macOS system.defaults (dock, finder, NSGlobalDomain, etc.)
-{...}: {
+_: {
   system.defaults = {
     dock = {
       autohide = true;
@@ -35,7 +35,7 @@
       ShowDayOfMonth = true;
     };
     CustomUserPreferences = {
-      # --- Existing settings ---
+      # --- General safety ---
       "com.apple.remoteappleevents".enabled = false;
       "com.apple.CrashReporter".DialogType = "none";
       NSGlobalDomain.NSDocumentSaveNewDocumentsToCloud = false;

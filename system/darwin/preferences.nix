@@ -35,13 +35,43 @@
       ShowDayOfMonth = true;
     };
     CustomUserPreferences = {
+      # --- Existing settings ---
       "com.apple.remoteappleevents".enabled = false;
-      "com.apple.assistant.support"."Siri Data Sharing Opt-In Status" = 0;
-      "com.apple.AdLib".allowApplePersonalizedAdvertising = false;
       "com.apple.CrashReporter".DialogType = "none";
       NSGlobalDomain.NSDocumentSaveNewDocumentsToCloud = false;
-      # Secure keyboard entry - prevents keyloggers from capturing terminal input
       "com.apple.Terminal".SecureKeyboardEntry = true;
+
+      # --- Siri ---
+      "com.apple.assistant.support" = {
+        "Siri Data Sharing Opt-In Status" = 0;
+        "Assistant Enabled" = false;
+      };
+      "com.apple.Siri".StatusMenuVisible = false;
+
+      # --- Advertising & tracking ---
+      "com.apple.AdLib" = {
+        allowApplePersonalizedAdvertising = false;
+        forceLimitAdTracking = true;
+        allowIdentifierForAdvertising = false;
+      };
+
+      # --- Diagnostics & analytics ---
+      "com.apple.SubmitDiagInfo".AutoSubmit = false;
+      "com.apple.UsageTracking" = {
+        CoreDonationsEnabled = false;
+        UDCAutomationEnabled = false;
+      };
+
+      # --- Metadata leakage ---
+      "com.apple.desktopservices" = {
+        DSDontWriteNetworkStores = true;
+        DSDontWriteUSBStores = true;
+      };
+
+      # --- Miscellaneous privacy ---
+      "com.apple.lookup.shared".LookupSuggestionsDisabled = true;
+      "com.apple.ImageCapture".disableHotPlug = true;
+      "com.apple.TimeMachine".DoNotOfferNewDisksForBackup = true;
     };
   };
 }

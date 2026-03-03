@@ -98,7 +98,8 @@ flake.nix                    # Entry point; mkHostContext deduplicates per-host 
 │   ├── darwin/
 │   │   └── default.nix      # macOS-only: nix-darwin system config, skhd, SOPS, firewall
 │   └── nixos/
-│       └── default.nix      # NixOS system config: openssh, user account
+│       ├── default.nix      # NixOS system config: openssh, user account
+│       └── hardware-configuration.nix  # Machine-specific (forkers: regenerate)
 ├── home/
 │   ├── common/              # Shared home-manager config (shell, packages, editor, etc.)
 │   ├── darwin/              # macOS-specific home config (Secretive, Claude desktop, UTM SSH)
@@ -164,12 +165,15 @@ cat /run/secrets/<secret-name>         # Access at runtime
 
 Key: `~/.config/sops/age/key.txt`
 
+Managed secrets: `openrouter-key`, `tavily-key`, `youtube-key`, `deepl-key`, `hf-token-scan-injection`, `ntfy-topic`
+
 ## Claude Code Plugins
 
 Nix-managed plugins from `github:anthropics/claude-code`:
 - **feature-dev** - Feature development workflow
 - **ralph-wiggum** - Iterative development loops
 - **code-review** - PR code review
+- **superpowers** - Structured workflows (brainstorming, debugging, TDD, etc.)
 
 ### Custom Commands
 
@@ -218,6 +222,9 @@ Custom git subcommands installed via `writeShellScriptBin` in `home/packages.nix
 - **Qdrant**: Runs as launchd agent on macOS (`home/darwin/`), systemd user service on NixOS (`home/linux/`)
 - **External devshell**: Rust tools via `~/.envrc` (run `direnv allow ~` after setup)
 - **Theme**: Stylix manages colors/fonts across all apps; shared via `modules/theme.nix`
+- **Notifications**: `config/claude/hooks/notify.sh` — macOS desktop notification + phone push via ntfy.sh (topic from SOPS `ntfy-topic`)
+- **Git SSH rewrite**: `url."git@github.com:".insteadOf` rewrites HTTPS to SSH for GitHub (works with forwarded Secretive agent on NixOS VM)
+- **Agent teams**: Experimental feature enabled via `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` env var in settings
 
 ## Common Tasks
 

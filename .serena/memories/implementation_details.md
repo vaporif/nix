@@ -334,6 +334,7 @@ passthru.tests.pkgname = mkTest "pkgname" ''
 - Histogram diff algorithm
 - Auto-setup remote on push
 - Autosquash/autostash for rebase
+- `url."git@github.com:".insteadOf` rewrites HTTPS to SSH (enables forwarded Secretive agent on NixOS VM)
 
 ### Global Ignores
 - `.serena/`
@@ -384,3 +385,27 @@ passthru.tests.pkgname = mkTest "pkgname" ''
 - **pre-push**: `just check && just cache`
 
 Enable with `just setup-hooks`
+
+---
+
+## 14. Notification System
+
+**Location**: `config/claude/hooks/notify.sh`
+
+**Implementation**:
+- Triggers on Claude Code `Notification` hook event (idle_prompt, permission_prompt)
+- macOS: `osascript` desktop notification with Glass sound
+- Phone: ntfy.sh push notification (topic from SOPS `ntfy-topic` secret)
+- jq parsing uses `<<<` heredoc with `2>/dev/null || fallback` for robustness
+- curl runs backgrounded (`&`) to avoid blocking Claude
+
+---
+
+## 15. NixOS VM (UTM)
+
+**Key details**:
+- Shell-only VM (no GUI packages)
+- SSH agent forwarding from macOS Secretive (`forwardAgent = true` in `utm-nixos` match block)
+- Hardware config committed to repo (`system/nixos/hardware-configuration.nix`) — forkers regenerate
+- `just switch` uses `nixos-rebuild switch` pattern via `sudo ./result/bin/switch-to-configuration switch`
+- Git URL rewrite ensures SSH auth works with forwarded agent

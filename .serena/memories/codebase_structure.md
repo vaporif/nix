@@ -14,7 +14,7 @@ flake.nix (Entry point, outputs for both platforms)
     ├── pkgs/ (Custom package definitions)
     ├── system/
     │       ├── darwin/ (macOS-only: nix-darwin system config, skhd, SOPS, firewall)
-    │       └── nixos/ (NixOS system config: openssh, user account)
+    │       └── nixos/ (NixOS system config: openssh, user account, hardware-configuration.nix)
     └── home/
             ├── common/ (Shared home-manager: shell, packages, editor, etc.)
             ├── darwin/ (macOS-specific home config)
@@ -96,6 +96,13 @@ flake.nix (Entry point, outputs for both platforms)
 | `install-librewolf.sh` | LibreWolf auto-updater |
 | `check-flake-age.sh` | Policy check for flake input freshness |
 | `setup.sh` | Initial setup script |
+
+### `config/claude/hooks/` - Claude Code Hook Scripts
+| File | Purpose |
+|---------|---------|
+| `notify.sh` | macOS notification + ntfy.sh phone push when Claude needs input |
+| `auto-recall.sh` | Auto-inject Qdrant memories on first prompt per session |
+| `check-bash-command.sh` | Security check for bash commands |
 
 ### `config/claude-commands/` - Claude Code Custom Commands
 | File | Purpose |

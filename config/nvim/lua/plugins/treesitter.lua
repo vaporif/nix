@@ -1,14 +1,19 @@
 require('lze').load {
   {
     'nvim-treesitter',
-    event = 'BufReadPre',
+    event = 'DeferredUIEnter',
     after = function()
       vim.api.nvim_create_autocmd('FileType', {
         callback = function(args)
           pcall(vim.treesitter.start, args.buf)
         end,
       })
-      pcall(vim.treesitter.start)
+      -- start treesitter for all existing buffers
+      for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+        if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].filetype ~= '' then
+          pcall(vim.treesitter.start, buf)
+        end
+      end
 
       local select = require 'nvim-treesitter-textobjects.select'
       local move = require 'nvim-treesitter-textobjects.move'
@@ -72,7 +77,7 @@ require('lze').load {
 require('lze').load {
   {
     'nvim-treesitter-context',
-    event = 'BufReadPre',
+    event = 'DeferredUIEnter',
     after = function()
       require('treesitter-context').setup {}
     end,

@@ -27,7 +27,7 @@ jobs:
             build-cmd: nix build .#darwinConfigurations."MacBook-Pro".system
             lint: true
           - runner: ubuntu-24.04-arm
-            build-cmd: nix build '.#homeConfigurations."vaporif@nixos".activationPackage'
+            build-cmd: nix build '.#nixosConfigurations.nixos.config.system.build.toplevel'
             lint: false
     runs-on: ${{ matrix.runner }}
     steps:

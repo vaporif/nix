@@ -18,13 +18,18 @@
 
   time.timeZone = userConfig.timezone;
 
+  programs.zsh.enable = true;
+
   environment.systemPackages = with pkgs; [
     age
   ];
 
-  users.users.${user}.openssh.authorizedKeys.keys = [
-    userConfig.git.signingKey
-  ];
+  users.users.${user} = {
+    shell = pkgs.zsh;
+    openssh.authorizedKeys.keys = [
+      userConfig.git.signingKey
+    ];
+  };
 
   services.openssh = {
     enable = true;

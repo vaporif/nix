@@ -536,6 +536,7 @@
         "parry": "parry",
         "sops-nix": "sops-nix",
         "stylix": "stylix",
+        "superpowers": "superpowers",
         "vim-tidal": "vim-tidal",
         "yamb-yazi": "yamb-yazi"
       }
@@ -623,6 +624,23 @@
       "original": {
         "owner": "nix-community",
         "repo": "stylix",
+        "type": "github"
+      }
+    },
+    "superpowers": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1771702985,
+        "narHash": "sha256-AeICtdAfWRp0oCgQqd8LdrEWWtKNqUNWdvn0CGL18fA=",
+        "owner": "obra",
+        "repo": "superpowers",
+        "rev": "e4a2375cb705ca5800f0833528ce36a3faf9017a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "obra",
+        "repo": "superpowers",
+        "rev": "e4a2375cb705ca5800f0833528ce36a3faf9017a",
         "type": "github"
       }
     },

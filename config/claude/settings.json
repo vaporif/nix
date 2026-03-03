@@ -4,7 +4,8 @@
   "enabledPlugins": {
     "code-review@nix-plugins": true,
     "feature-dev@nix-plugins": true,
-    "ralph-wiggum@nix-plugins": true
+    "ralph-wiggum@nix-plugins": true,
+    "superpowers@nix-plugins": true
   },
   "hooks": {
     "PostToolUse": [

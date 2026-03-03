@@ -37,6 +37,10 @@
       url = "github:anthropics/claude-code/d213a74fc8e3b6efded52729196e0c2d4c3abb3e";
       flake = false;
     };
+    superpowers = {
+      url = "github:obra/superpowers/e4a2375cb705ca5800f0833528ce36a3faf9017a";
+      flake = false;
+    };
     earthtone-nvim = {
       url = "github:vaporif/earthtone.nvim";
       flake = false;
@@ -60,6 +64,7 @@
     mcp-servers-nix,
     stylix,
     claude-code-plugins,
+    superpowers,
     earthtone-nvim,
     nix-devshells,
     parry,
@@ -179,7 +184,7 @@
             extraSpecialArgs = {
               inherit (hosts.macbook) user;
               inherit (darwinCtx) homeDir sharedLspPackages mcpServersConfig fzf-git-sh-package mcp-nixos-package;
-              inherit yamb-yazi claude-code-plugins nix-devshells earthtone-nvim parry;
+              inherit yamb-yazi claude-code-plugins superpowers nix-devshells earthtone-nvim parry;
               userConfig = hosts.macbook;
             };
             users.${hosts.macbook.user} = {
@@ -224,7 +229,7 @@
             extraSpecialArgs = {
               inherit (hosts.nixos) user;
               inherit (linuxCtx) homeDir sharedLspPackages mcpServersConfig fzf-git-sh-package mcp-nixos-package;
-              inherit yamb-yazi claude-code-plugins nix-devshells earthtone-nvim parry;
+              inherit yamb-yazi claude-code-plugins superpowers nix-devshells earthtone-nvim parry;
               userConfig = hosts.nixos;
             };
             users.${hosts.nixos.user} = {

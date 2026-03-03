@@ -7,6 +7,7 @@
   yamb-yazi,
   mcpServersConfig,
   claude-code-plugins,
+  superpowers,
   nix-devshells,
   earthtone-nvim,
   parry,
@@ -40,6 +41,11 @@
         name = "code-review";
         description = "Multi-agent PR code review";
         source = "./code-review";
+      }
+      {
+        name = "superpowers";
+        description = "Core skills: TDD, debugging, collaboration patterns";
+        source = "./superpowers";
       }
     ];
   };
@@ -239,6 +245,7 @@ in {
     "${nixPluginsPath}/feature-dev".source = "${claude-code-plugins}/plugins/feature-dev";
     "${nixPluginsPath}/ralph-wiggum".source = "${claude-code-plugins}/plugins/ralph-wiggum";
     "${nixPluginsPath}/code-review".source = "${claude-code-plugins}/plugins/code-review";
+    "${nixPluginsPath}/superpowers".source = "${superpowers}";
 
     # Claude Code custom commands
     ".claude/commands/remember.md".source = ../../config/claude-commands/remember.md;

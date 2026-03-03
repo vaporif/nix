@@ -1,22 +1,23 @@
-return {
-  'saghen/blink.pairs',
-  version = '*', -- (recommended) only required with prebuilt binaries
-
-  dependencies = 'saghen/blink.download',
-
-  opts = {
-    mappings = {
-      enabled = true,
-      pairs = {},
-      disabled_filetypes = {},
-    },
-    highlights = {
-      enabled = true,
-      groups = {
-        'BlinkPairsWarm1',
-        'BlinkPairsWarm2',
-      },
-    },
-    debug = false,
+require('lze').load {
+  {
+    'blink.pairs',
+    event = 'DeferredUIEnter',
+    after = function()
+      require('blink.pairs').setup {
+        mappings = {
+          enabled = true,
+          pairs = {},
+          disabled_filetypes = {},
+        },
+        highlights = {
+          enabled = true,
+          groups = {
+            'BlinkPairsWarm1',
+            'BlinkPairsWarm2',
+          },
+        },
+        debug = false,
+      }
+    end,
   },
 }

@@ -1,8 +1,2 @@
-return {
-  'vaporif/earthtone.nvim',
-  lazy = false,
-  priority = 1000,
-  config = function()
-    require('earthtone').setup { background = 'light' }
-  end,
-}
+-- earthtone.nvim is loaded eagerly by Nix (before INIT_MAIN)
+require('earthtone').setup { background = 'light' }

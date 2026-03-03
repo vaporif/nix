@@ -1,8 +1,11 @@
-return {
-  'MeanderingProgrammer/render-markdown.nvim',
-  dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' },
-  ft = 'markdown',
-  opts = {
-    latex = { enabled = false },
+require('lze').load {
+  {
+    'render-markdown.nvim',
+    ft = 'markdown',
+    after = function()
+      require('render-markdown').setup {
+        latex = { enabled = false },
+      }
+    end,
   },
 }

@@ -8,6 +8,7 @@
     ../../modules/nix.nix
     ../../modules/theme.nix
     ./hardware-configuration.nix
+    ./security.nix
   ];
 
   boot.loader.systemd-boot.enable = true;

@@ -214,6 +214,7 @@
           nixpkgs.config.allowUnfreePredicate = allowUnfreePredicate;
         }
         stylix.nixosModules.stylix
+        sops-nix.nixosModules.sops
         ./system/nixos
         home-manager.nixosModules.home-manager
         {

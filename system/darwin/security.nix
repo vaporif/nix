@@ -1,25 +1,7 @@
-{
-  lib,
-  user,
-  homeDir,
-  ...
-}: {
-  sops = {
-    defaultSopsFile = ../../secrets/secrets.yaml;
-    age = {
-      keyFile = "${homeDir}/.config/sops/age/key.txt";
-      sshKeyPaths = [];
-    };
-    gnupg.sshKeyPaths = [];
-    secrets =
-      lib.genAttrs
-      ["openrouter-key" "tavily-key" "youtube-key" "deepl-key" "hf-token-scan-injection" "ntfy-topic"]
-      (_: {
-        owner = user;
-        group = "staff";
-        mode = "0400";
-      });
-  };
+{...}: {
+  imports = [
+    ../../modules/sops.nix
+  ];
 
   networking.applicationFirewall = {
     enable = true;

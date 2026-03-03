@@ -1,6 +1,7 @@
 require('lze').load {
   {
     'trouble.nvim',
+    on_require = 'trouble',
     cmd = 'Trouble',
     keys = {
       { '<leader>bt', '<cmd>Trouble todo toggle<cr>', desc = '[t]odo' },

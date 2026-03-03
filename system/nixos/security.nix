@@ -23,4 +23,17 @@
     "net.ipv4.tcp_syncookies" = true;
     "kernel.unprivileged_bpf_disabled" = 1;
   };
+
+  services.openssh = {
+    enable = true;
+    settings = {
+      PasswordAuthentication = false;
+      PermitRootLogin = "no";
+      KbdInteractiveAuthentication = false;
+      X11Forwarding = false;
+      MaxAuthTries = 3;
+      ClientAliveInterval = 300;
+      ClientAliveCountMax = 2;
+    };
+  };
 }

@@ -4,8 +4,14 @@ _: {
     dock = {
       autohide = true;
       autohide-delay = 0.2;
+      autohide-time-modifier = 0.4;
       mru-spaces = false;
       wvous-br-corner = 1;
+      show-recents = false;
+      tilesize = 48;
+      minimize-to-application = true;
+      launchanim = false;
+      expose-animation-duration = 0.1;
     };
     finder = {
       AppleShowAllExtensions = true;
@@ -13,11 +19,18 @@ _: {
       AppleShowAllFiles = true;
       NewWindowTarget = "Home";
       ShowPathbar = true;
+      ShowStatusBar = true;
+      FXDefaultSearchScope = "SCcf";
+      FXEnableExtensionChangeWarning = false;
+      FXRemoveOldTrashItems = true;
+      _FXShowPosixPathInTitle = true;
+      CreateDesktop = false;
     };
     NSGlobalDomain = {
       "com.apple.sound.beep.volume" = 0.0;
       AppleShowAllFiles = true;
       AppleShowScrollBars = "WhenScrolling";
+      NSAutomaticWindowAnimationsEnabled = false;
     };
     screencapture.location = "~/screenshots";
     screensaver = {
@@ -71,6 +84,13 @@ _: {
       "com.apple.desktopservices" = {
         DSDontWriteNetworkStores = true;
         DSDontWriteUSBStores = true;
+      };
+
+      # --- Animations ---
+      "com.apple.dock" = {
+        expose-animation-duration = 0.1;
+        springboard-show-duration = 0.1;
+        springboard-hide-duration = 0.1;
       };
 
       # --- Miscellaneous privacy ---

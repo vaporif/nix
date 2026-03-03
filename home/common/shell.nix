@@ -51,6 +51,14 @@
     atuin = {
       enable = true;
       enableZshIntegration = true;
+      settings = {
+        search_mode = "fuzzy";
+        filter_mode = "host";
+        style = "compact";
+        show_preview = true;
+        max_preview_height = 4;
+        enter_accept = true;
+      };
     };
 
     fzf = {

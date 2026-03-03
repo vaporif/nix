@@ -3,7 +3,6 @@
   config,
   user,
   homeDir,
-  sharedLspPackages,
   yamb-yazi,
   mcpServersConfig,
   claude-code-plugins,
@@ -12,8 +11,6 @@
   earthtone-nvim,
   parry,
   userConfig,
-  wrappers,
-  vim-tidal-lua,
   ...
 }: let
   claudePluginsBase = ".claude/plugins/marketplaces";

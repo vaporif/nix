@@ -11,7 +11,7 @@
     pkgs.vimUtils.buildVimPlugin {
       pname = name;
       version = "unstable";
-      src = src;
+      inherit src;
     };
 in {
   imports = [
@@ -22,16 +22,32 @@ in {
     })
   ];
 
-  wrappers.neovim = {pkgs, ...}: {
-    enable = true;
-
-    settings = {
-      config_directory = ../../config/nvim;
-      info_plugin_name = "nix-info";
-    };
-
+  wrappers.neovim = {
+    config,
+    pkgs,
+    lib,
+    wlib,
+    ...
+  }: {
     config = {
+      enable = true;
+
+      settings = {
+        config_directory = ../../config/nvim;
+        info_plugin_name = "nix-info";
+      };
+
       info.configPath = userConfig.configPath;
+
+      specMods = _: {
+        options.extraPackages = lib.mkOption {
+          type = lib.types.listOf wlib.types.stringable;
+          default = [];
+          description = "extra packages to add to PATH";
+        };
+      };
+
+      extraPackages = config.specCollect (acc: v: acc ++ (v.extraPackages or [])) [];
 
       specs = {
         # ── Eager: loaded before init.lua ──────────────────────

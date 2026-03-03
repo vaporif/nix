@@ -13,6 +13,7 @@
 
   # Privacy-focused DNS resolvers (Quad9 + Cloudflare)
   networking.dns = ["9.9.9.9" "1.1.1.1"];
+  # List active interfaces: networksetup -listallnetworkservices
   networking.knownNetworkServices = ["Wi-Fi" "Thunderbolt Bridge"];
 
   security = {
@@ -40,6 +41,7 @@
   '';
 
   # Disable Handoff (activity broadcasting to nearby Apple devices)
+  # Uses activation script because these are -currentHost defaults (ByHost domain)
   system.activationScripts.disableHandoff.text = ''
     defaults -currentHost write com.apple.coreservices.useractivityd ActivityAdvertisingAllowed -bool false
     defaults -currentHost write com.apple.coreservices.useractivityd ActivityReceivingAllowed -bool false

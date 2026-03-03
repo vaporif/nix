@@ -173,6 +173,7 @@ in {
         feature.experimental = true;
         help.autocorrect = "prompt";
         branch.sort = "committerdate";
+        url."git@github.com:".insteadOf = "https://github.com/";
         interactive.diffFilter = "delta --color-only";
         delta = {
           navigate = true;

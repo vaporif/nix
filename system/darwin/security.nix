@@ -13,7 +13,7 @@
     gnupg.sshKeyPaths = [];
     secrets =
       lib.genAttrs
-      ["openrouter-key" "tavily-key" "youtube-key" "deepl-key" "hf-token-scan-injection"]
+      ["openrouter-key" "tavily-key" "youtube-key" "deepl-key" "hf-token-scan-injection" "ntfy-topic"]
       (_: {
         owner = user;
         group = "staff";

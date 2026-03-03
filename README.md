@@ -10,7 +10,8 @@ Cross-platform personal configuration using [nix-darwin](https://github.com/nix-
 ### Prerequisites
 
 1. Install [Nix](https://determinate.systems/nix-installer/)
-2. **macOS only**: Install [Homebrew](https://brew.sh/) and [nix-darwin](https://github.com/nix-darwin/nix-darwin)
+2. **macOS only**: Install [Homebrew](https://brew.sh/)
+3. **NixOS**: A working NixOS installation
 
 ### Quick Setup
 
@@ -26,8 +27,18 @@ cd ~/.config/nix-darwin
 # Create and encrypt your secrets
 sops secrets/secrets.yaml
 
-# Apply configuration (auto-detects platform)
-just switch
+# First-time build (just/nom/nvd aren't available yet)
+# macOS:
+hostname=$(nix eval --raw -f hosts/macbook.nix hostname)
+nix build ".#darwinConfigurations.${hostname}.system"
+sudo ./result/activate
+
+# NixOS:
+hostname=$(nix eval --raw -f hosts/nixos.nix hostname)
+nix build ".#nixosConfigurations.${hostname}.config.system.build.toplevel"
+sudo ./result/bin/switch-to-configuration switch
+
+# After first build, use: just switch
 
 # Allow direnv for default devshell
 direnv allow ~
@@ -59,10 +70,19 @@ If you prefer manual configuration:
    sops -e -i secrets/secrets.yaml
    ```
 
-5. **Apply**:
+5. **Apply** (first time — `just` isn't installed yet):
    ```shell
-   just switch
+   # macOS:
+   hostname=$(nix eval --raw -f hosts/macbook.nix hostname)
+   nix build ".#darwinConfigurations.${hostname}.system"
+   sudo ./result/activate
+
+   # NixOS:
+   hostname=$(nix eval --raw -f hosts/nixos.nix hostname)
+   nix build ".#nixosConfigurations.${hostname}.config.system.build.toplevel"
+   sudo ./result/bin/switch-to-configuration switch
    ```
+   After first build, use `just switch` for all subsequent changes.
 
 ## Working with SOPS Secrets
 

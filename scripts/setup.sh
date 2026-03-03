@@ -63,7 +63,7 @@ else
     else
         NIX_SYSTEM="x86_64-linux"
     fi
-    HOST_FILE="hosts/ubuntu-desktop.nix"
+    HOST_FILE="hosts/nixos.nix"
     PLATFORM="Linux"
 fi
 
@@ -109,7 +109,7 @@ CONFIG_PATH=$(pwd)
 # Update hosts/common.nix
 cat > hosts/common.nix << EOF
 # Shared config inherited by all hosts.
-# Per-host files (macbook.nix, ubuntu-desktop.nix) import this and add:
+# Per-host files (macbook.nix, nixos.nix) import this and add:
 #   hostname  (string)  - machine name, used as flake output key
 #   system    (string)  - "aarch64-darwin" | "aarch64-linux" | "x86_64-darwin" | "x86_64-linux"
 #   configPath (string) - absolute path to this repo on the host
@@ -218,7 +218,7 @@ echo -e "${YELLOW}Updating hostname references...${NC}"
 if [[ "${OS}" == "Darwin" ]]; then
     sed -i "s/MacBook-Pro/${HOSTNAME}/g" .github/workflows/check.yml 2>/dev/null || true
 else
-    sed -i "s/vaporif-bubuntu/${HOSTNAME}/g" .github/workflows/check.yml 2>/dev/null || true
+    sed -i "s/nixos/${HOSTNAME}/g" .github/workflows/check.yml 2>/dev/null || true
 fi
 
 echo ""

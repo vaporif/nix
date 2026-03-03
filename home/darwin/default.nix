@@ -25,7 +25,7 @@ in {
       IdentityAgent = "${homeDir}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";
     };
     matchBlocks = lib.optionalAttrs ((userConfig.utmHostIp or "") != "") {
-      "utm-ubuntu" = {
+      "utm-nixos" = {
         hostname = userConfig.utmHostIp;
         inherit (userConfig) user;
         forwardAgent = true;

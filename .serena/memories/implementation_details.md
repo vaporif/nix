@@ -10,16 +10,19 @@ This document describes what's implemented in this nix-darwin configuration and 
 ```
 hosts/common.nix (shared user config: user, git, cachix, timezone)
 hosts/macbook.nix (macOS host: hostname, system, configPath, sshAgent)
-hosts/ubuntu-desktop.nix (Linux host: hostname, system, configPath, sshAgent)
+hosts/nixos.nix (Linux host: hostname, system, configPath, sshAgent)
 flake.nix (entry point, mkHostContext builds per-host derived values)
 ├── Inputs: nixpkgs, nix-darwin, home-manager, sops-nix, stylix, mcp-servers-nix
 ├── Overlays: localPackages (custom packages), allowUnfreePredicate
 │
-├── system/ (Darwin system configuration)
-│   ├── default.nix - Nix settings, system defaults, skhd hotkeys
-│   ├── theme.nix - Stylix theming (Everforest Light)
-│   ├── security.nix - SOPS secrets, firewall, TouchID
-│   └── homebrew.nix - Homebrew casks
+├── system/
+│   ├── darwin/ (macOS system configuration)
+│   │   ├── default.nix - Nix settings, system defaults, skhd hotkeys
+│   │   ├── theme.nix - Stylix theming
+│   │   ├── security.nix - SOPS secrets, firewall, TouchID
+│   │   └── homebrew.nix - Homebrew casks
+│   └── nixos/ (NixOS system configuration)
+│       └── default.nix - openssh, user account, nix settings
 │
 ├── home/ (Home Manager user configuration)
 │   ├── default.nix - Programs: git, neovim, wezterm, gh, lazygit

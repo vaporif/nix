@@ -78,7 +78,7 @@ switch:
         nvd diff /run/current-system ./result
         sudo ./result/activate
     else
-        hostname=$(nix eval --raw -f hosts/ubuntu-desktop.nix hostname)
+        hostname=$(nix eval --raw -f hosts/nixos.nix hostname)
         nom build ".#homeConfigurations.$(whoami)@${hostname}.activationPackage"
         nvd diff ~/.local/state/nix/profiles/home-manager ./result
         ./result/activate
@@ -101,8 +101,8 @@ cache:
         cachix_name=$(nix eval --raw -f hosts/macbook.nix cachix.name)
         nix build ".#darwinConfigurations.${hostname}.system"
     else
-        hostname=$(nix eval --raw -f hosts/ubuntu-desktop.nix hostname)
-        cachix_name=$(nix eval --raw -f hosts/ubuntu-desktop.nix cachix.name)
+        hostname=$(nix eval --raw -f hosts/nixos.nix hostname)
+        cachix_name=$(nix eval --raw -f hosts/nixos.nix cachix.name)
         nix build ".#homeConfigurations.$(whoami)@${hostname}.activationPackage"
     fi
     [[ -n "$cachix_name" ]] && cachix push "$cachix_name" ./result

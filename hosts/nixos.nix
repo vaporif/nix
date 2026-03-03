@@ -3,7 +3,7 @@ let
 in
   common
   // {
-    hostname = "vaporif-bubuntu";
+    hostname = "nixos";
     system = "aarch64-linux";
     configPath = "/home/vaporif/.config/nix";
     sshAgent = "";

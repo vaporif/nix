@@ -1,5 +1,5 @@
 {
-  description = "Nix darwin flake";
+  description = "Cross-platform Nix configuration";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -46,10 +46,6 @@
       url = "github:vaporif/parry";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixgl = {
-      url = "github:nix-community/nixGL";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs = {
@@ -67,12 +63,11 @@
     earthtone-nvim,
     nix-devshells,
     parry,
-    nixgl,
     ...
   }: let
     hosts = {
       macbook = import ./hosts/macbook.nix;
-      ubuntu-desktop = import ./hosts/ubuntu-desktop.nix;
+      nixos = import ./hosts/nixos.nix;
     };
 
     supportedSystems = ["aarch64-darwin" "aarch64-linux"];
@@ -134,7 +129,7 @@
       };
 
     darwinCtx = mkHostContext hosts.macbook;
-    linuxCtx = mkHostContext hosts.ubuntu-desktop;
+    linuxCtx = mkHostContext hosts.nixos;
   in {
     formatter = nixpkgs.lib.genAttrs supportedSystems (
       system:
@@ -200,24 +195,48 @@
       ];
     };
 
-    homeConfigurations."${hosts.ubuntu-desktop.user}@${hosts.ubuntu-desktop.hostname}" = home-manager.lib.homeManagerConfiguration {
-      inherit (linuxCtx) pkgs;
-      extraSpecialArgs = {
-        inherit (hosts.ubuntu-desktop) user;
-        inherit (linuxCtx) homeDir sharedLspPackages mcpServersConfig fzf-git-sh-package mcp-nixos-package;
-        inherit yamb-yazi claude-code-plugins nixgl nix-devshells earthtone-nvim parry;
-        userConfig = hosts.ubuntu-desktop;
+    nixosConfigurations.${hosts.nixos.hostname} = nixpkgs.lib.nixosSystem {
+      inherit (hosts.nixos) system;
+      specialArgs = {
+        inherit (hosts.nixos) user;
+        inherit (linuxCtx) homeDir mcpServersConfig;
+        inherit earthtone-nvim;
+        userConfig = hosts.nixos;
       };
       modules = [
         {
           nixpkgs.overlays = [localPackages];
           nixpkgs.config.allowUnfreePredicate = allowUnfreePredicate;
         }
-        stylix.homeModules.stylix
-        parry.homeManagerModules.default
-        ./modules/theme.nix
-        ./home/common
-        ./home/linux
+        stylix.nixosModules.stylix
+        ./system/nixos
+        home-manager.nixosModules.home-manager
+        {
+          users.users.${hosts.nixos.user} = {
+            name = hosts.nixos.user;
+            home = linuxCtx.homeDir;
+            isNormalUser = true;
+            extraGroups = ["wheel"];
+          };
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            extraSpecialArgs = {
+              inherit (hosts.nixos) user;
+              inherit (linuxCtx) homeDir sharedLspPackages mcpServersConfig fzf-git-sh-package mcp-nixos-package;
+              inherit yamb-yazi claude-code-plugins nix-devshells earthtone-nvim parry;
+              userConfig = hosts.nixos;
+            };
+            users.${hosts.nixos.user} = {
+              imports = [
+                ./home/common
+                ./home/linux
+                parry.homeManagerModules.default
+              ];
+            };
+            backupFileExtension = "backup";
+          };
+        }
       ];
     };
   };

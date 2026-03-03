@@ -37,7 +37,6 @@ _: {
       "gimp"
       "syncthing-app"
       "utm"
-      # "rectangle"
     ];
   };
 }

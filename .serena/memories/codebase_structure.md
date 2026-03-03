@@ -6,18 +6,19 @@ flake.nix (Entry point, outputs for both platforms)
     ├── hosts/
     │       ├── common.nix (Shared: user, git, cachix, timezone)
     │       ├── macbook.nix (macOS host overrides)
-    │       └── ubuntu-desktop.nix (Linux host overrides)
+    │       └── nixos.nix (Linux host overrides)
     ├── modules/
     │       ├── nix.nix (Shared Nix settings)
     │       └── theme.nix (Shared Stylix theme, Linux standalone)
     ├── overlays/ (Custom package overlays)
     ├── pkgs/ (Custom package definitions)
     ├── system/
-    │       └── darwin/ (macOS-only: nix-darwin system config, skhd, SOPS, firewall)
+    │       ├── darwin/ (macOS-only: nix-darwin system config, skhd, SOPS, firewall)
+    │       └── nixos/ (NixOS system config: openssh, user account)
     └── home/
             ├── common/ (Shared home-manager: shell, packages, editor, etc.)
             ├── darwin/ (macOS-specific home config)
-            └── linux/ (Linux-specific: nixGL wrapping, systemd services)
+            └── linux/ (NixOS-specific: systemd services)
 ```
 
 ## Directory Structure
@@ -42,7 +43,7 @@ flake.nix (Entry point, outputs for both platforms)
 |------|---------|
 | `common.nix` | Shared user config (name, git, cachix, timezone) |
 | `macbook.nix` | macOS host overrides (hostname, system, configPath, sshAgent) |
-| `ubuntu-desktop.nix` | Linux host overrides |
+| `nixos.nix` | Linux host overrides |
 
 ### `modules/` - Shared Modules
 | File | Purpose |
@@ -60,7 +61,7 @@ flake.nix (Entry point, outputs for both platforms)
 |------|---------|
 | `common/` | Shared config (shell, packages, editor, programs) |
 | `darwin/` | macOS-specific home config |
-| `linux/` | Linux-specific: nixGL wrapping, systemd services (Qdrant) |
+| `linux/` | NixOS-specific: systemd services (Qdrant) |
 
 ### `config/` - Application Configurations (Dotfiles)
 | Path | Purpose |

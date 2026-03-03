@@ -1,9 +1,9 @@
 # Nix-darwin + home-manager
 
-Cross-platform personal configuration using [nix-darwin](https://github.com/nix-darwin/nix-darwin) and [home-manager](https://github.com/nix-community/home-manager).
+Cross-platform personal configuration using [nix-darwin](https://github.com/nix-darwin/nix-darwin), [NixOS](https://nixos.org), and [home-manager](https://github.com/nix-community/home-manager).
 
 - **macOS** — nix-darwin system config + Home Manager
-- **Linux** — Home Manager standalone (with [nixGL](https://github.com/nix-community/nixGL) for GPU apps)
+- **NixOS** — NixOS system config + Home Manager (shell-only VM)
 
 ## Forking This Config
 
@@ -254,9 +254,9 @@ mpv, OrbStack, Proton Drive, ProtonVPN, qBittorrent, Secretive, Signal, SuperCol
 Syncthing, Tor Browser, UTM, WezTerm (nightly), Zoom,
 BlackHole (2ch + 16ch), Cardinal
 
-### Linux-Specific
+### NixOS-Specific
 
-LibreWolf and WezTerm (both nixGL-wrapped for GPU support)
+Shell-only VM — no GUI packages (wezterm, librewolf available on macOS only)
 
 ### Neovim Plugins
 
@@ -334,17 +334,18 @@ flake.nix                    # Entry point, inputs, outputs for both platforms
 ├── hosts/
 │   ├── common.nix           # Shared user config (name, git, cachix, timezone)
 │   ├── macbook.nix          # macOS host overrides
-│   └── ubuntu-desktop.nix   # Linux host overrides
+│   └── nixos.nix            # NixOS host overrides
 ├── modules/
 │   ├── nix.nix              # Shared Nix settings
-│   └── theme.nix            # Shared Stylix theme (Linux standalone)
+│   └── theme.nix            # Shared Stylix theme
 ├── mcp.nix                  # MCP server configuration (shared)
 ├── system/
-│   └── darwin/              # macOS-only: nix-darwin system config, skhd, SOPS, firewall
+│   ├── darwin/              # macOS-only: nix-darwin system config, skhd, SOPS, firewall
+│   └── nixos/               # NixOS system config: openssh, user account
 ├── home/
 │   ├── common/              # Shared home-manager config (shell, packages, editor, etc.)
 │   ├── darwin/              # macOS-specific home config
-│   └── linux/               # Linux-specific home config (nixGL, systemd services)
+│   └── linux/               # NixOS-specific home config (systemd services)
 ├── overlays/                # Custom package overlays
 ├── pkgs/                    # Custom package definitions
 ├── config/                  # Dotfiles (nvim, wezterm, yazi, karabiner, etc.)

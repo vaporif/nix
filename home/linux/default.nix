@@ -1,22 +1,9 @@
-# Linux-specific home-manager config
+# Linux-specific home-manager config (NixOS shell-only)
 {
-  config,
   pkgs,
   homeDir,
-  mcpServersConfig,
-  nixgl,
   ...
 }: {
-  targets.genericLinux = {
-    enable = true;
-    nixGL.packages = nixgl.packages;
-    nixGL.defaultWrapper = "mesa";
-  };
-
-  stylix.targets = {
-    gtk.enable = true;
-    kde.enable = false;
-  };
   systemd.user.services.qdrant = {
     Unit = {
       Description = "Qdrant vector database";
@@ -32,35 +19,4 @@
       WantedBy = ["default.target"];
     };
   };
-
-  home.file.".config/Claude/claude_desktop_config.json".source = mcpServersConfig;
-
-  programs.wezterm.package = config.lib.nixGL.wrap pkgs.wezterm;
-
-  home.packages = [
-    (config.lib.nixGL.wrap pkgs.librewolf)
-  ];
-
-  # TODO: app shortcuts (equivalent of skhd on macOS)
-  # swhkd is not in nixpkgs yet; using GNOME dconf keybindings instead
-  # Customize bindings when machine is set up
-  # TODO: re-enable once GNOME session stability is confirmed
-  # dconf.settings = {
-  #   "org/gnome/settings-daemon/plugins/media-keys" = {
-  #     custom-keybindings = [
-  #       "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
-  #       "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
-  #     ];
-  #   };
-  #   "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
-  #     name = "Terminal";
-  #     command = "wezterm";
-  #     binding = "<Super>t";
-  #   };
-  #   "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
-  #     name = "Browser";
-  #     command = "librewolf";
-  #     binding = "<Super>r";
-  #   };
-  # };
 }

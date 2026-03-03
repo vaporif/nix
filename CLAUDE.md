@@ -4,11 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-Cross-platform Nix configuration for macOS (nix-darwin) and Linux (Home Manager standalone). Manages system and user configurations declaratively using Nix.
+Cross-platform Nix configuration for macOS (nix-darwin) and NixOS. Manages system and user configurations declaratively using Nix.
 
 **Hosts:**
 - `macbook` — macOS (aarch64-darwin), uses `darwinConfigurations` with nix-darwin + Home Manager
-- `ubuntu-desktop` — Linux (aarch64-linux), uses `homeConfigurations` with Home Manager standalone
+- `nixos` — NixOS (aarch64-linux), uses `nixosConfigurations` with NixOS + Home Manager (shell-only VM)
 
 ## Essential Commands
 
@@ -89,18 +89,20 @@ flake.nix                    # Entry point; mkHostContext deduplicates per-host 
 ├── hosts/
 │   ├── common.nix           # Shared user config (name, git, cachix, timezone)
 │   ├── macbook.nix          # macOS host overrides (hostname, system, configPath, sshAgent, utmHostIp)
-│   └── ubuntu-desktop.nix   # Linux host overrides (hostname, system, configPath, sshAgent)
+│   └── nixos.nix            # NixOS host overrides (hostname, system, configPath, sshAgent)
 ├── modules/
 │   ├── nix.nix              # Shared Nix settings
-│   └── theme.nix            # Shared Stylix theme (Linux standalone)
+│   └── theme.nix            # Shared Stylix theme
 ├── mcp.nix                  # MCP server configuration (shared)
 ├── system/
-│   └── darwin/
-│       └── default.nix      # macOS-only: nix-darwin system config, skhd, SOPS, firewall
+│   ├── darwin/
+│   │   └── default.nix      # macOS-only: nix-darwin system config, skhd, SOPS, firewall
+│   └── nixos/
+│       └── default.nix      # NixOS system config: openssh, user account
 ├── home/
 │   ├── common/              # Shared home-manager config (shell, packages, editor, etc.)
 │   ├── darwin/              # macOS-specific home config (Secretive, Claude desktop, UTM SSH)
-│   └── linux/               # Linux-specific home config (nixGL, systemd services, genericLinux)
+│   └── linux/               # NixOS-specific home config (systemd services)
 ├── scripts/
 │   ├── setup.sh             # Cross-platform bootstrap script for forks
 │   ├── git-bare-clone.sh    # Bare clone with main worktree
@@ -212,18 +214,16 @@ Custom git subcommands installed via `writeShellScriptBin` in `home/packages.nix
 - **`serenaSrc`**: Shared patched serena source, extracted to avoid duplication
 - **`allowUnfreePredicate`**: Shared unfree allowlist (`spacetimedb`, `claude-code`), applied to both platforms
 - **Host assertions**: `mkHostContext` validates required fields (`user`, `hostname`, `system`, `configPath`) at eval time
-- **LibreWolf**: Auto-updated via `scripts/install-librewolf.sh` on macOS; nixGL-wrapped on Linux
-- **nixGL**: GPU apps on Linux (wezterm, librewolf) are wrapped with `config.lib.nixGL.wrap` (mesa driver)
-- **Qdrant**: Runs as launchd agent on macOS (`home/darwin/`), systemd user service on Linux (`home/linux/`)
+- **LibreWolf**: Auto-updated via `scripts/install-librewolf.sh` on macOS
+- **Qdrant**: Runs as launchd agent on macOS (`home/darwin/`), systemd user service on NixOS (`home/linux/`)
 - **External devshell**: Rust tools via `~/.envrc` (run `direnv allow ~` after setup)
-- **Theme**: Stylix manages colors/fonts across all apps; Linux uses `modules/theme.nix` as standalone module
+- **Theme**: Stylix manages colors/fonts across all apps; shared via `modules/theme.nix`
 
 ## Common Tasks
 
 ### Adding a Package
-1. Edit `home/common/` for shared packages, `home/darwin/` or `home/linux/` for platform-specific, or `system/darwin/` for macOS system packages
-2. Linux GPU apps must be wrapped with `config.lib.nixGL.wrap`
-3. Run `just switch`
+1. Edit `home/common/` for shared packages, `home/darwin/` or `home/linux/` for platform-specific, or `system/darwin/`/`system/nixos/` for system packages
+2. Run `just switch`
 
 ### Adding/Updating Secrets
 1. Edit: `sops secrets/secrets.yaml`

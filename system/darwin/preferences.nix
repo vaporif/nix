@@ -32,7 +32,7 @@ _: {
     };
     LaunchServices.LSQuarantine = true;
     smb = {
-      NetBIOSName = "macbook";
+      NetBIOSName = "localhost";
       ServerDescription = "";
     };
     menuExtraClock = {

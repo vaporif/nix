@@ -66,6 +66,17 @@
         "matcher": "mcp__serena__write_memory"
       }
     ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "command": "~/.claude/hooks/notify.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [

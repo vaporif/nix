@@ -50,7 +50,7 @@ in {
       extraPackages = config.specCollect (acc: v: acc ++ (v.extraPackages or [])) [];
 
       specs = {
-        # ── Eager: loaded before init.lua ──────────────────────
+        # eager: loaded before init.lua
         colorscheme = {
           data = mkPlugin "earthtone.nvim" earthtone-nvim;
           lazy = false;
@@ -63,7 +63,7 @@ in {
           before = ["INIT_MAIN"];
         };
 
-        # ── Eager: loaded at startup ──────────────────────────
+        # eager: loaded at startup
         snacks = {
           data = pkgs.vimPlugins.snacks-nvim;
           lazy = false;
@@ -79,7 +79,7 @@ in {
           lazy = false;
         };
 
-        # ── Lazy: completion ──────────────────────────────────
+        # lazy: completion
         completion = {
           lazy = true;
           data = with pkgs.vimPlugins; [
@@ -89,7 +89,7 @@ in {
           ];
         };
 
-        # ── Lazy: treesitter ──────────────────────────────────
+        # lazy: treesitter
         treesitter = {
           lazy = true;
           collateGrammars = true;
@@ -100,7 +100,7 @@ in {
           ];
         };
 
-        # ── Lazy: LSP & formatting ────────────────────────────
+        # lazy: LSP & formatting
         lsp = {
           lazy = true;
           data = with pkgs.vimPlugins; [
@@ -109,7 +109,7 @@ in {
           ];
         };
 
-        # ── Lazy: navigation ──────────────────────────────────
+        # lazy: navigation
         navigation = {
           lazy = true;
           data = with pkgs.vimPlugins; [
@@ -123,7 +123,7 @@ in {
           ];
         };
 
-        # ── Lazy: git ─────────────────────────────────────────
+        # lazy: git
         git = {
           lazy = true;
           data = with pkgs.vimPlugins; [
@@ -132,7 +132,7 @@ in {
           ];
         };
 
-        # ── Lazy: UI ──────────────────────────────────────────
+        # lazy: UI
         ui = {
           lazy = true;
           data = with pkgs.vimPlugins; [
@@ -144,7 +144,7 @@ in {
           ];
         };
 
-        # ── Lazy: debug ──────────────────────────────────────
+        # lazy: debug
         debug = {
           lazy = true;
           data = with pkgs.vimPlugins; [
@@ -155,7 +155,7 @@ in {
           ];
         };
 
-        # ── Lazy: testing ─────────────────────────────────────
+        # lazy: testing
         testing = {
           lazy = true;
           data = with pkgs.vimPlugins; [
@@ -167,7 +167,7 @@ in {
           ];
         };
 
-        # ── Lazy: language-specific ───────────────────────────
+        # lazy: language-specific
         go = {
           lazy = true;
           data = with pkgs.vimPlugins; [
@@ -181,7 +181,7 @@ in {
           data = mkPlugin "vim-tidal-lua" vim-tidal-lua;
         };
 
-        # ── Lazy: utilities ───────────────────────────────────
+        # lazy: utilities
         utilities = {
           lazy = true;
           data = with pkgs.vimPlugins; [
@@ -202,7 +202,7 @@ in {
           ];
         };
 
-        # ── Tools (no plugin, just PATH) ─────────────────────
+        # tools: no plugin, just PATH
         tools = {
           data = null;
           extraPackages =

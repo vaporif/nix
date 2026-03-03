@@ -8,7 +8,6 @@ require('lze').load {
           pcall(vim.treesitter.start, args.buf)
         end,
       })
-      -- start treesitter for all existing buffers
       for _, buf in ipairs(vim.api.nvim_list_bufs()) do
         if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].filetype ~= '' then
           pcall(vim.treesitter.start, buf)
@@ -23,58 +22,37 @@ require('lze').load {
         move = { set_jumps = true },
       }
 
-      local map = vim.keymap.set
-
       -- textobject selections
-      map({ 'x', 'o' }, 'af', function()
-        select.select_textobject('@function.outer', 'textobjects')
-      end, { desc = 'outer function' })
-      map({ 'x', 'o' }, 'if', function()
-        select.select_textobject('@function.inner', 'textobjects')
-      end, { desc = 'inner function' })
-      map({ 'x', 'o' }, 'ac', function()
-        select.select_textobject('@class.outer', 'textobjects')
-      end, { desc = 'outer class' })
-      map({ 'x', 'o' }, 'ic', function()
-        select.select_textobject('@class.inner', 'textobjects')
-      end, { desc = 'inner class' })
-      map({ 'x', 'o' }, 'aa', function()
-        select.select_textobject('@parameter.outer', 'textobjects')
-      end, { desc = 'outer parameter' })
-      map({ 'x', 'o' }, 'ia', function()
-        select.select_textobject('@parameter.inner', 'textobjects')
-      end, { desc = 'inner parameter' })
+      for _, m in ipairs {
+        { 'af', '@function.outer', 'outer function' },
+        { 'if', '@function.inner', 'inner function' },
+        { 'ac', '@class.outer', 'outer class' },
+        { 'ic', '@class.inner', 'inner class' },
+        { 'aa', '@parameter.outer', 'outer parameter' },
+        { 'ia', '@parameter.inner', 'inner parameter' },
+      } do
+        vim.keymap.set({ 'x', 'o' }, m[1], function()
+          select.select_textobject(m[2], 'textobjects')
+        end, { desc = m[3] })
+      end
 
       -- move to next/prev
-      map({ 'n', 'x', 'o' }, ']f', function()
-        move.goto_next_start('@function.outer', 'textobjects')
-      end, { desc = 'next function start' })
-      map({ 'n', 'x', 'o' }, ']c', function()
-        move.goto_next_start('@class.outer', 'textobjects')
-      end, { desc = 'next class start' })
-      map({ 'n', 'x', 'o' }, ']F', function()
-        move.goto_next_end('@function.outer', 'textobjects')
-      end, { desc = 'next function end' })
-      map({ 'n', 'x', 'o' }, ']C', function()
-        move.goto_next_end('@class.outer', 'textobjects')
-      end, { desc = 'next class end' })
-      map({ 'n', 'x', 'o' }, '[f', function()
-        move.goto_previous_start('@function.outer', 'textobjects')
-      end, { desc = 'prev function start' })
-      map({ 'n', 'x', 'o' }, '[c', function()
-        move.goto_previous_start('@class.outer', 'textobjects')
-      end, { desc = 'prev class start' })
-      map({ 'n', 'x', 'o' }, '[F', function()
-        move.goto_previous_end('@function.outer', 'textobjects')
-      end, { desc = 'prev function end' })
-      map({ 'n', 'x', 'o' }, '[C', function()
-        move.goto_previous_end('@class.outer', 'textobjects')
-      end, { desc = 'prev class end' })
+      for _, m in ipairs {
+        { ']f', 'goto_next_start', '@function.outer', 'next function start' },
+        { ']c', 'goto_next_start', '@class.outer', 'next class start' },
+        { ']F', 'goto_next_end', '@function.outer', 'next function end' },
+        { ']C', 'goto_next_end', '@class.outer', 'next class end' },
+        { '[f', 'goto_previous_start', '@function.outer', 'prev function start' },
+        { '[c', 'goto_previous_start', '@class.outer', 'prev class start' },
+        { '[F', 'goto_previous_end', '@function.outer', 'prev function end' },
+        { '[C', 'goto_previous_end', '@class.outer', 'prev class end' },
+      } do
+        vim.keymap.set({ 'n', 'x', 'o' }, m[1], function()
+          move[m[2]](m[3], 'textobjects')
+        end, { desc = m[4] })
+      end
     end,
   },
-}
-
-require('lze').load {
   {
     'nvim-treesitter-context',
     event = 'DeferredUIEnter',

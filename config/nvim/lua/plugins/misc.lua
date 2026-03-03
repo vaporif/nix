@@ -1,8 +1,5 @@
 require('lze').load {
   { 'nvim-lspconfig', event = 'BufReadPre' },
-}
-
-require('lze').load {
   {
     'guess-indent.nvim',
     event = 'BufReadPre',
@@ -10,14 +7,6 @@ require('lze').load {
       require('guess-indent').setup {}
     end,
   },
-}
-
--- auto-session: loaded eagerly by Nix, just call setup
-require('auto-session').setup {
-  suppressed_dirs = { '~/', '~/Repos', '~/Downloads', '/' },
-}
-
-require('lze').load {
   {
     'noice.nvim',
     event = 'DeferredUIEnter',
@@ -33,9 +22,6 @@ require('lze').load {
       }
     end,
   },
-}
-
-require('lze').load {
   {
     'marks.nvim',
     event = 'DeferredUIEnter',
@@ -43,9 +29,6 @@ require('lze').load {
       require('marks').setup {}
     end,
   },
-}
-
-require('lze').load {
   {
     'todo-comments.nvim',
     event = 'DeferredUIEnter',
@@ -53,9 +36,6 @@ require('lze').load {
       require('todo-comments').setup { signs = false }
     end,
   },
-}
-
-require('lze').load {
   {
     'nvim-early-retirement',
     event = 'DeferredUIEnter',
@@ -63,16 +43,10 @@ require('lze').load {
       require('early-retirement').setup {}
     end,
   },
-}
-
-require('lze').load {
   {
     'diffview.nvim',
     cmd = { 'DiffviewOpen', 'DiffviewFileHistory', 'DiffviewClose' },
   },
-}
-
-require('lze').load {
   {
     'crates.nvim',
     ft = 'toml',
@@ -80,9 +54,6 @@ require('lze').load {
       require('crates').setup {}
     end,
   },
-}
-
-require('lze').load {
   {
     'lazydev.nvim',
     ft = 'lua',
@@ -94,9 +65,6 @@ require('lze').load {
       }
     end,
   },
-}
-
-require('lze').load {
   {
     'baleia.nvim',
     keys = {
@@ -110,9 +78,6 @@ require('lze').load {
       vim.keymap.set('n', '<leader>cA', '<cmd>BaleiaColorize<cr>', { desc = '[A]nsi colorize' })
     end,
   },
-}
-
-require('lze').load {
   {
     'vim-tidal-lua',
     ft = 'tidal',
@@ -124,4 +89,9 @@ require('lze').load {
       }
     end,
   },
+}
+
+-- auto-session: loaded eagerly by Nix, just call setup
+require('auto-session').setup {
+  suppressed_dirs = { '~/', '~/Repos', '~/Downloads', '/' },
 }

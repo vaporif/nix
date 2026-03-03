@@ -1,5 +1,3 @@
--- Library/dependency plugins loaded on require via lze
--- These sit in opt/ and are loaded when their modules are first required
 require('lze').load {
   { 'plenary.nvim', on_require = { 'plenary', 'luassert', 'say' } },
   { 'nvim-nio', on_require = 'nio' },

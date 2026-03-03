@@ -14,7 +14,7 @@
     Defaults timestamp_timeout=1
   '';
 
-  environment.umask = "077";
+  security.loginDefs.settings.UMASK = "077";
 
   boot.kernel.sysctl = {
     "net.ipv4.conf.all.forwarding" = false;

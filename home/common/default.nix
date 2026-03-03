@@ -256,6 +256,13 @@ in {
     "${nixPluginsPath}/code-review".source = patchPlugin "code-review";
     "${nixPluginsPath}/superpowers".source = "${superpowers}";
 
+    # Claude Code rules (language-specific, auto-activate by glob)
+    ".claude/rules/nix.md".source = ../../config/claude-rules/nix.md;
+    ".claude/rules/lua.md".source = ../../config/claude-rules/lua.md;
+    ".claude/rules/rust.md".source = ../../config/claude-rules/rust.md;
+    ".claude/rules/go.md".source = ../../config/claude-rules/go.md;
+    ".claude/rules/solidity.md".source = ../../config/claude-rules/solidity.md;
+
     # Claude Code custom commands
     ".claude/commands/remember.md".source = ../../config/claude-commands/remember.md;
     ".claude/commands/recall.md".source = ../../config/claude-commands/recall.md;

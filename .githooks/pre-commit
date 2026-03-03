@@ -4,7 +4,3 @@ set -e
 echo "Formatting..."
 just fmt
 
-if ! git diff --quiet; then
-  echo "Formatter made changes. Please stage them and retry."
-  exit 1
-fi

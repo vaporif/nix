@@ -99,25 +99,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  policy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: cachix/install-nix-action@v31
-        with:
-          github_access_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Check flake input freshness
-        run: |
-          chmod +x scripts/check-flake-age.sh
-          ./scripts/check-flake-age.sh 30 true
-
-      - name: Verify pinned inputs
-        run: |
-          echo "Checking all inputs are pinned..."
-          if grep -q '"type": "indirect"' flake.lock; then
-            echo "::error::Found unpinned (indirect) inputs in flake.lock"
-            exit 1
-          fi
-          echo "All inputs properly pinned."

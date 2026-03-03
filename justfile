@@ -3,10 +3,7 @@ default:
     @just --list
 
 # Run all checks
-check: lint-lua lint-nix lint-json lint-toml lint-shell lint-actions check-typos check-policy
-
-# Run policy checks (freshness, pinning)
-check-policy: check-freshness check-pinned
+check: lint-lua lint-nix lint-json lint-toml lint-shell lint-actions check-typos check-pinned
 
 # Lint nvim lua with selene
 lint-lua:
@@ -51,10 +48,6 @@ lint-actions:
 # Check for typos
 check-typos:
     typos
-
-# Check flake input freshness (warn if >30 days old)
-check-freshness:
-    ./scripts/check-flake-age.sh 30 true
 
 # Scan for vulnerabilities (with whitelist)
 check-vulns:

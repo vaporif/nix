@@ -1,12 +1,6 @@
 # Machine-specific hardware config (UUIDs, kernel modules, filesystems).
 # Forkers: regenerate with `nixos-generate-config` and replace this file.
-{
-  config,
-  lib,
-  pkgs,
-  modulesPath,
-  ...
-}: {
+{modulesPath, ...}: {
   imports = [
     (modulesPath + "/profiles/qemu-guest.nix")
   ];

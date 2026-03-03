@@ -537,6 +537,8 @@
         "stylix": "stylix",
         "superpowers": "superpowers",
         "vim-tidal": "vim-tidal",
+        "vim-tidal-lua": "vim-tidal-lua",
+        "wrappers": "wrappers",
         "yamb-yazi": "yamb-yazi"
       }
     },
@@ -753,6 +755,42 @@
         "owner": "tidalcycles",
         "repo": "vim-tidal",
         "rev": "e440fe5bdfe07f805e21e6872099685d38e8b761",
+        "type": "github"
+      }
+    },
+    "vim-tidal-lua": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1771913671,
+        "narHash": "sha256-DOxzMqri/SmsLEyH5HYsI2M1b3JSzz3zt/EsVBR/LoI=",
+        "owner": "vaporif",
+        "repo": "vim-tidal-lua",
+        "rev": "1a89b1665c2ec4ba02c62de41cae480b13101609",
+        "type": "github"
+      },
+      "original": {
+        "owner": "vaporif",
+        "repo": "vim-tidal-lua",
+        "type": "github"
+      }
+    },
+    "wrappers": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1772473820,
+        "narHash": "sha256-G3tmoAZ6JIfp3byXbRHxQswxz0+I4UBtGn7jVeCvyJk=",
+        "owner": "BirdeeHub",
+        "repo": "nix-wrapper-modules",
+        "rev": "abb9fe7e20adcf3c854c03d101e5d18c6d49457c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "BirdeeHub",
+        "repo": "nix-wrapper-modules",
         "type": "github"
       }
     },

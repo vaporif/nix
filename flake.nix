@@ -50,6 +50,14 @@
       url = "github:vaporif/parry";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    wrappers = {
+      url = "github:BirdeeHub/nix-wrapper-modules";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    vim-tidal-lua = {
+      url = "github:vaporif/vim-tidal-lua";
+      flake = false;
+    };
   };
 
   outputs = {
@@ -68,6 +76,8 @@
     earthtone-nvim,
     nix-devshells,
     parry,
+    wrappers,
+    vim-tidal-lua,
     ...
   }: let
     hosts = {
@@ -184,7 +194,7 @@
             extraSpecialArgs = {
               inherit (hosts.macbook) user;
               inherit (darwinCtx) homeDir sharedLspPackages mcpServersConfig fzf-git-sh-package mcp-nixos-package;
-              inherit yamb-yazi claude-code-plugins superpowers nix-devshells earthtone-nvim parry;
+              inherit yamb-yazi claude-code-plugins superpowers nix-devshells earthtone-nvim parry wrappers vim-tidal-lua;
               userConfig = hosts.macbook;
             };
             users.${hosts.macbook.user} = {
@@ -230,7 +240,7 @@
             extraSpecialArgs = {
               inherit (hosts.nixos) user;
               inherit (linuxCtx) homeDir sharedLspPackages mcpServersConfig fzf-git-sh-package mcp-nixos-package;
-              inherit yamb-yazi claude-code-plugins superpowers nix-devshells earthtone-nvim parry;
+              inherit yamb-yazi claude-code-plugins superpowers nix-devshells earthtone-nvim parry wrappers vim-tidal-lua;
               userConfig = hosts.nixos;
             };
             users.${hosts.nixos.user} = {

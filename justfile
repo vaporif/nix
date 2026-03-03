@@ -79,9 +79,9 @@ switch:
         sudo ./result/activate
     else
         hostname=$(nix eval --raw -f hosts/nixos.nix hostname)
-        nom build ".#homeConfigurations.$(whoami)@${hostname}.activationPackage"
-        nvd diff ~/.local/state/nix/profiles/home-manager ./result
-        ./result/activate
+        nom build ".#nixosConfigurations.${hostname}.config.system.build.toplevel"
+        nvd diff /run/current-system ./result
+        sudo ./result/bin/switch-to-configuration switch
     fi
 
 # Update neovim plugins
@@ -103,6 +103,6 @@ cache:
     else
         hostname=$(nix eval --raw -f hosts/nixos.nix hostname)
         cachix_name=$(nix eval --raw -f hosts/nixos.nix cachix.name)
-        nix build ".#homeConfigurations.$(whoami)@${hostname}.activationPackage"
+        nix build ".#nixosConfigurations.${hostname}.config.system.build.toplevel"
     fi
     [[ -n "$cachix_name" ]] && cachix push "$cachix_name" ./result

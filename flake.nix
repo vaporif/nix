@@ -34,7 +34,7 @@
       flake = false;
     };
     claude-code-plugins = {
-      url = "github:anthropics/claude-code/d213a74fc8e3b6efded52729196e0c2d4c3abb3e";
+      url = "github:anthropics/claude-plugins-official";
       flake = false;
     };
     superpowers = {

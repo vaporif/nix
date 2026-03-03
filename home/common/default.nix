@@ -17,6 +17,14 @@
   claudePluginsBase = ".claude/plugins/marketplaces";
   nixPluginsPath = "${claudePluginsBase}/nix-plugins";
 
+  # Patch #!/bin/bash → #!/usr/bin/env bash for NixOS compatibility
+  patchPlugin = name:
+    pkgs.runCommand "claude-plugin-${name}" {} ''
+      cp -r ${claude-code-plugins}/plugins/${name} $out
+      chmod -R u+w $out
+      find $out -name '*.sh' -exec sed -i '1s|#!/bin/bash|#!/usr/bin/env bash|' {} \;
+    '';
+
   # Marketplace manifest for Nix-managed plugins
   nixPluginsMarketplace = builtins.toJSON {
     "$schema" = "https://anthropic.com/claude-code/marketplace.schema.json";
@@ -33,9 +41,9 @@
         source = "./feature-dev";
       }
       {
-        name = "ralph-wiggum";
+        name = "ralph-loop";
         description = "Iterative development loops";
-        source = "./ralph-wiggum";
+        source = "./ralph-loop";
       }
       {
         name = "code-review";
@@ -242,9 +250,9 @@ in {
 
     # Claude Code plugins - create a local marketplace structure
     "${nixPluginsPath}/.claude-plugin/marketplace.json".text = nixPluginsMarketplace;
-    "${nixPluginsPath}/feature-dev".source = "${claude-code-plugins}/plugins/feature-dev";
-    "${nixPluginsPath}/ralph-wiggum".source = "${claude-code-plugins}/plugins/ralph-wiggum";
-    "${nixPluginsPath}/code-review".source = "${claude-code-plugins}/plugins/code-review";
+    "${nixPluginsPath}/feature-dev".source = patchPlugin "feature-dev";
+    "${nixPluginsPath}/ralph-loop".source = patchPlugin "ralph-loop";
+    "${nixPluginsPath}/code-review".source = patchPlugin "code-review";
     "${nixPluginsPath}/superpowers".source = "${superpowers}";
 
     # Claude Code custom commands

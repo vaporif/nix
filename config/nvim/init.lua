@@ -17,7 +17,8 @@ end
 require 'core'
 
 -- Load all plugin configs (each file calls require("lze").load)
-local plugin_dir = vim.fn.stdpath 'config' .. '/lua/plugins'
+local config_dir = _G.nixInfo and _G.nixInfo.settings and _G.nixInfo.settings.config_directory or vim.fn.stdpath 'config'
+local plugin_dir = config_dir .. '/lua/plugins'
 local files = vim.fn.glob(plugin_dir .. '/*.lua', false, true)
 table.sort(files)
 for _, file in ipairs(files) do

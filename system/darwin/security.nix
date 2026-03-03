@@ -11,8 +11,8 @@
       allowSigned = true;
       allowSignedApp = false;
     };
-    # Privacy-focused DNS resolvers (Quad9 + Cloudflare)
-    dns = ["9.9.9.9" "1.1.1.1"];
+    # Privacy-focused DNS resolvers (Quad9)
+    dns = ["9.9.9.9" "149.112.112.112"];
     # List active interfaces: networksetup -listallnetworkservices
     knownNetworkServices = ["Wi-Fi" "Thunderbolt Bridge"];
   };

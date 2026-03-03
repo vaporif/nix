@@ -30,6 +30,11 @@ _: {
       SHOWFULLNAME = true;
       DisableConsoleAccess = true;
     };
+    LaunchServices.LSQuarantine = true;
+    smb = {
+      NetBIOSName = "macbook";
+      ServerDescription = "";
+    };
     menuExtraClock = {
       Show24Hour = true;
       ShowDayOfMonth = true;

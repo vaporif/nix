@@ -28,6 +28,8 @@
     defaults.CustomSystemPreferences = {
       # Disable captive portal detection (prevents phoning captive.apple.com on every network change)
       "com.apple.captive.control".Active = false;
+      # Prevent FileVault from being disabled
+      "com.apple.MCX".dontAllowFDEDisable = true;
       # Enforce automatic security updates
       "com.apple.SoftwareUpdate" = {
         AutomaticCheckEnabled = true;

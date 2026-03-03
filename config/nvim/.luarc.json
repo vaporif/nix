@@ -6,9 +6,6 @@
     "globals": ["vim"]
   },
   "workspace": {
-    "library": [
-      "~/.local/share/nvim-runtime/lua"
-    ],
     "checkThirdParty": false
   }
 }

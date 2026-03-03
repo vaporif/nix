@@ -280,6 +280,10 @@ in {
       source = ../../config/claude/hooks/auto-recall.sh;
       executable = true;
     };
+    ".claude/hooks/notify.sh" = {
+      source = ../../config/claude/hooks/notify.sh;
+      executable = true;
+    };
     ".claude/plugins/known_marketplaces.json".text = knownMarketplaces;
 
     # SSH signing key (public key from Secretive)

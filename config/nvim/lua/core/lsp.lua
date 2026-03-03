@@ -30,6 +30,9 @@ vim.lsp.config.lua_ls = {
       completion = {
         callSnippet = 'Replace',
       },
+      workspace = {
+        library = { vim.env.VIMRUNTIME .. '/lua' },
+      },
     },
   },
 }

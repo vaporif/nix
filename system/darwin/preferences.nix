@@ -1,5 +1,5 @@
 # macOS system.defaults (dock, finder, NSGlobalDomain, etc.)
-{user, ...}: {
+{...}: {
   system.defaults = {
     dock = {
       autohide = true;
@@ -20,11 +20,15 @@
       AppleShowScrollBars = "WhenScrolling";
     };
     screencapture.location = "~/screenshots";
-    screensaver.askForPasswordDelay = 0;
+    screensaver = {
+      askForPassword = true;
+      askForPasswordDelay = 0;
+    };
     loginwindow = {
       GuestEnabled = false;
       LoginwindowText = "derp durp";
-      autoLoginUser = user;
+      SHOWFULLNAME = true;
+      DisableConsoleAccess = true;
     };
     menuExtraClock = {
       Show24Hour = true;

@@ -1,10 +1,12 @@
 {
   pkgs,
-  user,
-  userConfig,
+  config,
   ...
-}: {
+}: let
+  cfg = config.custom;
+in {
   imports = [
+    ../../modules/options.nix
     ../../modules/nix.nix
     ../../modules/theme.nix
     ./preferences.nix
@@ -14,21 +16,20 @@
     ./homebrew.nix
   ];
 
-  time.timeZone = userConfig.timezone;
+  time.timeZone = cfg.timezone;
 
   environment.systemPackages = with pkgs; [
     age
     libressl
   ];
 
-  # Address the Determinate error
   nix.enable = false;
 
   system = {
     configurationRevision = null;
     stateVersion = 6;
-    primaryUser = user;
+    primaryUser = cfg.user;
   };
 
-  nixpkgs.hostPlatform = userConfig.system;
+  nixpkgs.hostPlatform = cfg.system;
 }

@@ -66,12 +66,12 @@ switch:
     #!/usr/bin/env bash
     set -euo pipefail
     if [[ "$(uname)" == "Darwin" ]]; then
-        hostname=$(nix eval --raw -f hosts/macbook.nix hostname)
+        hostname=$(scutil --get LocalHostName)
         nom build ".#darwinConfigurations.${hostname}.system"
         [[ -e /run/current-system ]] && nvd diff /run/current-system ./result || true
         sudo ./result/activate
     else
-        hostname=$(nix eval --raw -f hosts/nixos.nix hostname)
+        hostname=$(hostname -s)
         nom build ".#nixosConfigurations.${hostname}.config.system.build.toplevel"
         [[ -e /run/current-system ]] && nvd diff /run/current-system ./result || true
         sudo ./result/bin/switch-to-configuration switch
@@ -90,12 +90,12 @@ cache:
     #!/usr/bin/env bash
     set -euo pipefail
     if [[ "$(uname)" == "Darwin" ]]; then
-        hostname=$(nix eval --raw -f hosts/macbook.nix hostname)
-        cachix_name=$(nix eval --raw -f hosts/macbook.nix cachix.name)
+        hostname=$(scutil --get LocalHostName)
+        cachix_name=$(nix eval --raw ".#darwinConfigurations.${hostname}.config.custom.cachix.name")
         nix build ".#darwinConfigurations.${hostname}.system"
     else
-        hostname=$(nix eval --raw -f hosts/nixos.nix hostname)
-        cachix_name=$(nix eval --raw -f hosts/nixos.nix cachix.name)
+        hostname=$(hostname -s)
+        cachix_name=$(nix eval --raw ".#nixosConfigurations.${hostname}.config.custom.cachix.name")
         nix build ".#nixosConfigurations.${hostname}.config.system.build.toplevel"
     fi
     [[ -n "$cachix_name" ]] && cachix push "$cachix_name" ./result

@@ -1,8 +1,10 @@
 {
   pkgs,
-  fzf-git-sh-package,
+  inputs,
   ...
-}: {
+}: let
+  fzf-git-sh-package = pkgs.writeShellScriptBin "fzf-git.sh" (builtins.readFile inputs.fzf-git-sh);
+in {
   programs = {
     ripgrep.enable = true;
     fd.enable = true;
@@ -157,7 +159,6 @@
         e = "nvim";
         x = "exit";
         mcp-scan = "${pkgs.uv}/bin/uv tool run mcp-scan@latest";
-        # Project templates
         init-solana = "nix flake init -t github:vaporif/nix-devshells#solana";
         init-rust = "nix flake init -t github:vaporif/nix-devshells#rust";
       };

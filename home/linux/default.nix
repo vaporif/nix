@@ -1,9 +1,10 @@
-# Linux-specific home-manager config (NixOS shell-only)
 {
   pkgs,
-  homeDir,
+  config,
   ...
-}: {
+}: let
+  homeDir = config.home.homeDirectory;
+in {
   systemd.user.services.qdrant = {
     Unit = {
       Description = "Qdrant vector database";

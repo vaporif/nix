@@ -1,10 +1,9 @@
-let
-  common = import ./common.nix;
-in
-  common
-  // {
+{config, ...}: {
+  imports = [./common.nix];
+  custom = {
     hostname = "nixos";
     system = "aarch64-linux";
-    configPath = "/home/vaporif/.config/nix";
+    configPath = "/home/${config.custom.user}/.config/nix";
     sshAgent = "";
-  }
+  };
+}

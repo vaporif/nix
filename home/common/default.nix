@@ -1,89 +1,28 @@
 {
-  pkgs,
   config,
-  user,
-  homeDir,
-  yamb-yazi,
-  mcpServersConfig,
-  claude-code-plugins,
-  superpowers,
-  nix-devshells,
-  earthtone-nvim,
-  parry,
-  userConfig,
+  inputs,
+  pkgs,
   ...
 }: let
-  claudePluginsBase = ".claude/plugins/marketplaces";
-  nixPluginsPath = "${claudePluginsBase}/nix-plugins";
-
-  # Patch #!/bin/bash → #!/usr/bin/env bash for NixOS compatibility
-  patchPlugin = name:
-    pkgs.runCommand "claude-plugin-${name}" {} ''
-      cp -r ${claude-code-plugins}/plugins/${name} $out
-      chmod -R u+w $out
-      find $out -name '*.sh' -exec sed -i '1s|#!/bin/bash|#!/usr/bin/env bash|' {} \;
-    '';
-
-  # Marketplace manifest for Nix-managed plugins
-  nixPluginsMarketplace = builtins.toJSON {
-    "$schema" = "https://anthropic.com/claude-code/marketplace.schema.json";
-    name = "nix-plugins";
-    description = "Nix-managed Claude Code plugins";
-    owner = {
-      name = "nix";
-      email = "nix@localhost";
-    };
-    plugins = [
-      {
-        name = "feature-dev";
-        description = "Comprehensive feature development workflow";
-        source = "./feature-dev";
-      }
-      {
-        name = "ralph-loop";
-        description = "Iterative development loops";
-        source = "./ralph-loop";
-      }
-      {
-        name = "code-review";
-        description = "Multi-agent PR code review";
-        source = "./code-review";
-      }
-      {
-        name = "superpowers";
-        description = "Core skills: TDD, debugging, collaboration patterns";
-        source = "./superpowers";
-      }
-    ];
-  };
-
-  # Register marketplaces (preserving claude-plugins-official + adding nix-plugins)
-  knownMarketplaces = builtins.toJSON {
-    "claude-plugins-official" = {
-      source = {
-        source = "github";
-        repo = "anthropics/claude-plugins-official";
-      };
-      installLocation = "${config.home.homeDirectory}/${claudePluginsBase}/claude-plugins-official";
-      lastUpdated = "2025-01-01T00:00:00.000Z";
-    };
-    "nix-plugins" = {
-      source = {
-        source = "directory";
-        path = "${config.home.homeDirectory}/${nixPluginsPath}";
-      };
-      installLocation = "${config.home.homeDirectory}/${nixPluginsPath}";
-      lastUpdated = "2025-01-01T00:00:00.000Z";
-    };
-  };
+  cfg = config.custom;
+  homeDir =
+    if pkgs.stdenv.isDarwin
+    then "/Users/${cfg.user}"
+    else "/home/${cfg.user}";
 in {
   imports = [
+    ../../modules/options.nix
+    ./claude.nix
+    ./git.nix
+    ./ssh.nix
+    ./mcp.nix
+    ./qdrant.nix
+    ./xdg.nix
     ./packages.nix
     ./shell.nix
     ./neovim.nix
   ];
 
-  # Disable manual generation to avoid builtins.toFile warning (home-manager#7935)
   manual = {
     manpages.enable = false;
     html.enable = false;
@@ -92,7 +31,7 @@ in {
 
   home = {
     homeDirectory = homeDir;
-    username = user;
+    username = cfg.user;
     stateVersion = "24.05";
     sessionPath = [
       "$HOME/.cargo/bin"
@@ -102,204 +41,22 @@ in {
       EDITOR = "nvim";
       VISUAL = "nvim";
     };
+    file = {
+      ".envrc".text = ''
+        use flake "github:vaporif/nix-devshells/${inputs.nix-devshells.rev}"
+      '';
+      ".librewolf/librewolf.overrides.cfg".source = ../../config/librewolf/librewolf.overrides.cfg;
+    };
   };
 
   programs = {
     home-manager.enable = true;
 
-    gh = {
-      enable = true;
-      extensions = [pkgs.gh-dash];
-      settings.aliases = {
-        co = "pr checkout";
-        pv = "pr view --web";
-        pl = "pr list";
-        ps = "pr status";
-        pm = "pr merge";
-        d = "dash";
-      };
-    };
-    lazygit = {
-      enable = true;
-      settings = {
-        gui.nerdFontsVersion = "3";
-        git.pull.mode = "ff-only";
-        git.pagers = [
-          {
-            applyToPager = "diff";
-            pager = "delta --paging=never";
-            colorArg = "always";
-          }
-        ];
-      };
-    };
-
-    wezterm = {
-      enable = true;
-      enableZshIntegration = true;
-      # @configPath@ placeholder in init.lua is replaced with userConfig.configPath at build time
-      extraConfig = builtins.replaceStrings ["@configPath@"] [userConfig.configPath] (builtins.readFile ../../config/wezterm/init.lua);
-    };
-
-    git = {
-      enable = true;
-      ignores = [".direnv" ".serena" ".claude" "CLAUDE.md" ".serena.bak" ".claude.bak" ".envrc.bak" ".parry-guard.redb" "CLAUDE.md.bak"];
-      settings = {
-        user = {
-          inherit (userConfig.git) name email;
-        };
-        core = {
-          editor = "nvim";
-          pager = "delta";
-        };
-        alias = {
-          co = "checkout";
-          cob = "checkout -b";
-          discard = "reset HEAD --hard";
-          fp = "fetch --all --prune";
-          bclone = "!git-bare-clone";
-        };
-        pull.ff = "only";
-        push.autoSetupRemote = true;
-        gui.encoding = "utf-8";
-        merge.conflictstyle = "diff3";
-        init.defaultBranch = "main";
-        init.defaultRefFormat = "files";
-        rebase.autosquash = true;
-        rebase.autostash = true;
-        commit.verbose = true;
-        diff.external = "difft";
-        diff.algorithm = "histogram";
-        feature.experimental = true;
-        help.autocorrect = "prompt";
-        branch.sort = "committerdate";
-        url."git@github.com:".insteadOf = "https://github.com/";
-        interactive.diffFilter = "delta --color-only";
-        delta = {
-          navigate = true;
-          syntax-theme = "gruvbox-light";
-          line-numbers = true;
-        };
-      };
-      signing = {
-        key = "${homeDir}/.ssh/signing_key.pub";
-        signByDefault = userConfig.git.signingKey != "";
-        format = "ssh";
-      };
-      # Note: "gpg.ssh" is git's config namespace for SSH signing, not GPG
-      settings.gpg.ssh.allowedSignersFile = "${homeDir}/.ssh/allowed_signers";
-      maintenance.enable = true;
-    };
-
     parry = {
       enable = true;
-      package = parry.packages.${pkgs.stdenv.hostPlatform.system}.onnx;
+      package = inputs.parry.packages.${pkgs.system}.onnx;
       hfTokenFile = "/run/secrets/hf-token-scan-injection";
-      ignorePaths = ["${homeDir}/Repos/parry" userConfig.configPath];
+      ignorePaths = ["${homeDir}/Repos/parry" cfg.configPath "${homeDir}/Repos/mcp-server-qdrant"];
     };
-
-    ssh = {
-      enable = true;
-      enableDefaultConfig = false;
-      extraOptionOverrides = {
-        StrictHostKeyChecking = "ask";
-        HashKnownHosts = "yes";
-        KexAlgorithms = "curve25519-sha256,curve25519-sha256@libssh.org";
-        HostKeyAlgorithms = "ssh-ed25519,sk-ssh-ed25519@openssh.com";
-        Ciphers = "aes256-gcm@openssh.com,chacha20-poly1305@openssh.com";
-        MACs = "hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com";
-      };
-      matchBlocks."*" = {
-        addKeysToAgent = "yes";
-        serverAliveInterval = 60;
-        serverAliveCountMax = 3;
-      };
-    };
-  };
-
-  home.file = {
-    ".envrc".text = ''
-      use flake "github:vaporif/nix-devshells/${nix-devshells.rev}"
-    '';
-    # Qdrant config - localhost only
-    ".qdrant/config.yaml".text = ''
-      service:
-        host: 127.0.0.1
-        http_port: 6333
-        grpc_port: 6334
-      storage:
-        storage_path: ${homeDir}/.qdrant/storage
-        snapshots_path: ${homeDir}/.qdrant/snapshots
-      telemetry_disabled: true
-    '';
-    ".librewolf/librewolf.overrides.cfg" = {
-      source = ../../config/librewolf/librewolf.overrides.cfg;
-    };
-    "${config.xdg.configHome}/mcphub/servers.json".source = mcpServersConfig;
-
-    # Claude Code plugins - create a local marketplace structure
-    "${nixPluginsPath}/.claude-plugin/marketplace.json".text = nixPluginsMarketplace;
-    "${nixPluginsPath}/feature-dev".source = patchPlugin "feature-dev";
-    "${nixPluginsPath}/ralph-loop".source = patchPlugin "ralph-loop";
-    "${nixPluginsPath}/code-review".source = patchPlugin "code-review";
-    "${nixPluginsPath}/superpowers".source = "${superpowers}";
-
-    # Claude Code rules (language-specific, auto-activate by glob)
-    ".claude/rules/nix.md".source = ../../config/claude-rules/nix.md;
-    ".claude/rules/lua.md".source = ../../config/claude-rules/lua.md;
-    ".claude/rules/rust.md".source = ../../config/claude-rules/rust.md;
-    ".claude/rules/go.md".source = ../../config/claude-rules/go.md;
-    ".claude/rules/solidity.md".source = ../../config/claude-rules/solidity.md;
-
-    # Claude Code custom commands
-    ".claude/commands/remember.md".source = ../../config/claude-commands/remember.md;
-    ".claude/commands/recall.md".source = ../../config/claude-commands/recall.md;
-    ".claude/commands/cleanup.md".source = ../../config/claude-commands/cleanup.md;
-    ".claude/commands/commit.md".source = ../../config/claude-commands/commit.md;
-    ".claude/commands/pr.md".source = ../../config/claude-commands/pr.md;
-    ".claude/commands/docs.md".source = ../../config/claude-commands/docs.md;
-
-    ".claude/CLAUDE.md".source = ../../config/claude/CLAUDE.md;
-    ".claude/settings.json".text = builtins.replaceStrings ["@homeDir@"] [homeDir] (builtins.readFile ../../config/claude/settings.json);
-    # Nix-managed empty local settings to prevent manual permission escalation
-    ".claude/settings.local.json".text = builtins.toJSON {
-      permissions = {
-        allow = [];
-        deny = [];
-      };
-    };
-    ".claude/hooks/check-bash-command.sh" = {
-      source = ../../config/claude/hooks/check-bash-command.sh;
-      executable = true;
-    };
-    ".claude/hooks/auto-recall.sh" = {
-      source = ../../config/claude/hooks/auto-recall.sh;
-      executable = true;
-    };
-    ".claude/hooks/notify.sh" = {
-      source = ../../config/claude/hooks/notify.sh;
-      executable = true;
-    };
-    ".claude/plugins/known_marketplaces.json".text = knownMarketplaces;
-
-    # SSH signing key (public key from Secretive)
-    ".ssh/signing_key.pub".text = userConfig.git.signingKey + "\n";
-    # SSH allowed signers for git signature verification
-    ".ssh/allowed_signers".text = "${userConfig.git.email} ${userConfig.git.signingKey}\n";
-  };
-
-  xdg.configFile = {
-    "yazi/yazi.toml".source = ../../config/yazi/yazi.toml;
-    "yazi/init.lua".source = ../../config/yazi/init.lua;
-    # @configPath@ placeholder in keymap.toml is replaced with userConfig.configPath at build time
-    "yazi/keymap.toml".text = builtins.replaceStrings ["@configPath@"] [userConfig.configPath] (builtins.readFile ../../config/yazi/keymap.toml);
-    "yazi/plugins/yamb.yazi" = {
-      source = yamb-yazi;
-      recursive = true;
-    };
-    "tidal/Tidal.ghci".source = ../../config/tidal/Tidal.ghci;
-    "procs/config.toml".source = ../../config/procs/config.toml;
-    "wezterm/colors/earthtone-light.toml".source = "${earthtone-nvim}/extras/wezterm_light.toml";
-    "wezterm/colors/earthtone-dark.toml".source = "${earthtone-nvim}/extras/wezterm_dark.toml";
   };
 }

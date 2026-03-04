@@ -1,7 +1,7 @@
 {
   lib,
   pkgs,
-  mcp-nixos-package,
+  inputs,
   ...
 }: {
   home.packages = with pkgs;
@@ -59,7 +59,7 @@
       shfmt
 
       claude-code
-      mcp-nixos-package
+      inputs.mcp-nixos.packages.${pkgs.stdenv.hostPlatform.system}.default
       qdrant
       qdrant-web-ui
 

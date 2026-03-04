@@ -85,15 +85,15 @@ Uses `hyper` key (caps lock via Karabiner):
 ## Architecture
 
 ```
-flake.nix                    # Entry point; mkHostContext deduplicates per-host setup
+flake.nix                    # Entry point; thin wiring only (inputs + module composition)
 ├── hosts/
-│   ├── common.nix           # Shared user config (name, git, cachix, timezone)
-│   ├── macbook.nix          # macOS host overrides (hostname, system, configPath, sshAgent, utmHostIp)
-│   └── nixos.nix            # NixOS host overrides (hostname, system, configPath, sshAgent)
+│   ├── common.nix           # NixOS module: shared config.custom.* (user, git, cachix, timezone)
+│   ├── macbook.nix          # NixOS module: imports common.nix, sets hostname, system, configPath, sshAgent
+│   └── nixos.nix            # NixOS module: imports common.nix, sets hostname, system, configPath
 ├── modules/
+│   ├── options.nix          # Typed NixOS options (config.custom.*) — imported by system + HM
 │   ├── nix.nix              # Shared Nix settings
 │   └── theme.nix            # Shared Stylix theme
-├── mcp.nix                  # MCP server configuration (shared)
 ├── system/
 │   ├── darwin/
 │   │   └── default.nix      # macOS-only: nix-darwin system config, skhd, SOPS, firewall
@@ -102,7 +102,15 @@ flake.nix                    # Entry point; mkHostContext deduplicates per-host 
 │       └── hardware-configuration.nix  # Machine-specific (forkers: regenerate)
 ├── home/
 │   ├── common/
-│   │   ├── default.nix      # Shared home-manager config (shell, packages, editor, etc.)
+│   │   ├── default.nix      # Imports only (~20 lines)
+│   │   ├── claude.nix       # Claude Code plugins, settings, hooks, commands
+│   │   ├── git.nix          # Git config, lazygit, gh CLI
+│   │   ├── ssh.nix          # Hardened SSH client config
+│   │   ├── mcp.nix          # MCP server configuration (serena, filesystem, github, etc.)
+│   │   ├── qdrant.nix       # Qdrant config.yaml generation
+│   │   ├── xdg.nix          # xdg.configFile: wezterm, yazi, tidal, procs
+│   │   ├── packages.nix     # User packages (home.packages)
+│   │   ├── shell.nix        # Shell programs (zsh, fzf, atuin, etc.)
 │   │   └── neovim.nix       # Neovim via nix-wrapper-modules (plugins, LSPs, treesitter)
 │   ├── darwin/              # macOS-specific home config (Secretive, Claude desktop, UTM SSH)
 │   └── linux/               # NixOS-specific home config (systemd services)
@@ -124,31 +132,31 @@ Application configs live in `/config/` and are symlinked via `xdg.configFile`:
 
 ### Path Templating (`configPath`)
 
-Config files that reference the repo path use `userConfig.configPath` (from `hosts/<name>.nix`) instead of hardcoded paths. Two mechanisms:
+Config files that reference the repo path use `config.custom.configPath` instead of hardcoded paths. Two mechanisms:
 
-- **`@configPath@` placeholder** (wezterm, yazi): The config file contains a literal `@configPath@` string. In `home/common/default.nix`, `builtins.replaceStrings` substitutes it with `userConfig.configPath` at build time. Used when the file is loaded via `.text` or `extraConfig` (not `.source`).
+- **`@configPath@` placeholder** (wezterm, yazi): The config file contains a literal `@configPath@` string. In `home/common/xdg.nix`, `builtins.replaceStrings` substitutes it with `config.custom.configPath` at build time. Used when the file is loaded via `.text` or `extraConfig` (not `.source`).
 - **`nix-info` module** (nvim): nix-wrapper-modules injects a `nix-info` plugin with `config_directory` and other settings. `init.lua` reads `_G.nixInfo.settings.config_directory` to find the Lua config path at runtime.
 
 ## User-Specific Values
 
-Host configs in `hosts/`. Common values in `hosts/common.nix`, per-host overrides in `hosts/<name>.nix`. The `mkHostContext` helper in `flake.nix` builds all derived values (pkgs, LSP packages, serena, MCP config) from a host config, with assertions for required fields.
+Typed NixOS options defined in `modules/options.nix` under `config.custom.*`. Host configs in `hosts/` set these values — common values in `hosts/common.nix`, per-host overrides in `hosts/<name>.nix` (which imports `common.nix`). All modules consume `config.custom.*` directly. User/home paths in `flake.nix` also derive from `config.custom.user` — no hardcoded usernames.
 
-**Required fields** (in `common.nix` or host override):
-- `user` - username
+**Required options** (`config.custom.*`):
+- `user` - username (set in `common.nix`, propagates to all paths)
 - `hostname` - machine name
 - `system` - architecture (`aarch64-darwin` or `aarch64-linux`)
-- `configPath` - path to this repo on the host
-- `git.*` - git identity and signing key
-- `cachix.*` - binary cache config
+- `configPath` - path to this repo (derived from `config.custom.user`)
+- `git.{name,email,signingKey}` - git identity and signing key
+- `cachix.{name,publicKey}` - binary cache config
 - `timezone` - system timezone
 - `sshAgent` - SSH agent type (`"secretive"` on macOS, `""` on Linux)
 
-**Optional fields** (per-host):
-- `utmHostIp` - IP address of UTM VM for SSH config (macOS only)
+**Optional options** (per-host):
+- `utmHostIp` - IP address of UTM VM for SSH config (macOS only, `null` by default)
 
 ## MCP Servers
 
-Configured in `mcp.nix`. Available servers:
+Configured in `home/common/mcp.nix`. Available servers:
 - **serena** - Semantic code editing (recommended for this repo, has nixd + lua-language-server)
 - **filesystem** - File access
 - **github** - GitHub operations (uses `gh auth token`)
@@ -167,7 +175,7 @@ cat /run/secrets/<secret-name>         # Access at runtime
 
 Key: `~/.config/sops/age/key.txt`
 
-Managed secrets: `openrouter-key`, `tavily-key`, `youtube-key`, `deepl-key`, `hf-token-scan-injection`, `ntfy-topic`
+Managed secrets: `openrouter-key`, `tavily-key`, `youtube-key`, `deepl-key`, `hf-token-scan-injection`, `ntfy-topic`, `nix-access-tokens`
 
 ## Claude Code Plugins
 
@@ -179,7 +187,7 @@ Nix-managed plugins from `github:anthropics/claude-code`:
 
 ### Custom Commands
 
-Defined in `config/claude-commands/`, wired via `home/common/default.nix`:
+Defined in `config/claude-commands/`, wired via `home/common/claude.nix`:
 - `/cleanup` - Code review and cleanup of branch changes
 - `/commit` - Generate commit message from staged changes
 - `/docs` - Update all documentation (CLAUDE.md, Serena, auto memory, Qdrant)
@@ -216,11 +224,9 @@ Custom git subcommands installed via `writeShellScriptBin` in `home/packages.nix
 
 ## Key Implementation Details
 
-- **`mkHostContext`**: Helper in `flake.nix` that builds all per-host derived values (pkgs, LSP packages, serena patch, MCP config) from a host config attrset, eliminating duplication between darwin and linux outputs
-- **`sharedHomeManagerArgs`**: Shared flake inputs (`yamb-yazi`, `claude-code-plugins`, `superpowers`, etc.) extracted in `flake.nix` and merged via `//` into each host's `extraSpecialArgs`
-- **`serenaSrc`**: Shared patched serena source, extracted to avoid duplication
+- **`modules/options.nix`**: Typed NixOS options under `config.custom.*` — imported by both system modules and home-manager modules. Type system validates required fields at eval time
+- **`config.custom.*` pattern**: All modules consume `config.custom.user`, `config.custom.configPath`, etc. instead of `extraSpecialArgs` passthrough. `flake.nix` uses inline module functions to read `config.custom.user` for `users.users` and `home-manager.users`
 - **`allowUnfreePredicate`**: Shared unfree allowlist (`spacetimedb`, `claude-code`), applied to both platforms
-- **Host assertions**: `mkHostContext` validates required fields (`user`, `hostname`, `system`, `configPath`) at eval time
 - **Neovim**: Managed via `nix-wrapper-modules` (`home/common/neovim.nix`). Plugins installed by Nix into `start/` (eager) or `opt/` (lazy), loaded at runtime by `lze` plugin manager. Plugin configs in `config/nvim/lua/plugins/`. Update plugins via `nix flake update`
 - **lze patterns**: Uses `on_require` (load on module require), `dep_of` (load before another plugin), `on_plugin` (load after another plugin). Does NOT have a `dep` field. Library deps registered in `config/nvim/lua/plugins/deps.lua`
 - **LibreWolf**: Auto-updated via `scripts/install-librewolf.sh` on macOS
@@ -243,7 +249,7 @@ Custom git subcommands installed via `writeShellScriptBin` in `home/packages.nix
 3. Access at runtime: `/run/secrets/my-secret`
 
 ### Adding MCP Servers
-1. Edit `mcp.nix`
+1. Edit `home/common/mcp.nix`
 2. Follow existing patterns (see `programs` or `settings.servers`)
 3. Apply and restart Claude app
 

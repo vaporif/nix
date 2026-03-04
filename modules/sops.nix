@@ -1,10 +1,15 @@
 {
   pkgs,
   lib,
-  user,
-  homeDir,
+  config,
   ...
-}: {
+}: let
+  cfg = config.custom;
+  homeDir =
+    if pkgs.stdenv.isDarwin
+    then "/Users/${cfg.user}"
+    else "/home/${cfg.user}";
+in {
   sops = {
     defaultSopsFile = ../secrets/secrets.yaml;
     age = {
@@ -16,7 +21,7 @@
       lib.genAttrs
       ["openrouter-key" "tavily-key" "youtube-key" "deepl-key" "hf-token-scan-injection" "ntfy-topic" "nix-access-tokens"]
       (_: {
-        owner = user;
+        owner = cfg.user;
         group =
           if pkgs.stdenv.isDarwin
           then "staff"

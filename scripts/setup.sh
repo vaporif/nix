@@ -103,51 +103,44 @@ fi
 echo ""
 echo -e "${YELLOW}Updating hosts/common.nix and ${HOST_FILE}...${NC}"
 
-# Get current directory for configPath
-CONFIG_PATH=$(pwd)
-
-# Update hosts/common.nix
+# Update hosts/common.nix (NixOS module format)
 cat > hosts/common.nix << EOF
-# Shared config inherited by all hosts.
-# Per-host files (macbook.nix, nixos.nix) import this and add:
-#   hostname  (string)  - machine name, used as flake output key
-#   system    (string)  - "aarch64-darwin" | "aarch64-linux" | "x86_64-darwin" | "x86_64-linux"
-#   configPath (string) - absolute path to this repo on the host
-#   sshAgent  (string)  - "secretive" for macOS Secretive.app, "" otherwise
-# Optional per-host fields:
-#   utmHostIp (string)  - IP of UTM VM for SSH config (macOS only)
-{
-  user = "${USERNAME}";
-
-  git = {
-    name = "${GIT_NAME}";
-    email = "${GIT_EMAIL}";
-    signingKey = "";
+_: {
+  custom = {
+    user = "${USERNAME}";
+    git = {
+      name = "${GIT_NAME}";
+      email = "${GIT_EMAIL}";
+      signingKey = "";
+    };
+    # Cachix binary cache (optional)
+    # Create your own at https://app.cachix.org
+    cachix = {
+      name = "";
+      publicKey = "";
+    };
+    timezone = "${TIMEZONE}";
   };
-
-  # Cachix binary cache (optional, set to empty strings if not using)
-  # Create your own at https://app.cachix.org
-  cachix = {
-    name = "";
-    publicKey = "";
-  };
-
-  timezone = "${TIMEZONE}";
 }
 EOF
 
-# Update host-specific file
+# Update host-specific file (NixOS module format)
+# configPath uses config.custom.user so it stays in sync with username changes
+if [[ "${OS}" == "Darwin" ]]; then
+    CONFIG_PATH_EXPR="/Users/\${config.custom.user}/.config/nix-darwin"
+else
+    CONFIG_PATH_EXPR="/home/\${config.custom.user}/.config/nix"
+fi
 cat > "${HOST_FILE}" << EOF
-let
-  common = import ./common.nix;
-in
-  common
-  // {
+{config, ...}: {
+  imports = [./common.nix];
+  custom = {
     hostname = "${HOSTNAME}";
     system = "${NIX_SYSTEM}";
-    configPath = "${CONFIG_PATH}";
+    configPath = "${CONFIG_PATH_EXPR}";
     sshAgent = "${SSH_AGENT}";
-  }
+  };
+}
 EOF
 
 echo -e "${GREEN}hosts/common.nix and ${HOST_FILE} updated${NC}"
@@ -229,13 +222,11 @@ echo "  1. Review hosts/common.nix and ${HOST_FILE} for any additional changes"
 echo "  2. Create and encrypt secrets: sops secrets/secrets.yaml"
 if [[ "${OS}" == "Darwin" ]]; then
     echo "  3. First build (just isn't available yet):"
-    echo "       hostname=\$(nix eval --raw -f hosts/macbook.nix hostname)"
-    echo "       nix build \".#darwinConfigurations.\${hostname}.system\""
+    echo "       nix build \".#darwinConfigurations.${HOSTNAME}.system\""
     echo "       sudo ./result/activate"
 else
     echo "  3. First build (just isn't available yet):"
-    echo "       hostname=\$(nix eval --raw -f hosts/nixos.nix hostname)"
-    echo "       nix build \".#nixosConfigurations.\${hostname}.config.system.build.toplevel\""
+    echo "       nix build \".#nixosConfigurations.${HOSTNAME}.config.system.build.toplevel\""
     echo "       sudo ./result/bin/switch-to-configuration switch"
 fi
 echo "  4. After first build, use: just switch"

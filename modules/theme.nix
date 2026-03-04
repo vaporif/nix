@@ -1,9 +1,9 @@
 {
   pkgs,
-  earthtone-nvim,
+  inputs,
   ...
 }: let
-  schemeToml = builtins.fromTOML (builtins.readFile "${earthtone-nvim}/extras/base16-earthtone-light.toml");
+  schemeToml = builtins.fromTOML (builtins.readFile "${inputs.earthtone-nvim}/extras/base16-earthtone-light.toml");
 in {
   stylix = {
     enable = true;

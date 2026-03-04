@@ -68,36 +68,20 @@
     };
   };
 
-  outputs = {
+  outputs = inputs @ {
     nixpkgs,
     nix-darwin,
-    mcp-nixos,
     home-manager,
-    sops-nix,
-    fzf-git-sh,
-    yamb-yazi,
-    vim-tidal,
-    mcp-servers-nix,
     stylix,
-    claude-code-plugins,
-    superpowers,
-    earthtone-nvim,
-    nix-devshells,
+    sops-nix,
     parry,
-    wrappers,
-    vim-tidal-lua,
-    difftastic-nvim,
-    difftastic-src,
     ...
   }: let
-    hosts = {
-      macbook = import ./hosts/macbook.nix;
-      nixos = import ./hosts/nixos.nix;
-    };
-
     supportedSystems = ["aarch64-darwin" "aarch64-linux"];
 
-    localPackages = import ./overlays {inherit vim-tidal difftastic-src;};
+    localPackages = import ./overlays {
+      inherit (inputs) vim-tidal difftastic-src;
+    };
 
     mkPkgs = system:
       import nixpkgs {
@@ -105,64 +89,14 @@
         overlays = [localPackages];
       };
 
-    mkHomeDir = pkgs: user:
-      if pkgs.stdenv.isDarwin
-      then "/Users/${user}"
-      else "/home/${user}";
-
-    # TODO: revert once nix rs is fixed https://github.com/oraios/serena/issues/800
-    serenaSrc = {
-      owner = "vaporif";
-      repo = "serena";
-      rev = "16c2124feb9a3cc242cc1583e70cb13f75cb8603";
-      hash = "sha256-nozcdXVBHlHTtnXvJACC2M3Bat9oT1WEgVYP47SfrQ4=";
-    };
-
     allowUnfreePredicate = pkg:
       builtins.elem (nixpkgs.lib.getName pkg) [
         "spacetimedb"
         "claude-code"
       ];
-
-    # Build all derived values for a host
-    mkHostContext = hostConfig:
-      assert builtins.isString hostConfig.user;
-      assert builtins.isString hostConfig.hostname;
-      assert builtins.elem hostConfig.system ["aarch64-darwin" "aarch64-linux"];
-      assert builtins.isString hostConfig.configPath; let
-        pkgs = mkPkgs hostConfig.system;
-        homeDir = mkHomeDir pkgs hostConfig.user;
-        sharedLspPackages = with pkgs; [
-          lua-language-server
-          typescript-language-server
-          basedpyright
-          nixd
-        ];
-        serenaPatched = mcp-servers-nix.packages.${hostConfig.system}.serena.overrideAttrs (_: {
-          version = "0.1.4-unstable-2025-12-28";
-          src = pkgs.fetchFromGitHub serenaSrc;
-        });
-        fzf-git-sh-package = pkgs.writeShellScriptBin "fzf-git.sh" (builtins.readFile fzf-git-sh);
-        mcp-nixos-package = mcp-nixos.packages.${hostConfig.system}.default;
-        mcpConfig = import ./mcp.nix {
-          inherit pkgs homeDir serenaPatched mcp-servers-nix mcp-nixos-package sharedLspPackages;
-          userConfig = hostConfig;
-        };
-        mcpServersConfig = mcp-servers-nix.lib.mkConfig pkgs mcpConfig;
-      in {
-        inherit pkgs homeDir sharedLspPackages mcpServersConfig fzf-git-sh-package mcp-nixos-package;
-      };
-
-    sharedHomeManagerArgs = {
-      inherit yamb-yazi claude-code-plugins superpowers nix-devshells earthtone-nvim parry wrappers vim-tidal-lua difftastic-nvim;
-    };
-
-    darwinCtx = mkHostContext hosts.macbook;
-    linuxCtx = mkHostContext hosts.nixos;
   in {
     formatter = nixpkgs.lib.genAttrs supportedSystems (
-      system:
-        (mkPkgs system).alejandra
+      system: (mkPkgs system).alejandra
     );
 
     checks = nixpkgs.lib.genAttrs supportedSystems (system: let
@@ -180,95 +114,77 @@
         // chkPkgs.tidal_script.passthru.tests
       ));
 
-    darwinConfigurations.${hosts.macbook.hostname} = nix-darwin.lib.darwinSystem {
-      inherit (hosts.macbook) system;
-      specialArgs = {
-        inherit (hosts.macbook) user;
-        inherit (darwinCtx) homeDir mcpServersConfig;
-        inherit earthtone-nvim;
-        userConfig = hosts.macbook;
-      };
+    darwinConfigurations.MacBook-Pro = nix-darwin.lib.darwinSystem {
+      system = "aarch64-darwin";
+      specialArgs = {inherit inputs;};
       modules = [
         {
           nixpkgs.overlays = [localPackages];
           nixpkgs.config.allowUnfreePredicate = allowUnfreePredicate;
         }
+        ./hosts/macbook.nix
         stylix.darwinModules.stylix
         sops-nix.darwinModules.sops
         ./system/darwin
         home-manager.darwinModules.home-manager
-        {
-          users.users.${hosts.macbook.user} = {
-            name = hosts.macbook.user;
-            home = darwinCtx.homeDir;
+        ({config, ...}: let
+          cfg = config.custom;
+        in {
+          users.users.${cfg.user} = {
+            name = cfg.user;
+            home = "/Users/${cfg.user}";
           };
           home-manager = {
             useGlobalPkgs = true;
             useUserPackages = true;
-            extraSpecialArgs =
-              sharedHomeManagerArgs
-              // {
-                inherit (hosts.macbook) user;
-                inherit (darwinCtx) homeDir sharedLspPackages mcpServersConfig fzf-git-sh-package mcp-nixos-package;
-                userConfig = hosts.macbook;
-              };
-            users.${hosts.macbook.user} = {
-              imports = [
-                ./home/common
-                ./home/darwin
-                parry.homeManagerModules.default
-              ];
-            };
+            extraSpecialArgs = {inherit inputs;};
+            users.${cfg.user}.imports = [
+              ./hosts/macbook.nix
+              ./home/common
+              ./home/darwin
+              parry.homeManagerModules.default
+            ];
             backupFileExtension = "backup";
           };
-        }
+        })
       ];
     };
 
-    nixosConfigurations.${hosts.nixos.hostname} = nixpkgs.lib.nixosSystem {
-      inherit (hosts.nixos) system;
-      specialArgs = {
-        inherit (hosts.nixos) user;
-        inherit (linuxCtx) homeDir mcpServersConfig;
-        inherit earthtone-nvim;
-        userConfig = hosts.nixos;
-      };
+    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+      system = "aarch64-linux";
+      specialArgs = {inherit inputs;};
       modules = [
         {
           nixpkgs.overlays = [localPackages];
           nixpkgs.config.allowUnfreePredicate = allowUnfreePredicate;
         }
+        ./hosts/nixos.nix
         stylix.nixosModules.stylix
         sops-nix.nixosModules.sops
         ./system/nixos
         home-manager.nixosModules.home-manager
-        {
-          users.users.${hosts.nixos.user} = {
-            name = hosts.nixos.user;
-            home = linuxCtx.homeDir;
+        ({config, ...}: let
+          cfg = config.custom;
+        in {
+          users.users.${cfg.user} = {
+            name = cfg.user;
+            home = "/home/${cfg.user}";
             isNormalUser = true;
             extraGroups = ["wheel"];
           };
           home-manager = {
             useGlobalPkgs = true;
             useUserPackages = true;
-            extraSpecialArgs =
-              sharedHomeManagerArgs
-              // {
-                inherit (hosts.nixos) user;
-                inherit (linuxCtx) homeDir sharedLspPackages mcpServersConfig fzf-git-sh-package mcp-nixos-package;
-                userConfig = hosts.nixos;
-              };
-            users.${hosts.nixos.user} = {
-              imports = [
-                ./home/common
-                ./home/linux
-                parry.homeManagerModules.default
-              ];
-            };
+            extraSpecialArgs = {inherit inputs;};
+            users.${cfg.user}.imports = [
+              ./hosts/nixos.nix
+              ./home/common
+              ./home/linux
+              parry.homeManagerModules.default
+            ];
             backupFileExtension = "backup";
           };
-        }
+        })
       ];
     };
   };

@@ -1,5 +1,6 @@
-# Shared nix.settings across all hosts
-{userConfig, ...}: {
+{config, ...}: let
+  cfg = config.custom;
+in {
   nix.extraOptions = ''
     !include /run/secrets/nix-access-tokens
   '';
@@ -7,15 +8,15 @@
     experimental-features = "nix-command flakes";
     auto-optimise-store = true;
     max-jobs = "auto";
-    cores = 0; # use all cores
+    cores = 0;
     substituters =
       [
         "https://cache.nixos.org"
         "https://nix-community.cachix.org"
       ]
       ++ (
-        if userConfig.cachix.name != ""
-        then ["https://${userConfig.cachix.name}.cachix.org"]
+        if cfg.cachix.name != ""
+        then ["https://${cfg.cachix.name}.cachix.org"]
         else []
       );
     trusted-public-keys =
@@ -24,8 +25,8 @@
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       ]
       ++ (
-        if userConfig.cachix.publicKey != ""
-        then [userConfig.cachix.publicKey]
+        if cfg.cachix.publicKey != ""
+        then [cfg.cachix.publicKey]
         else []
       );
   };

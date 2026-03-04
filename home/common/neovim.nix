@@ -1,13 +1,18 @@
 {
   pkgs,
-  sharedLspPackages,
-  earthtone-nvim,
-  vim-tidal-lua,
-  difftastic-nvim,
-  userConfig,
-  wrappers,
+  config,
+  inputs,
   ...
 }: let
+  cfg = config.custom;
+
+  sharedLspPackages = with pkgs; [
+    lua-language-server
+    typescript-language-server
+    basedpyright
+    nixd
+  ];
+
   mkPlugin = name: src:
     pkgs.vimUtils.buildVimPlugin {
       pname = name;
@@ -26,11 +31,11 @@
   difftastic-nvim-lib = pkgs.rustPlatform.buildRustPackage {
     pname = "difftastic-nvim-lib";
     version = "unstable";
-    src = difftastic-nvim;
-    cargoLock.lockFile = "${difftastic-nvim}/Cargo.lock";
+    src = inputs.difftastic-nvim;
+    cargoLock.lockFile = "${inputs.difftastic-nvim}/Cargo.lock";
   };
 
-  difftastic-nvim-plugin = (mkPluginNoCheck "difftastic.nvim" difftastic-nvim).overrideAttrs (old: {
+  difftastic-nvim-plugin = (mkPluginNoCheck "difftastic.nvim" inputs.difftastic-nvim).overrideAttrs (old: {
     postInstall =
       (old.postInstall or "")
       + ''
@@ -42,10 +47,10 @@
   });
 in {
   imports = [
-    (wrappers.lib.mkInstallModule {
+    (inputs.wrappers.lib.mkInstallModule {
       loc = ["home" "packages"];
       name = "neovim";
-      value = wrappers.lib.wrapperModules.neovim;
+      value = inputs.wrappers.lib.wrapperModules.neovim;
     })
   ];
 
@@ -64,7 +69,7 @@ in {
         info_plugin_name = "nix-info";
       };
 
-      info.configPath = userConfig.configPath;
+      info.configPath = cfg.configPath;
 
       specMods = _: {
         options.extraPackages = lib.mkOption {
@@ -77,9 +82,8 @@ in {
       extraPackages = config.specCollect (acc: v: acc ++ (v.extraPackages or [])) [];
 
       specs = {
-        # eager: loaded before init.lua
         colorscheme = {
-          data = mkPlugin "earthtone.nvim" earthtone-nvim;
+          data = mkPlugin "earthtone.nvim" inputs.earthtone-nvim;
           lazy = false;
           before = ["INIT_MAIN"];
         };
@@ -90,7 +94,6 @@ in {
           before = ["INIT_MAIN"];
         };
 
-        # eager: loaded at startup
         snacks = {
           data = pkgs.vimPlugins.snacks-nvim;
           lazy = false;
@@ -106,7 +109,6 @@ in {
           lazy = false;
         };
 
-        # lazy: completion
         completion = {
           lazy = true;
           data = with pkgs.vimPlugins; [
@@ -116,7 +118,6 @@ in {
           ];
         };
 
-        # lazy: treesitter
         treesitter = {
           lazy = true;
           collateGrammars = true;
@@ -127,7 +128,6 @@ in {
           ];
         };
 
-        # lazy: LSP & formatting
         lsp = {
           lazy = true;
           data = with pkgs.vimPlugins; [
@@ -136,7 +136,6 @@ in {
           ];
         };
 
-        # lazy: navigation
         navigation = {
           lazy = true;
           data = with pkgs.vimPlugins; [
@@ -150,7 +149,6 @@ in {
           ];
         };
 
-        # lazy: git
         git = {
           lazy = true;
           data =
@@ -161,7 +159,6 @@ in {
             ++ [difftastic-nvim-plugin];
         };
 
-        # lazy: UI
         ui = {
           lazy = true;
           data = with pkgs.vimPlugins; [
@@ -173,7 +170,6 @@ in {
           ];
         };
 
-        # lazy: debug
         debug = {
           lazy = true;
           data = with pkgs.vimPlugins; [
@@ -184,7 +180,6 @@ in {
           ];
         };
 
-        # lazy: testing
         testing = {
           lazy = true;
           data = with pkgs.vimPlugins; [
@@ -196,7 +191,6 @@ in {
           ];
         };
 
-        # lazy: language-specific
         go = {
           lazy = true;
           data = with pkgs.vimPlugins; [
@@ -207,10 +201,9 @@ in {
 
         tidal = {
           lazy = true;
-          data = mkPlugin "vim-tidal-lua" vim-tidal-lua;
+          data = mkPlugin "vim-tidal-lua" inputs.vim-tidal-lua;
         };
 
-        # lazy: utilities
         utilities = {
           lazy = true;
           data = with pkgs.vimPlugins; [
@@ -231,7 +224,6 @@ in {
           ];
         };
 
-        # tools: no plugin, just PATH
         tools = {
           data = null;
           extraPackages =

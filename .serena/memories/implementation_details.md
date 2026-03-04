@@ -8,26 +8,36 @@ This document describes what's implemented in this nix-darwin configuration and 
 
 ### Module Hierarchy
 ```
-hosts/common.nix (shared user config: user, git, cachix, timezone)
-hosts/macbook.nix (macOS host: hostname, system, configPath, sshAgent)
-hosts/nixos.nix (Linux host: hostname, system, configPath, sshAgent)
-flake.nix (entry point, mkHostContext builds per-host derived values)
+modules/options.nix (typed NixOS options: config.custom.*)
+hosts/common.nix (NixOS module: sets config.custom.user, git, cachix, timezone)
+hosts/macbook.nix (NixOS module: imports common.nix, sets hostname, system, configPath, sshAgent)
+hosts/nixos.nix (NixOS module: imports common.nix, sets hostname, system, configPath)
+flake.nix (thin wiring — inputs + module composition, no business logic)
 ├── Inputs: nixpkgs, nix-darwin, home-manager, sops-nix, stylix, mcp-servers-nix
 ├── Overlays: localPackages (custom packages), allowUnfreePredicate
 │
 ├── system/
 │   ├── darwin/ (macOS system configuration)
-│   │   ├── default.nix - Nix settings, system defaults, skhd hotkeys
-│   │   ├── theme.nix - Stylix theming
+│   │   ├── default.nix - imports options.nix, nix.nix, theme.nix, uses config.custom.*
 │   │   ├── security.nix - SOPS secrets, firewall, TouchID
 │   │   └── homebrew.nix - Homebrew casks
 │   └── nixos/ (NixOS system configuration)
-│       └── default.nix - openssh, user account, nix settings
+│       └── default.nix - imports options.nix, nix.nix, theme.nix, uses config.custom.*
 │
 ├── home/ (Home Manager user configuration)
-│   ├── default.nix - Programs: git, neovim, wezterm, gh, lazygit
-│   ├── packages.nix - User packages + custom derivations
-│   └── shell.nix - Zsh, shell tools, aliases
+│   ├── common/
+│   │   ├── default.nix - Imports only (~20 lines)
+│   │   ├── claude.nix - Claude Code plugins, settings, hooks, commands
+│   │   ├── git.nix - Git, lazygit, gh CLI
+│   │   ├── ssh.nix - Hardened SSH client
+│   │   ├── mcp.nix - MCP server configuration
+│   │   ├── qdrant.nix - Qdrant config
+│   │   ├── xdg.nix - xdg.configFile (wezterm, yazi, tidal, procs)
+│   │   ├── packages.nix - User packages
+│   │   ├── shell.nix - Shell programs
+│   │   └── neovim.nix - Neovim via nix-wrapper-modules
+│   ├── darwin/ - macOS-specific home config
+│   └── linux/ - NixOS-specific home config
 │
 └── config/ (Application dotfiles)
     ├── nvim/ - Neovim configuration
@@ -39,8 +49,11 @@ flake.nix (entry point, mkHostContext builds per-host derived values)
 ```
 
 ### Key Design Pattern
+- **config.custom.* options**: All user-specific values defined as typed NixOS options in `modules/options.nix`, consumed via `config.custom.*` in all modules
+- **Single source of truth**: Change `user` in `hosts/common.nix` and all paths, configs, and references update automatically
+- **Thin flake.nix**: Pure wiring — no business logic, no helpers. Uses inline module functions to read `config.custom.user` for `users.users` and `home-manager.users`
 - **Separation of concerns**: System-level config in `system/`, user-level in `home/`, dotfiles in `config/`
-- **Modular imports**: Each concern has its own file
+- **Focused modules**: Each `home/common/*.nix` file handles one concern
 - **XDG compliance**: Configs placed via `xdg.configFile`
 - **Declarative dotfiles**: All configs managed through Nix, not manually
 
@@ -92,16 +105,17 @@ sops.secrets.openrouter-key = { owner = "vaporif"; mode = "0400"; };
 
 ## 4. MCP Servers Integration
 
-**Location**: `mcp.nix` (config), `flake.nix` (mcpServersConfig built once and passed via specialArgs)
+**Location**: `home/common/mcp.nix`
 
 **Implementation**:
 - Uses `mcp-servers-nix` flake for declarative MCP config
-- Config generated once in `flake.nix` via `mcp-servers-nix.lib.mkConfig`
-- `mcpServersConfig` passed to both system and home-manager via specialArgs (deduplicated)
+- Config generated in `home/common/mcp.nix` via `mcp-servers-nix.lib.mkConfig`
+- Defines `options.custom.mcpServersConfig` (read-only) for other modules to consume
+- LSP packages and serena patch defined locally in `mcp.nix`
 - Output written to multiple locations:
-  - `/Library/Application Support/ClaudeCode/managed-mcp.json` (via activation script)
-  - `~/Library/Application Support/Claude/claude_desktop_config.json`
-  - `~/.config/mcphub/servers.json`
+  - `/Library/Application Support/ClaudeCode/managed-mcp.json` (via HM activation in `home/darwin/`)
+  - `~/Library/Application Support/Claude/claude_desktop_config.json` (via `home/darwin/`)
+  - `~/.config/mcphub/servers.json` (via `home/common/mcp.nix`)
 
 **Enabled Servers** (configured in `mcp.nix`):
 | Server | Purpose | Config |
@@ -340,7 +354,7 @@ passthru.tests.pkgname = mkTest "pkgname" ''
 
 ## 11. Git Configuration
 
-**Location**: `home/default.nix` → `programs.git`
+**Location**: `home/common/git.nix`
 
 ### Features
 - SSH signing via Secretive (Secure Enclave backed)

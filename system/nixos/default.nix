@@ -1,10 +1,12 @@
 {
   pkgs,
-  user,
-  userConfig,
+  config,
   ...
-}: {
+}: let
+  cfg = config.custom;
+in {
   imports = [
+    ../../modules/options.nix
     ../../modules/nix.nix
     ../../modules/theme.nix
     ./hardware-configuration.nix
@@ -14,10 +16,10 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = userConfig.hostname;
+  networking.hostName = cfg.hostname;
   networking.networkmanager.enable = true;
 
-  time.timeZone = userConfig.timezone;
+  time.timeZone = cfg.timezone;
 
   programs.zsh.enable = true;
 
@@ -25,14 +27,14 @@
     age
   ];
 
-  users.users.${user} = {
+  users.users.${cfg.user} = {
     shell = pkgs.zsh;
     openssh.authorizedKeys.keys = [
-      userConfig.git.signingKey
+      cfg.git.signingKey
     ];
   };
 
-  nixpkgs.hostPlatform = userConfig.system;
+  nixpkgs.hostPlatform = cfg.system;
 
   system.stateVersion = "25.11";
 }

@@ -1,10 +1,12 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }: let
   cfg = config.custom;
   homeDir = config.home.homeDirectory;
+  hasSigningKey = cfg.git.signingKey != "";
 in {
   programs = {
     gh = {
@@ -75,17 +77,17 @@ in {
           line-numbers = true;
         };
       };
-      signing = {
+      signing = lib.mkIf hasSigningKey {
         key = "${homeDir}/.ssh/signing_key.pub";
-        signByDefault = cfg.git.signingKey != "";
+        signByDefault = true;
         format = "ssh";
       };
-      settings.gpg.ssh.allowedSignersFile = "${homeDir}/.ssh/allowed_signers";
+      settings.gpg.ssh.allowedSignersFile = lib.mkIf hasSigningKey "${homeDir}/.ssh/allowed_signers";
       maintenance.enable = true;
     };
   };
 
-  home.file = {
+  home.file = lib.mkIf hasSigningKey {
     ".ssh/signing_key.pub".text = cfg.git.signingKey + "\n";
     ".ssh/allowed_signers".text = "${cfg.git.email} ${cfg.git.signingKey}\n";
   };

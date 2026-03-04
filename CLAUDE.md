@@ -109,7 +109,7 @@ flake.nix                    # Entry point; thin wiring only (inputs + module co
 │   │   ├── mcp.nix          # MCP server configuration (serena, filesystem, github, etc.)
 │   │   ├── qdrant.nix       # Qdrant config.yaml generation
 │   │   ├── xdg.nix          # xdg.configFile: wezterm, yazi, tidal, procs
-│   │   ├── packages.nix     # System packages
+│   │   ├── packages.nix     # User packages (home.packages)
 │   │   ├── shell.nix        # Shell programs (zsh, fzf, atuin, etc.)
 │   │   └── neovim.nix       # Neovim via nix-wrapper-modules (plugins, LSPs, treesitter)
 │   ├── darwin/              # macOS-specific home config (Secretive, Claude desktop, UTM SSH)

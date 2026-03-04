@@ -1,5 +1,8 @@
 # Shared nix.settings across all hosts
 {userConfig, ...}: {
+  nix.extraOptions = ''
+    !include /run/secrets/nix-access-tokens
+  '';
   nix.settings = {
     experimental-features = "nix-command flakes";
     auto-optimise-store = true;

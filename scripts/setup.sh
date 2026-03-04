@@ -103,9 +103,6 @@ fi
 echo ""
 echo -e "${YELLOW}Updating hosts/common.nix and ${HOST_FILE}...${NC}"
 
-# Get current directory for configPath
-CONFIG_PATH=$(pwd)
-
 # Update hosts/common.nix (NixOS module format)
 cat > hosts/common.nix << EOF
 _: {

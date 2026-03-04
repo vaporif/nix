@@ -5,7 +5,13 @@ require('lze').load {
     after = function()
       require('blink.cmp').setup {
         sources = {
-          default = { 'lsp', 'path', 'snippets', 'buffer', 'lazydev' },
+          default = function()
+            local sources = { 'lsp', 'path', 'snippets', 'buffer' }
+            if vim.bo.filetype == 'lua' then
+              table.insert(sources, 'lazydev')
+            end
+            return sources
+          end,
           providers = {
             lsp = {
               name = 'lsp',

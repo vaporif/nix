@@ -36,7 +36,8 @@
       + ''
         mkdir -p $out/target/release
         cp ${difftastic-nvim-lib}/lib/libdifftastic_nvim.* $out/target/release/
-        ln -sf libdifftastic_nvim.dylib $out/target/release/difftastic_nvim.so
+        local lib=$(basename $out/target/release/libdifftastic_nvim.*)
+        ln -sf "$lib" $out/target/release/difftastic_nvim.so
       '';
   });
 in {

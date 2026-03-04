@@ -1,6 +1,7 @@
 require('lze').load {
   {
     'yanky.nvim',
+    dep_of = 'substitute.nvim',
     event = 'DeferredUIEnter',
     keys = {
       { 'P', '<Plug>(YankyPutBefore)', mode = { 'n', 'x' }, desc = 'Put before' },
@@ -15,9 +16,6 @@ require('lze').load {
       }
     end,
   },
-}
-
-require('lze').load {
   {
     'substitute.nvim',
     keys = {

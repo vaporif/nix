@@ -58,6 +58,14 @@
       url = "github:vaporif/vim-tidal-lua";
       flake = false;
     };
+    difftastic-nvim = {
+      url = "github:clabby/difftastic.nvim";
+      flake = false;
+    };
+    difftastic-src = {
+      url = "github:Wilfred/difftastic";
+      flake = false;
+    };
   };
 
   outputs = {
@@ -78,6 +86,8 @@
     parry,
     wrappers,
     vim-tidal-lua,
+    difftastic-nvim,
+    difftastic-src,
     ...
   }: let
     hosts = {
@@ -87,7 +97,7 @@
 
     supportedSystems = ["aarch64-darwin" "aarch64-linux"];
 
-    localPackages = import ./overlays {inherit vim-tidal;};
+    localPackages = import ./overlays {inherit vim-tidal difftastic-src;};
 
     mkPkgs = system:
       import nixpkgs {
@@ -144,7 +154,7 @@
       };
 
     sharedHomeManagerArgs = {
-      inherit yamb-yazi claude-code-plugins superpowers nix-devshells earthtone-nvim parry wrappers vim-tidal-lua;
+      inherit yamb-yazi claude-code-plugins superpowers nix-devshells earthtone-nvim parry wrappers vim-tidal-lua difftastic-nvim;
     };
 
     darwinCtx = mkHostContext hosts.macbook;

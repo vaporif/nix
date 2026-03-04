@@ -19,6 +19,7 @@ in {
     file."Library/Application Support/Claude/claude_desktop_config.json".source = cfg.mcpServersConfig;
     activation.setupClaudeCodeMcp = lib.hm.dag.entryAfter ["writeBoundary"] ''
       $DRY_RUN_CMD mkdir -p "${homeDir}/Library/Application Support/ClaudeCode"
+      $DRY_RUN_CMD rm -f "${homeDir}/Library/Application Support/ClaudeCode/managed-mcp.json"
       $DRY_RUN_CMD cp ${cfg.mcpServersConfig} "${homeDir}/Library/Application Support/ClaudeCode/managed-mcp.json"
     '';
   };

@@ -14,7 +14,7 @@
     gnupg.sshKeyPaths = [];
     secrets =
       lib.genAttrs
-      ["openrouter-key" "tavily-key" "youtube-key" "deepl-key" "hf-token-scan-injection" "ntfy-topic"]
+      ["openrouter-key" "tavily-key" "youtube-key" "deepl-key" "hf-token-scan-injection" "ntfy-topic" "nix-access-tokens"]
       (_: {
         owner = user;
         group =
@@ -22,16 +22,6 @@
           then "staff"
           else "users";
         mode = "0400";
-      })
-      // {
-        nix-access-tokens = {
-          owner = "root";
-          group =
-            if pkgs.stdenv.isDarwin
-            then "wheel"
-            else "root";
-          mode = "0400";
-        };
-      };
+      });
   };
 }

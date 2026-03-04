@@ -59,14 +59,14 @@ flake.nix (Entry point, outputs for both platforms)
 ### `home/` - Home Manager Configuration
 | Dir | Purpose |
 |------|---------|
-| `common/` | Shared config (shell, packages, editor, programs) |
+| `common/` | Shared config (shell, packages, editor, neovim.nix for nix-wrapper-modules) |
 | `darwin/` | macOS-specific home config |
 | `linux/` | NixOS-specific: systemd services (Qdrant) |
 
 ### `config/` - Application Configurations (Dotfiles)
 | Path | Purpose |
 |------|---------|
-| `nvim/` | Neovim config (init.lua, lua/core/, lua/plugins/, selene.toml, vim.yml) |
+| `nvim/` | Neovim config (init.lua, lua/core/, lua/plugins/, .stylua.toml, selene.toml) |
 | `wezterm/` | Terminal config with tmux-like keybindings |
 | `yazi/` | File manager config (init.lua, keymap.toml) |
 | `karabiner/` | Keyboard customization rules |

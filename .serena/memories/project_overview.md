@@ -25,6 +25,8 @@ This is a **cross-platform Nix configuration** for macOS (nix-darwin) and NixOS 
 - `stylix`
 - `mcp-servers-nix` - MCP server configurations
 - `nix-devshells` - External Rust devshell (referenced in ~/.envrc)
+- `wrappers` (nix-wrapper-modules) - Neovim plugin/LSP management via Nix
+- `vim-tidal-lua` - TidalCycles Neovim plugin (Lua rewrite)
 
 ## Hosts
 - **macbook** — macOS (aarch64-darwin), `darwinConfigurations`, user `vaporif`

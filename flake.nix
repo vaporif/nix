@@ -143,6 +143,10 @@
         inherit pkgs homeDir sharedLspPackages mcpServersConfig fzf-git-sh-package mcp-nixos-package;
       };
 
+    sharedHomeManagerArgs = {
+      inherit yamb-yazi claude-code-plugins superpowers nix-devshells earthtone-nvim parry wrappers vim-tidal-lua;
+    };
+
     darwinCtx = mkHostContext hosts.macbook;
     linuxCtx = mkHostContext hosts.nixos;
   in {
@@ -191,12 +195,13 @@
           home-manager = {
             useGlobalPkgs = true;
             useUserPackages = true;
-            extraSpecialArgs = {
-              inherit (hosts.macbook) user;
-              inherit (darwinCtx) homeDir sharedLspPackages mcpServersConfig fzf-git-sh-package mcp-nixos-package;
-              inherit yamb-yazi claude-code-plugins superpowers nix-devshells earthtone-nvim parry wrappers vim-tidal-lua;
-              userConfig = hosts.macbook;
-            };
+            extraSpecialArgs =
+              sharedHomeManagerArgs
+              // {
+                inherit (hosts.macbook) user;
+                inherit (darwinCtx) homeDir sharedLspPackages mcpServersConfig fzf-git-sh-package mcp-nixos-package;
+                userConfig = hosts.macbook;
+              };
             users.${hosts.macbook.user} = {
               imports = [
                 ./home/common
@@ -237,12 +242,13 @@
           home-manager = {
             useGlobalPkgs = true;
             useUserPackages = true;
-            extraSpecialArgs = {
-              inherit (hosts.nixos) user;
-              inherit (linuxCtx) homeDir sharedLspPackages mcpServersConfig fzf-git-sh-package mcp-nixos-package;
-              inherit yamb-yazi claude-code-plugins superpowers nix-devshells earthtone-nvim parry wrappers vim-tidal-lua;
-              userConfig = hosts.nixos;
-            };
+            extraSpecialArgs =
+              sharedHomeManagerArgs
+              // {
+                inherit (hosts.nixos) user;
+                inherit (linuxCtx) homeDir sharedLspPackages mcpServersConfig fzf-git-sh-package mcp-nixos-package;
+                userConfig = hosts.nixos;
+              };
             users.${hosts.nixos.user} = {
               imports = [
                 ./home/common

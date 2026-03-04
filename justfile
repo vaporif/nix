@@ -68,12 +68,12 @@ switch:
     if [[ "$(uname)" == "Darwin" ]]; then
         hostname=$(nix eval --raw -f hosts/macbook.nix hostname)
         nom build ".#darwinConfigurations.${hostname}.system"
-        nvd diff /run/current-system ./result
+        [[ -e /run/current-system ]] && nvd diff /run/current-system ./result || true
         sudo ./result/activate
     else
         hostname=$(nix eval --raw -f hosts/nixos.nix hostname)
         nom build ".#nixosConfigurations.${hostname}.config.system.build.toplevel"
-        nvd diff /run/current-system ./result
+        [[ -e /run/current-system ]] && nvd diff /run/current-system ./result || true
         sudo ./result/bin/switch-to-configuration switch
     fi
 

@@ -1,55 +1,76 @@
-return {
-  { 'neovim/nvim-lspconfig', event = 'BufReadPre' },
-  { 'NMAC427/guess-indent.nvim', event = 'BufReadPre', opts = {} },
+require('lze').load {
+  { 'nvim-lspconfig', event = 'BufReadPre' },
   {
-    'rmagatti/auto-session',
-    lazy = false,
-    opts = {
-      suppressed_dirs = { '~/', '~/Repos', '~/Downloads', '/' },
-    },
+    'guess-indent.nvim',
+    event = 'BufReadPre',
+    after = function()
+      require('guess-indent').setup {}
+    end,
   },
-
   {
-    'folke/noice.nvim',
-    event = 'VeryLazy',
-    dependencies = { 'MunifTanjim/nui.nvim' },
-    opts = {
-      presets = {
-        bottom_search = true,
-        command_palette = true,
-        long_message_to_split = true,
-        inc_rename = false,
-        lsp_doc_border = false,
-      },
-    },
+    'noice.nvim',
+    event = 'DeferredUIEnter',
+    after = function()
+      require('noice').setup {
+        presets = {
+          bottom_search = true,
+          command_palette = true,
+          long_message_to_split = true,
+          inc_rename = false,
+          lsp_doc_border = false,
+        },
+      }
+    end,
   },
-  { 'chentoast/marks.nvim', event = 'VeryLazy', opts = {} },
   {
-    'folke/todo-comments.nvim',
-    event = 'VimEnter',
-    dependencies = { 'nvim-lua/plenary.nvim' },
-    opts = { signs = false },
+    'marks.nvim',
+    event = 'DeferredUIEnter',
+    after = function()
+      require('marks').setup {}
+    end,
   },
-
-  { 'chrisgrieser/nvim-early-retirement', event = 'VeryLazy', config = true },
-  { 'sindrets/diffview.nvim', cmd = { 'DiffviewOpen', 'DiffviewFileHistory', 'DiffviewClose' } },
-
-  { 'saecki/crates.nvim', event = 'BufRead Cargo.toml', opts = {} },
   {
-    'folke/lazydev.nvim',
+    'todo-comments.nvim',
+    event = 'DeferredUIEnter',
+    after = function()
+      require('todo-comments').setup { signs = false }
+    end,
+  },
+  {
+    'nvim-early-retirement',
+    event = 'DeferredUIEnter',
+    after = function()
+      require('early-retirement').setup {}
+    end,
+  },
+  {
+    'diffview.nvim',
+    cmd = { 'DiffviewOpen', 'DiffviewFileHistory', 'DiffviewClose' },
+  },
+  {
+    'crates.nvim',
+    ft = 'toml',
+    after = function()
+      require('crates').setup {}
+    end,
+  },
+  {
+    'lazydev.nvim',
     ft = 'lua',
-    opts = {
-      library = {
-        { path = '${3rd}/luv/library', words = { 'vim%.uv' } },
-      },
-    },
+    after = function()
+      require('lazydev').setup {
+        library = {
+          { path = '${3rd}/luv/library', words = { 'vim%.uv' } },
+        },
+      }
+    end,
   },
   {
-    'm00qek/baleia.nvim',
+    'baleia.nvim',
     keys = {
       { '<leader>cA', desc = '[A]nsi colorize' },
     },
-    config = function()
+    after = function()
       local baleia = require('baleia').setup {}
       vim.api.nvim_create_user_command('BaleiaColorize', function()
         baleia.once(vim.api.nvim_get_current_buf())
@@ -57,25 +78,20 @@ return {
       vim.keymap.set('n', '<leader>cA', '<cmd>BaleiaColorize<cr>', { desc = '[A]nsi colorize' })
     end,
   },
-
   {
-    'vaporif/vim-tidal-lua',
+    'vim-tidal-lua',
     ft = 'tidal',
-    opts = {
-      ghci = 'ghci',
-      boot = vim.fn.expand '~/.config/tidal/Tidal.ghci',
-      sc_enable = false,
-    },
+    after = function()
+      require('vim-tidal-lua').setup {
+        ghci = 'ghci',
+        boot = vim.fn.expand '~/.config/tidal/Tidal.ghci',
+        sc_enable = false,
+      }
+    end,
   },
-  -- {
-  --   'tidalcycles/vim-tidal',
-  --   ft = 'tidal',
-  --   op
-  --   config = function()
-  --     vim.g.tidal_target = 'terminal'
-  --     vim.g.tidal_ghci = 'ghci'
-  --     vim.g.tidal_boot = vim.fn.expand '~/.config/tidal/Tidal.ghci'
-  --     vim.g.tidal_sc_enable = false
-  --   end,
-  -- },
+}
+
+-- auto-session: loaded eagerly by Nix, just call setup
+require('auto-session').setup {
+  suppressed_dirs = { '~/', '~/Repos', '~/Downloads', '/' },
 }

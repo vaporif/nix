@@ -122,13 +122,25 @@ sops.secrets.openrouter-key = { owner = "vaporif"; mode = "0400"; };
 
 ## 5. Neovim Configuration
 
-**Location**: `config/nvim/` directory, managed via `xdg.configFile.nvim`
+**Location**: `config/nvim/` (Lua configs), `home/common/neovim.nix` (Nix plugin management)
+
+### Plugin Management
+Neovim uses **nix-wrapper-modules** (BirdeeHub) instead of lazy.nvim:
+- Plugins installed by Nix into `start/` (eager) or `opt/` (lazy-loaded by lze)
+- `home/common/neovim.nix` defines all plugins, treesitter grammars, LSPs, and extra packages
+- Runtime lazy-loading handled by `lze` plugin manager
+- Update plugins via `nix flake update` (all from nixpkgs)
+
+### lze Dependency Patterns
+- `on_require = 'module'` — load plugin when `require('module')` is called
+- `dep_of = 'plugin-name'` — load before the named plugin
+- `on_plugin = 'plugin-name'` — load after the named plugin
+- **NO `dep` field** — this does not exist in lze
 
 ### Structure
 ```
 config/nvim/
-├── init.lua          # Bootstrap lazy.nvim, load core & plugins
-├── lazy-lock.json    # Plugin version lockfile (committed)
+├── init.lua          # nix-info setup, load core, auto-discover plugin configs
 ├── .stylua.toml      # Lua formatter config
 └── lua/
     ├── core/
@@ -136,8 +148,10 @@ config/nvim/
     │   ├── options.lua   # Vim options
     │   ├── autocmds.lua  # Autocommands
     │   ├── mappings.lua  # Keymaps
-    │   └── lsp.lua       # LSP configuration
-    └── plugins/          # 34 plugin configs (lazy-loaded)
+    │   └── lsp.lua       # LSP configuration (workspace.library for vim types)
+    └── plugins/
+        ├── deps.lua      # Library plugin on_require registrations
+        └── *.lua         # Per-plugin configs (each calls require('lze').load)
 ```
 
 ### LSP Setup (`core/lsp.lua`)

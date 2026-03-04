@@ -50,6 +50,14 @@
       url = "github:vaporif/parry";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    wrappers = {
+      url = "github:BirdeeHub/nix-wrapper-modules";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    vim-tidal-lua = {
+      url = "github:vaporif/vim-tidal-lua";
+      flake = false;
+    };
   };
 
   outputs = {
@@ -68,6 +76,8 @@
     earthtone-nvim,
     nix-devshells,
     parry,
+    wrappers,
+    vim-tidal-lua,
     ...
   }: let
     hosts = {
@@ -133,6 +143,10 @@
         inherit pkgs homeDir sharedLspPackages mcpServersConfig fzf-git-sh-package mcp-nixos-package;
       };
 
+    sharedHomeManagerArgs = {
+      inherit yamb-yazi claude-code-plugins superpowers nix-devshells earthtone-nvim parry wrappers vim-tidal-lua;
+    };
+
     darwinCtx = mkHostContext hosts.macbook;
     linuxCtx = mkHostContext hosts.nixos;
   in {
@@ -181,12 +195,13 @@
           home-manager = {
             useGlobalPkgs = true;
             useUserPackages = true;
-            extraSpecialArgs = {
-              inherit (hosts.macbook) user;
-              inherit (darwinCtx) homeDir sharedLspPackages mcpServersConfig fzf-git-sh-package mcp-nixos-package;
-              inherit yamb-yazi claude-code-plugins superpowers nix-devshells earthtone-nvim parry;
-              userConfig = hosts.macbook;
-            };
+            extraSpecialArgs =
+              sharedHomeManagerArgs
+              // {
+                inherit (hosts.macbook) user;
+                inherit (darwinCtx) homeDir sharedLspPackages mcpServersConfig fzf-git-sh-package mcp-nixos-package;
+                userConfig = hosts.macbook;
+              };
             users.${hosts.macbook.user} = {
               imports = [
                 ./home/common
@@ -227,12 +242,13 @@
           home-manager = {
             useGlobalPkgs = true;
             useUserPackages = true;
-            extraSpecialArgs = {
-              inherit (hosts.nixos) user;
-              inherit (linuxCtx) homeDir sharedLspPackages mcpServersConfig fzf-git-sh-package mcp-nixos-package;
-              inherit yamb-yazi claude-code-plugins superpowers nix-devshells earthtone-nvim parry;
-              userConfig = hosts.nixos;
-            };
+            extraSpecialArgs =
+              sharedHomeManagerArgs
+              // {
+                inherit (hosts.nixos) user;
+                inherit (linuxCtx) homeDir sharedLspPackages mcpServersConfig fzf-git-sh-package mcp-nixos-package;
+                userConfig = hosts.nixos;
+              };
             users.${hosts.nixos.user} = {
               imports = [
                 ./home/common

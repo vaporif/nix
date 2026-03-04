@@ -3,7 +3,6 @@
   config,
   user,
   homeDir,
-  sharedLspPackages,
   yamb-yazi,
   mcpServersConfig,
   claude-code-plugins,
@@ -81,6 +80,7 @@ in {
   imports = [
     ./packages.nix
     ./shell.nix
+    ./neovim.nix
   ];
 
   # Disable manual generation to avoid builtins.toFile warning (home-manager#7935)
@@ -191,21 +191,6 @@ in {
       maintenance.enable = true;
     };
 
-    neovim = {
-      viAlias = true;
-      enable = true;
-      extraPackages =
-        sharedLspPackages
-        ++ (with pkgs; [
-          lua51Packages.luarocks
-          lua51Packages.lua
-          stylua
-          haskell-language-server
-          just-lsp
-          golangci-lint
-        ]);
-    };
-
     parry = {
       enable = true;
       package = parry.packages.${pkgs.stdenv.hostPlatform.system}.onnx;
@@ -247,8 +232,6 @@ in {
         snapshots_path: ${homeDir}/.qdrant/snapshots
       telemetry_disabled: true
     '';
-    # Stable symlink to Neovim runtime for .luarc.json
-    ".local/share/nvim-runtime".source = "${pkgs.neovim-unwrapped}/share/nvim/runtime";
     ".librewolf/librewolf.overrides.cfg" = {
       source = ../../config/librewolf/librewolf.overrides.cfg;
     };
@@ -306,13 +289,6 @@ in {
   };
 
   xdg.configFile = {
-    # recursive = true so we can inject nix-paths.lua alongside the symlinked config files
-    "nvim" = {
-      source = ../../config/nvim;
-      recursive = true;
-    };
-    # Generated Lua module returning configPath; required by init.lua for the lazy.nvim lockfile path
-    "nvim/lua/nix-paths.lua".text = ''return "${userConfig.configPath}"'';
     "yazi/yazi.toml".source = ../../config/yazi/yazi.toml;
     "yazi/init.lua".source = ../../config/yazi/init.lua;
     # @configPath@ placeholder in keymap.toml is replaced with userConfig.configPath at build time

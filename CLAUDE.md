@@ -101,7 +101,9 @@ flake.nix                    # Entry point; mkHostContext deduplicates per-host 
 │       ├── default.nix      # NixOS system config: openssh, user account
 │       └── hardware-configuration.nix  # Machine-specific (forkers: regenerate)
 ├── home/
-│   ├── common/              # Shared home-manager config (shell, packages, editor, etc.)
+│   ├── common/
+│   │   ├── default.nix      # Shared home-manager config (shell, packages, editor, etc.)
+│   │   └── neovim.nix       # Neovim via nix-wrapper-modules (plugins, LSPs, treesitter)
 │   ├── darwin/              # macOS-specific home config (Secretive, Claude desktop, UTM SSH)
 │   └── linux/               # NixOS-specific home config (systemd services)
 ├── scripts/
@@ -115,7 +117,7 @@ flake.nix                    # Entry point; mkHostContext deduplicates per-host 
 ### Config Files (dotfiles)
 
 Application configs live in `/config/` and are symlinked via `xdg.configFile`:
-- `nvim/` - Neovim (Lua, `recursive = true` so HM can inject `nix-paths.lua` alongside)
+- `nvim/` - Neovim (Lua, managed by nix-wrapper-modules — `config_directory` points here)
 - `wezterm/` - Terminal (Lua)
 - `yazi/` - File manager
 - `karabiner/` - Keyboard remapping (macOS only)
@@ -125,7 +127,7 @@ Application configs live in `/config/` and are symlinked via `xdg.configFile`:
 Config files that reference the repo path use `userConfig.configPath` (from `hosts/<name>.nix`) instead of hardcoded paths. Two mechanisms:
 
 - **`@configPath@` placeholder** (wezterm, yazi): The config file contains a literal `@configPath@` string. In `home/common/default.nix`, `builtins.replaceStrings` substitutes it with `userConfig.configPath` at build time. Used when the file is loaded via `.text` or `extraConfig` (not `.source`).
-- **`nix-paths.lua` module** (nvim): Since `config/nvim/` is symlinked as a recursive directory, individual files can't be templated. Instead, HM generates `nvim/nix-paths.lua` containing `return "<configPath>"`, and `init.lua` does `require("nix-paths")` to get the path at runtime.
+- **`nix-info` module** (nvim): nix-wrapper-modules injects a `nix-info` plugin with `config_directory` and other settings. `init.lua` reads `_G.nixInfo.settings.config_directory` to find the Lua config path at runtime.
 
 ## User-Specific Values
 
@@ -215,9 +217,12 @@ Custom git subcommands installed via `writeShellScriptBin` in `home/packages.nix
 ## Key Implementation Details
 
 - **`mkHostContext`**: Helper in `flake.nix` that builds all per-host derived values (pkgs, LSP packages, serena patch, MCP config) from a host config attrset, eliminating duplication between darwin and linux outputs
+- **`sharedHomeManagerArgs`**: Shared flake inputs (`yamb-yazi`, `claude-code-plugins`, `superpowers`, etc.) extracted in `flake.nix` and merged via `//` into each host's `extraSpecialArgs`
 - **`serenaSrc`**: Shared patched serena source, extracted to avoid duplication
 - **`allowUnfreePredicate`**: Shared unfree allowlist (`spacetimedb`, `claude-code`), applied to both platforms
 - **Host assertions**: `mkHostContext` validates required fields (`user`, `hostname`, `system`, `configPath`) at eval time
+- **Neovim**: Managed via `nix-wrapper-modules` (`home/common/neovim.nix`). Plugins installed by Nix into `start/` (eager) or `opt/` (lazy), loaded at runtime by `lze` plugin manager. Plugin configs in `config/nvim/lua/plugins/`. Update plugins via `nix flake update`
+- **lze patterns**: Uses `on_require` (load on module require), `dep_of` (load before another plugin), `on_plugin` (load after another plugin). Does NOT have a `dep` field. Library deps registered in `config/nvim/lua/plugins/deps.lua`
 - **LibreWolf**: Auto-updated via `scripts/install-librewolf.sh` on macOS
 - **Qdrant**: Runs as launchd agent on macOS (`home/darwin/`), systemd user service on NixOS (`home/linux/`)
 - **External devshell**: Rust tools via `~/.envrc` (run `direnv allow ~` after setup)

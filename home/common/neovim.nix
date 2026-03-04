@@ -3,6 +3,7 @@
   sharedLspPackages,
   earthtone-nvim,
   vim-tidal-lua,
+  difftastic-nvim,
   userConfig,
   wrappers,
   ...
@@ -13,6 +14,31 @@
       version = "unstable";
       inherit src;
     };
+
+  mkPluginNoCheck = name: src:
+    pkgs.vimUtils.buildVimPlugin {
+      pname = name;
+      version = "unstable";
+      inherit src;
+      doCheck = false;
+    };
+
+  difftastic-nvim-lib = pkgs.rustPlatform.buildRustPackage {
+    pname = "difftastic-nvim-lib";
+    version = "unstable";
+    src = difftastic-nvim;
+    cargoLock.lockFile = "${difftastic-nvim}/Cargo.lock";
+  };
+
+  difftastic-nvim-plugin = (mkPluginNoCheck "difftastic.nvim" difftastic-nvim).overrideAttrs (old: {
+    postInstall =
+      (old.postInstall or "")
+      + ''
+        mkdir -p $out/target/release
+        cp ${difftastic-nvim-lib}/lib/libdifftastic_nvim.* $out/target/release/
+        ln -sf libdifftastic_nvim.dylib $out/target/release/difftastic_nvim.so
+      '';
+  });
 in {
   imports = [
     (wrappers.lib.mkInstallModule {
@@ -126,10 +152,12 @@ in {
         # lazy: git
         git = {
           lazy = true;
-          data = with pkgs.vimPlugins; [
-            gitsigns-nvim
-            diffview-nvim
-          ];
+          data =
+            (with pkgs.vimPlugins; [
+              gitsigns-nvim
+              diffview-nvim
+            ])
+            ++ [difftastic-nvim-plugin];
         };
 
         # lazy: UI

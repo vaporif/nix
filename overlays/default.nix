@@ -1,4 +1,7 @@
-{vim-tidal}: final: prev: let
+{
+  vim-tidal,
+  difftastic-src,
+}: final: prev: let
   mkTest = name: cmd:
     final.runCommand "${name}-test" {} ''
       ${cmd}
@@ -6,6 +9,8 @@
     '';
 in
   {
+    difftastic = final.callPackage ../pkgs/difftastic.nix {inherit difftastic-src;};
+
     unclog = (final.callPackage ../pkgs/unclog.nix {}).overrideAttrs (_: {
       passthru.tests.unclog = mkTest "unclog" ''
         ${final.unclog}/bin/unclog --help > /dev/null

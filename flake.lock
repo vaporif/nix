@@ -71,11 +71,11 @@
     "claude-code-plugins": {
       "flake": false,
       "locked": {
-        "lastModified": 1771993700,
-        "narHash": "sha256-pcMIh9sgdMDs0dlc0POomxnPOLoP5/EOdCGMKoESmoc=",
+        "lastModified": 1772586532,
+        "narHash": "sha256-0iZO5ZS0BO0LKkCDxwk+H07w/re7+w84X17h3GH23eM=",
         "owner": "anthropics",
         "repo": "claude-plugins-official",
-        "rev": "55b58ec6e5649104f926ba7558b567dc8d33c5ff",
+        "rev": "205b6e0b30366a969412d9aab7b99bea99d58db1",
         "type": "github"
       },
       "original": {
@@ -96,6 +96,38 @@
       "original": {
         "owner": "ipetkov",
         "repo": "crane",
+        "type": "github"
+      }
+    },
+    "difftastic-nvim": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1771811117,
+        "narHash": "sha256-v+vKCS7p8frYnb91ebX23fJe+DkeRKC/oy+R4VsRdaE=",
+        "owner": "clabby",
+        "repo": "difftastic.nvim",
+        "rev": "a8e1feea15ee10aa2fed78e287a2b56136f91687",
+        "type": "github"
+      },
+      "original": {
+        "owner": "clabby",
+        "repo": "difftastic.nvim",
+        "type": "github"
+      }
+    },
+    "difftastic-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1771981984,
+        "narHash": "sha256-c4i4iEH2PpxoAcUdgx3N7/SIROjPrEumCByYmvlxmbI=",
+        "owner": "Wilfred",
+        "repo": "difftastic",
+        "rev": "d7dcb61f785eba805a58329d3caa1107b5bd2f68",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Wilfred",
+        "repo": "difftastic",
         "type": "github"
       }
     },
@@ -286,11 +318,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1772516620,
-        "narHash": "sha256-2r4cKdqCVlQkvcTcLUMxmsmAYZZxCMd//w/PnDnukTE=",
+        "lastModified": 1772569491,
+        "narHash": "sha256-bdr6ueeXO1Xg91sFkuvaysYF0mVdwHBpdyhTjBEWv+s=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "2b9504d5a0169d4940a312abe2df2c5658db8de9",
+        "rev": "924e61f5c2aeab38504028078d7091077744ab17",
         "type": "github"
       },
       "original": {
@@ -367,11 +399,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1772554408,
-        "narHash": "sha256-uGh33MDmcBCB2lg/gnM7vHqmtioItsoI7Sw+nNveAH8=",
+        "lastModified": 1772554909,
+        "narHash": "sha256-eVfOkLTQLtzpYu+xGhzKl3W5Seiy06R8CanvwfE9l6M=",
         "owner": "vaporif",
         "repo": "nix-devshells",
-        "rev": "c5de15224246619554a47bbeb5defd92cf5941c1",
+        "rev": "6af5d0f614041614b8eb41a2ae02f76b8cf8ee19",
         "type": "github"
       },
       "original": {
@@ -444,11 +476,11 @@
     },
     "nixpkgs_3": {
       "locked": {
-        "lastModified": 1772479524,
-        "narHash": "sha256-u7nCaNiMjqvKpE+uZz9hE7pgXXTmm5yvdtFaqzSzUQI=",
+        "lastModified": 1772585379,
+        "narHash": "sha256-zomLtA51H/qXAcjczveQFXPi/GuJUkPdpDeyu5bGI4M=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "4215e62dc2cd3bc705b0a423b9719ff6be378a43",
+        "rev": "0fd2db475afdde93c9e4b1625aafb8eb41b99807",
         "type": "github"
       },
       "original": {
@@ -524,6 +556,8 @@
     "root": {
       "inputs": {
         "claude-code-plugins": "claude-code-plugins",
+        "difftastic-nvim": "difftastic-nvim",
+        "difftastic-src": "difftastic-src",
         "earthtone-nvim": "earthtone-nvim",
         "fzf-git-sh": "fzf-git-sh",
         "home-manager": "home-manager",

@@ -29,9 +29,10 @@ This is a **cross-platform Nix configuration** for macOS (nix-darwin) and NixOS 
 - `vim-tidal-lua` - TidalCycles Neovim plugin (Lua rewrite)
 
 ## Configuration Pattern
+
 All user-specific values are typed NixOS options in `modules/options.nix` under `config.custom.*`. Modules consume these directly — no `extraSpecialArgs` passthrough. `flake.nix` is thin wiring only.
 
 ## Hosts
+
 - **macbook** — macOS (aarch64-darwin), `darwinConfigurations`, configured via `hosts/macbook.nix` → `hosts/common.nix`
 - **nixos** — NixOS (aarch64-linux), `nixosConfigurations`, configured via `hosts/nixos.nix` → `hosts/common.nix` (shell-only VM)
-- **nixos** — NixOS (aarch64-linux), `nixosConfigurations`, user `vaporif` (shell-only VM)

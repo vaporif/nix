@@ -357,11 +357,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1772635899,
-        "narHash": "sha256-of3Rkgfpq3bNKkiYAx3yJ+5r0HMJVwxb71gt/Bu6WS0=",
+        "lastModified": 1772637597,
+        "narHash": "sha256-zHnsc8xwEdDRhJV263NbnPjELe4Ofj4h23JKyxBnGEI=",
         "owner": "vaporif",
         "repo": "mcp-servers-nix",
-        "rev": "4447eb1ccbf07e18edaadce665951a91743ee78c",
+        "rev": "d915630170d2b1db872854ddf0f22776610b5e26",
         "type": "github"
       },
       "original": {

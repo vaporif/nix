@@ -22,6 +22,16 @@
           then "staff"
           else "users";
         mode = "0400";
-      });
+      })
+      // {
+        nix-access-tokens = {
+          owner = "root";
+          group =
+            if pkgs.stdenv.isDarwin
+            then "wheel"
+            else "root";
+          mode = "0400";
+        };
+      };
   };
 }

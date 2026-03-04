@@ -114,8 +114,8 @@
     serenaSrc = {
       owner = "vaporif";
       repo = "serena";
-      rev = "0f65275856f14fbf4827e3327ee8f132ea58b156";
-      hash = "sha256-fhlrO1mJYdevYVrJ02t5v3I2fiuclJRQSRinufwka+w=";
+      rev = "16c2124feb9a3cc242cc1583e70cb13f75cb8603";
+      hash = "sha256-nozcdXVBHlHTtnXvJACC2M3Bat9oT1WEgVYP47SfrQ4=";
     };
 
     allowUnfreePredicate = pkg:

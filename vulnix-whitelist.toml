@@ -11,6 +11,10 @@ comment = "Haskell curl bindings, not curl CLI"
 [Diff]
 comment = "Haskell Diff library"
 
+[diff]
+comment = "Rust diff crate, not Drupal Diff module"
+cve = ["CVE-2024-13278"]
+
 [focus]
 comment = "Haskell focus, not Firefox Focus"
 

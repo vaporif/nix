@@ -59,6 +59,10 @@
       DisableDeveloperTools = false;
       NoDefaultBookmarks = true;
       SkipTermsOfUse = true;
+      WebsiteFilter = {
+        Block = ["https://localhost/*"];
+        Exceptions = ["https://localhost/*"];
+      };
       SupportMenu = {
         Title = "LibreWolf Issue Tracker";
         URL = "https://codeberg.org/librewolf/issues";

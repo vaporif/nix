@@ -65,8 +65,6 @@ install_librewolf() {
     # Check if LibreWolf is running
     if pgrep -i "librewolf" > /dev/null; then
         echo "LibreWolf is currently running. Skipping update."
-        hdiutil detach "${MOUNT_POINT}" -quiet 2>/dev/null || true
-        rm -rf "${TEMP_DIR}"
         exit 0
     fi
     echo "Fetching latest LibreWolf version..."

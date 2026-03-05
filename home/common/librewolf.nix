@@ -1,6 +1,9 @@
-{...}: let
+{lib, ...}: let
   extensions = {
-    "uBlock0@raymondhill.net" = {slug = "ublock-origin";};
+    "uBlock0@raymondhill.net" = {
+      slug = "ublock-origin";
+      private_browsing = true;
+    };
     "jid1-MnnxcxisBPnSXQ@jetpack" = {slug = "privacy-badger17";};
     "CanvasBlocker@kkapsner.de" = {slug = "canvasblocker";};
     "jid1-KKzOGWgsW3Ao4Q@jetpack" = {slug = "i-dont-care-about-cookies";};
@@ -25,19 +28,16 @@
   ];
 
   extensionSettings =
-    builtins.mapAttrs (id: ext: {
-      install_url = "https://addons.mozilla.org/firefox/downloads/latest/${ext.slug}/latest.xpi";
-      installation_mode = "normal_installed";
-    })
-    extensions
-    // {
-      "uBlock0@raymondhill.net" = {
-        install_url = "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi";
+    builtins.mapAttrs (_: ext:
+      {
+        install_url = "https://addons.mozilla.org/firefox/downloads/latest/${ext.slug}/latest.xpi";
         installation_mode = "normal_installed";
-        private_browsing = true;
-      };
-    }
-    // builtins.listToAttrs (map (id: {
+      }
+      // lib.optionalAttrs (ext ? private_browsing) {
+        inherit (ext) private_browsing;
+      })
+    extensions
+    // builtins.listToAttrs (builtins.map (id: {
         name = id;
         value = {installation_mode = "blocked";};
       })

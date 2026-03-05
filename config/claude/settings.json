@@ -4,12 +4,6 @@
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
-  "enabledPlugins": {
-    "code-review@nix-plugins": true,
-    "feature-dev@nix-plugins": true,
-    "ralph-loop@nix-plugins": true,
-    "superpowers@nix-plugins": true
-  },
   "hooks": {
     "PostToolUse": [
       {

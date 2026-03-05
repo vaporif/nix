@@ -572,6 +572,7 @@
         "superpowers": "superpowers",
         "vim-tidal": "vim-tidal",
         "vim-tidal-lua": "vim-tidal-lua",
+        "visual-explainer": "visual-explainer",
         "wrappers": "wrappers",
         "yamb-yazi": "yamb-yazi"
       }
@@ -805,6 +806,23 @@
       "original": {
         "owner": "vaporif",
         "repo": "vim-tidal-lua",
+        "type": "github"
+      }
+    },
+    "visual-explainer": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1772695009,
+        "narHash": "sha256-lzAGxHRtjtZxGmPq4GKyw8/Blsg8QNG19ohsHDGc7VI=",
+        "owner": "nicobailon",
+        "repo": "visual-explainer",
+        "rev": "c6cda6ce8a3094f1acce6ed05aeb4ccb5ce40c2d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nicobailon",
+        "repo": "visual-explainer",
+        "rev": "c6cda6ce8a3094f1acce6ed05aeb4ccb5ce40c2d",
         "type": "github"
       }
     },

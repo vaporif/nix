@@ -66,6 +66,10 @@
       url = "github:Wilfred/difftastic";
       flake = false;
     };
+    visual-explainer = {
+      url = "github:nicobailon/visual-explainer/c6cda6ce8a3094f1acce6ed05aeb4ccb5ce40c2d";
+      flake = false;
+    };
   };
 
   outputs = inputs @ {

@@ -27,10 +27,7 @@ require('lze').load {
         hl_group = 'lualine_c_normal',
       }
 
-      table.insert(base_opts.sections.lualine_c, {
-        symbols.get,
-        cond = symbols.has,
-      })
+      base_opts.sections.lualine_c[2] = { symbols.get, cond = symbols.has }
 
       require('lualine').setup(base_opts)
     end,

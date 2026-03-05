@@ -19,6 +19,37 @@ require('lze').load {
       { '<leader>fi', '<cmd>FzfLua lsp_typedefs<cr>', desc = 'type def[i]nition' },
       { '<leader>fs', '<cmd>FzfLua lsp_document_symbols<cr>', desc = 'document [s]ymbols' },
       { '<leader>fw', '<cmd>FzfLua lsp_live_workspace_symbols<cr>', desc = '[w]orkspace symbols' },
+      {
+        '<leader>.',
+        function()
+          require('fzf-lua').blines {
+            previewer = false,
+            winopts = { height = 0.40, width = 0.60, row = 0.40 },
+          }
+        end,
+        desc = 'buffer fuzz search',
+      },
+      {
+        '<leader>ft',
+        function()
+          require('fzf-lua').git_worktrees {
+            actions = {
+              ['default'] = function(selected)
+                local new_wt = selected[1]:match '^(%S+)'
+                local old_wt = vim.fn.getcwd()
+                local current_file = vim.fn.expand '%:p'
+                local rel_path = current_file:gsub('^' .. vim.pesc(old_wt) .. '/', '')
+                vim.cmd('cd ' .. vim.fn.fnameescape(new_wt))
+                local new_file = new_wt .. '/' .. rel_path
+                if vim.fn.filereadable(new_file) == 1 then
+                  vim.cmd('edit ' .. vim.fn.fnameescape(new_file))
+                end
+              end,
+            },
+          }
+        end,
+        desc = 'work[t]rees',
+      },
     },
     after = function()
       require('fzf-lua').setup {
@@ -33,38 +64,6 @@ require('lze').load {
           actions = { ['ctrl-g'] = false },
         },
       }
-
-      vim.keymap.set('n', '<leader>.', function()
-        require('fzf-lua').blines {
-          previewer = false,
-          winopts = { height = 0.40, width = 0.60, row = 0.40 },
-        }
-      end, { desc = 'buffer fuzz search' })
-
-      vim.keymap.set('n', '<leader>fn', function()
-        require('fzf-lua').files {
-          prompt = 'Neovim Config> ',
-          cwd = vim.fn.stdpath 'config',
-        }
-      end, { desc = '[n]eovim files' })
-
-      vim.keymap.set('n', '<leader>ft', function()
-        require('fzf-lua').git_worktrees {
-          actions = {
-            ['default'] = function(selected)
-              local new_wt = selected[1]:match '^(%S+)'
-              local old_wt = vim.fn.getcwd()
-              local current_file = vim.fn.expand '%:p'
-              local rel_path = current_file:gsub('^' .. vim.pesc(old_wt) .. '/', '')
-              vim.cmd('cd ' .. new_wt)
-              local new_file = new_wt .. '/' .. rel_path
-              if vim.fn.filereadable(new_file) == 1 then
-                vim.cmd('edit ' .. new_file)
-              end
-            end,
-          },
-        }
-      end, { desc = 'work[t]rees' })
     end,
   },
 }

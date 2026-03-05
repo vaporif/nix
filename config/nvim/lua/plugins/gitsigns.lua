@@ -21,21 +21,18 @@ require('lze').load {
             vim.keymap.set(mode, l, r, opts)
           end
 
-          map('n', ']g', function()
-            if vim.wo.diff then
-              vim.cmd.normal { ']c', bang = true }
-            else
-              gitsigns.nav_hunk 'next'
+          local function nav_hunk(direction, diff_cmd)
+            return function()
+              if vim.wo.diff then
+                vim.cmd.normal { diff_cmd, bang = true }
+              else
+                gitsigns.nav_hunk(direction)
+              end
             end
-          end, { desc = 'next [g]it hunk' })
+          end
 
-          map('n', '[g', function()
-            if vim.wo.diff then
-              vim.cmd.normal { '[c', bang = true }
-            else
-              gitsigns.nav_hunk 'prev'
-            end
-          end, { desc = 'prev [g]it hunk' })
+          map('n', ']g', nav_hunk('next', ']c'), { desc = 'next [g]it hunk' })
+          map('n', '[g', nav_hunk('prev', '[c'), { desc = 'prev [g]it hunk' })
           map('v', '<leader>hs', function()
             gitsigns.stage_hunk { vim.fn.line '.', vim.fn.line 'v' }
           end, { desc = 'stage git hunk' })

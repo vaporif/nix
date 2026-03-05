@@ -170,50 +170,7 @@ just cache
 
 ## Keybindings
 
-### Application Shortcuts (skhd — macOS)
-
-All use `hyper` key (Caps Lock remapped via Karabiner-Elements):
-
-| Key | App | Key | App |
-|-----|-----|-----|-----|
-| `hyper + r` | Librewolf | `hyper + w` | WhatsApp |
-| `hyper + t` | WezTerm | `hyper + m` | Ableton Live |
-| `hyper + c` | Claude | `hyper + l` | Signal |
-| `hyper + s` | Slack | `hyper + p` | Spotify |
-| `hyper + b` | Brave | | |
-| `hyper + d` | Discord | | |
-
-### Karabiner-Elements
-
-- **Caps Lock** — hold for extend layer, tap for hyper key combos
-- **Extend layer** — `Caps + i/k/j/l` for arrow keys (Up/Down/Left/Right)
-- **Right Option** — Escape
-
-### WezTerm (Leader: `Ctrl+b`)
-
-| Key | Action | Key | Action |
-|-----|--------|-----|--------|
-| `Leader + v` | Split vertical | `Leader + h` | Split horizontal |
-| `Leader + x` | Close pane | `Leader + f` | Fullscreen pane |
-| `Leader + n/i/u/e` | Navigate L/R/U/D | `Leader + Tab` | Cycle panes |
-| `Leader + r` | Resize mode | `Leader + m` | Move tab mode |
-| `Leader + o` | Launcher | `Leader + z` | Workspace switcher |
-| `Leader + ,` | Rename tab | `Leader + /` | Search |
-| `Leader + c` | Copy/scroll mode | | |
-| `Ctrl + t` | Toggle bottom split | `Ctrl + /` | Toggle right split |
-
-### Neovim (Leader: `Space`)
-
-See [docs/neovim-keymaps.md](docs/neovim-keymaps.md) — auto-generated with `just keymaps`.
-
-### Yazi
-
-| Key | Action | Key | Action |
-|-----|--------|-----|--------|
-| `br` | Go to ~/Repos | `bm` | Go to nix config |
-| `ua` | Add bookmark | `ug` | Jump bookmark |
-| `ud` | Delete bookmark | `ur` | Rename bookmark |
-| `Enter` | Open in nvim | | |
+See [docs/keymaps.md](docs/keymaps.md) — auto-generated with `just keymaps` (Neovim, skhd, Karabiner, WezTerm, Yazi).
 
 ## Programs & Packages
 

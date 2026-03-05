@@ -204,42 +204,7 @@ All use `hyper` key (Caps Lock remapped via Karabiner-Elements):
 
 ### Neovim (Leader: `Space`)
 
-**Navigation:**
-
-| Key | Action | Key | Action |
-|-----|--------|-----|--------|
-| `<leader>ff` | Find files | `<leader>fg` | Live grep |
-| `<leader>fb` | Buffers | `<leader>fh` | Help tags |
-| `<leader>fk` | Keymaps | `<leader>fd` | Diagnostics |
-| `<leader>fs` | Document symbols | `<leader>fw` | Workspace symbols |
-| `<leader>fr` | Resume search | `<leader>fn` | Neovim config files |
-| `<leader>ft` | Git worktrees | `<leader>.` | Buffer fuzzy search |
-| `gd` | Goto definition | `gR` | Goto references |
-| `gI` | Goto implementation | `'` | Marks |
-| `<S-h>` / `<S-l>` | Prev/next buffer | `<leader>e` | Toggle file tree |
-| `<leader>a` | Harpoon add | `<leader>p` | Harpoon menu |
-| `<leader>1-9` | Jump to harpoon file | | |
-
-**Editing & Code:**
-
-| Key | Action | Key | Action |
-|-----|--------|-----|--------|
-| `<leader>w` | Write file | `<leader>/` | Toggle comment |
-| `<leader>qg` | Global search/replace | `<leader>qw` | Buffer search/replace |
-| `<leader>sv` | Split vertical | `<leader>sh` | Split horizontal |
-| `<leader>bl` | LSP definitions/refs | `<leader>cd` | Diff tool |
-| `[d` / `]d` | Prev/next diagnostic | `[e` / `]e` | Prev/next error |
-| `ii` | Escape (insert mode) | `;` | Command mode |
-
-**Git (hunks):**
-
-| Key | Action | Key | Action |
-|-----|--------|-----|--------|
-| `]g` / `[g` | Next/prev hunk | `<leader>hp` | Preview hunk |
-| `<leader>hs` | Stage hunk | `<leader>hr` | Reset hunk |
-| `<leader>hS` | Stage buffer | `<leader>hR` | Reset buffer |
-| `<leader>hb` | Blame line | `<leader>hd` | Diff vs index |
-| `<leader>hh` | File history | `<leader>hB` | Toggle blame |
+See [docs/neovim-keymaps.md](docs/neovim-keymaps.md) — auto-generated with `just keymaps`.
 
 ### Yazi
 

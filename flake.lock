@@ -540,11 +540,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1772668670,
-        "narHash": "sha256-EozStey8+nM11g0d23iYBjshQD+Anx37sZasJ+zoxUI=",
+        "lastModified": 1772706981,
+        "narHash": "sha256-RoIp6aQDYQwQBf2zNrS+TgAOWxWRx2XXDRlryzLpJv8=",
         "owner": "vaporif",
         "repo": "parry",
-        "rev": "9c7293c6336d9918ad4a5b8abecb1bdd92869f36",
+        "rev": "9a3795fbad8de7ae98518087a10703bff4b8f158",
         "type": "github"
       },
       "original": {

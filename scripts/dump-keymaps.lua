@@ -298,6 +298,23 @@ local function parse_file(filepath)
 		keymaps[#keymaps + 1] = km
 	end
 
+	-- Parse blink.cmp-style keymap = { ['key'] = { 'action' } } config tables
+	local in_keymap_block = false
+	for _, line in ipairs(file_lines) do
+		if line:match("keymap%s*=%s*{") then
+			in_keymap_block = true
+		elseif in_keymap_block then
+			if line:match("^%s+}") and not line:match("%[") then
+				in_keymap_block = false
+			else
+				local key, action = line:match("%[%s*'([^']+)'%s*%]%s*=%s*{%s*'([^']+)'")
+				if key and action then
+					keymaps[#keymaps + 1] = { lhs = key, mode = "i", desc = action }
+				end
+			end
+		end
+	end
+
 	return keymaps
 end
 
@@ -319,6 +336,7 @@ local categories = {
 	["plugins/yanky"] = "Editing (yanky/substitute)",
 	["plugins/treesitter"] = "Treesitter Textobjects",
 	["plugins/mini"] = "Editing (mini)",
+	["plugins/blink-cmp"] = "Completion (blink.cmp)",
 	["plugins/misc"] = "Misc",
 }
 
@@ -349,23 +367,69 @@ local category_order = {
 	"Diagnostics (outline)",
 	"Debug (DAP)",
 	"Testing (neotest)",
+	"Completion (blink.cmp)",
 	"Misc",
 }
 
--- Collect keymaps
-local by_category = {}
+-- Collect all keymaps from all files
+local all_keymaps = {}
 local files = find_lua_files(config_dir)
 
 for _, filepath in ipairs(files) do
 	local keymaps = parse_file(filepath)
-	if #keymaps > 0 then
-		local cat = category_for(filepath)
-		if not by_category[cat] then
-			by_category[cat] = {}
+	for _, km in ipairs(keymaps) do
+		all_keymaps[#all_keymaps + 1] = km
+	end
+end
+
+-- Regroup by leader prefix (matching which-key groups)
+local prefix_groups = {
+	{ prefix = "<leader>f", name = "Find (<leader>f)" },
+	{ prefix = "<leader>c", name = "Code (<leader>c)" },
+	{ prefix = "<leader>h", name = "Git Hunks (<leader>h)" },
+	{ prefix = "<leader>d", name = "Debug (<leader>d)" },
+	{ prefix = "<leader>t", name = "Test (<leader>t)" },
+	{ prefix = "<leader>b", name = "Trouble (<leader>b)" },
+	{ prefix = "<leader>q", name = "Search & Replace (<leader>q)" },
+	{ prefix = "<leader>s", name = "Split (<leader>s)" },
+}
+
+local by_group = {}
+local ungrouped = {}
+
+for _, km in ipairs(all_keymaps) do
+	local placed = false
+	for _, pg in ipairs(prefix_groups) do
+		if
+			km.lhs:sub(1, #pg.prefix) == pg.prefix
+			or km.lhs:sub(1, #pg.prefix) == pg.prefix:gsub("<leader>", "<Space>")
+		then
+			if not by_group[pg.name] then
+				by_group[pg.name] = {}
+			end
+			by_group[pg.name][#by_group[pg.name] + 1] = km
+			placed = true
+			break
 		end
-		for _, km in ipairs(keymaps) do
-			by_category[cat][#by_category[cat] + 1] = km
+	end
+	if not placed then
+		-- Group remaining by source-file category or fallback
+		local cat
+		if km.lhs:match("^[%[%]]") then
+			cat = "Navigation ([] motions)"
+		elseif km.lhs:match("^g") then
+			cat = "Goto (g)"
+		elseif km.lhs:match("^<leader>") then
+			cat = "General (<leader>)"
+		elseif km.lhs:match("^<[cC]%-") then
+			cat = "Ctrl bindings"
+		else
+			cat = "Other"
 		end
+		if not by_group[cat] then
+			by_group[cat] = {}
+		end
+		by_group[cat][#by_group[cat] + 1] = km
 	end
 end
 
@@ -379,8 +443,8 @@ local function mode_display(m)
 	return (m or "n"):gsub(",", " ")
 end
 
--- Deduplicate within each category
-for cat, keymaps in pairs(by_category) do
+-- Deduplicate within each group
+for cat, keymaps in pairs(by_group) do
 	local seen = {}
 	local deduped = {}
 	for _, km in ipairs(keymaps) do
@@ -390,14 +454,62 @@ for cat, keymaps in pairs(by_category) do
 			deduped[#deduped + 1] = km
 		end
 	end
-	by_category[cat] = deduped
+	by_group[cat] = deduped
 end
 
--- Ordered categories
-for _, cat in ipairs(category_order) do
-	local keymaps = by_category[cat]
+local group_order = {
+	"General (<leader>)",
+	"Code (<leader>c)",
+	"Find (<leader>f)",
+	"Git Hunks (<leader>h)",
+	"Search & Replace (<leader>q)",
+	"Split (<leader>s)",
+	"Debug (<leader>d)",
+	"Test (<leader>t)",
+	"Trouble (<leader>b)",
+	"Goto (g)",
+	"Navigation ([] motions)",
+	"Ctrl bindings",
+	"Completion (blink.cmp)",
+	"Other",
+}
+
+-- Check for blink.cmp keymaps (not <leader> prefixed, handled separately)
+for _, km in ipairs(all_keymaps) do
+	if km.desc and km.desc:match("^s[a-z]") and km.lhs:match("^<[A-Z]") == nil then
+		-- blink keymaps already in by_group via "Other" or "Ctrl bindings"
+	end
+end
+
+-- Merge blink.cmp completion keymaps into their own group
+local blink_keys = {}
+for cat, keymaps in pairs(by_group) do
+	local remaining = {}
+	for _, km in ipairs(keymaps) do
+		-- blink.cmp actions: snippet_forward, select_prev, etc.
+		if
+			km.desc:match("^snippet_")
+			or km.desc:match("^select_")
+			or km.desc:match("^scroll_")
+			or km.desc == "show"
+			or km.desc == "hide"
+		then
+			blink_keys[#blink_keys + 1] = km
+		else
+			remaining[#remaining + 1] = km
+		end
+	end
+	by_group[cat] = remaining
+end
+if #blink_keys > 0 then
+	by_group["Completion (blink.cmp)"] = blink_keys
+end
+
+-- Output ordered groups
+for _, group in ipairs(group_order) do
+	local keymaps = by_group[group]
 	if keymaps and #keymaps > 0 then
-		add("## " .. cat)
+		add("## " .. group)
 		add("")
 		add("| Key | Mode | Action |")
 		add("|-----|------|--------|")
@@ -409,17 +521,17 @@ for _, cat in ipairs(category_order) do
 	end
 end
 
--- Remaining categories
-for cat, keymaps in pairs(by_category) do
+-- Remaining groups not in order list
+for group, keymaps in pairs(by_group) do
 	local found = false
-	for _, c in ipairs(category_order) do
-		if c == cat then
+	for _, g in ipairs(group_order) do
+		if g == group then
 			found = true
 			break
 		end
 	end
 	if not found and #keymaps > 0 then
-		add("## " .. cat)
+		add("## " .. group)
 		add("")
 		add("| Key | Mode | Action |")
 		add("|-----|------|--------|")

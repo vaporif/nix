@@ -17,6 +17,7 @@ in {
     ./packages.nix
     ./shell.nix
     ./neovim.nix
+    ./librewolf.nix
   ];
 
   manual = {
@@ -41,7 +42,6 @@ in {
       ".envrc".text = ''
         use flake "github:vaporif/nix-devshells/${inputs.nix-devshells.rev}"
       '';
-      ".librewolf/librewolf.overrides.cfg".source = ../../config/librewolf/librewolf.overrides.cfg;
     };
   };
 

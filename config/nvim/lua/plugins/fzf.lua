@@ -39,10 +39,10 @@ require('lze').load {
                 local old_wt = vim.fn.getcwd()
                 local current_file = vim.fn.expand '%:p'
                 local rel_path = current_file:gsub('^' .. vim.pesc(old_wt) .. '/', '')
-                vim.cmd('cd ' .. new_wt)
+                vim.cmd('cd ' .. vim.fn.fnameescape(new_wt))
                 local new_file = new_wt .. '/' .. rel_path
                 if vim.fn.filereadable(new_file) == 1 then
-                  vim.cmd('edit ' .. new_file)
+                  vim.cmd('edit ' .. vim.fn.fnameescape(new_file))
                 end
               end,
             },

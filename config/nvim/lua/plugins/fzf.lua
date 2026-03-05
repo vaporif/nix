@@ -30,16 +30,6 @@ require('lze').load {
         desc = 'buffer fuzz search',
       },
       {
-        '<leader>fn',
-        function()
-          require('fzf-lua').files {
-            prompt = 'Neovim Config> ',
-            cwd = vim.fn.stdpath 'config',
-          }
-        end,
-        desc = '[n]eovim files',
-      },
-      {
         '<leader>ft',
         function()
           require('fzf-lua').git_worktrees {

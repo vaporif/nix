@@ -1,5 +1,14 @@
-{lib, ...}: {
+{
+  lib,
+  pkgs,
+  config,
+  ...
+}: {
   options.custom = {
+    homeDir = lib.mkOption {
+      type = lib.types.str;
+      description = "Home directory path, derived from user and system";
+    };
     user = lib.mkOption {
       type = lib.types.str;
       description = "Primary username";
@@ -59,4 +68,9 @@
       };
     };
   };
+
+  config.custom.homeDir =
+    if pkgs.stdenv.isDarwin
+    then "/Users/${config.custom.user}"
+    else "/home/${config.custom.user}";
 }

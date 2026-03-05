@@ -5,10 +5,6 @@
   ...
 }: let
   cfg = config.custom;
-  homeDir =
-    if pkgs.stdenv.isDarwin
-    then "/Users/${cfg.user}"
-    else "/home/${cfg.user}";
 in {
   imports = [
     ../../modules/options.nix
@@ -30,7 +26,7 @@ in {
   };
 
   home = {
-    homeDirectory = homeDir;
+    homeDirectory = cfg.homeDir;
     username = cfg.user;
     stateVersion = "24.05";
     sessionPath = [
@@ -56,7 +52,7 @@ in {
       enable = true;
       package = inputs.parry.packages.${pkgs.system}.onnx;
       hfTokenFile = "/run/secrets/hf-token-scan-injection";
-      ignorePaths = ["${homeDir}/Repos/parry" cfg.configPath "${homeDir}/Repos/mcp-server-qdrant"];
+      ignorePaths = ["${cfg.homeDir}/Repos/parry" cfg.configPath "${cfg.homeDir}/Repos/mcp-server-qdrant"];
     };
   };
 }

@@ -5,15 +5,11 @@
   ...
 }: let
   cfg = config.custom;
-  homeDir =
-    if pkgs.stdenv.isDarwin
-    then "/Users/${cfg.user}"
-    else "/home/${cfg.user}";
 in {
   sops = {
     defaultSopsFile = ../secrets/secrets.yaml;
     age = {
-      keyFile = "${homeDir}/.config/sops/age/key.txt";
+      keyFile = "${cfg.homeDir}/.config/sops/age/key.txt";
       sshKeyPaths = [];
     };
     gnupg.sshKeyPaths = [];

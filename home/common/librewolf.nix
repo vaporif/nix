@@ -73,34 +73,44 @@
         Add = [
           {
             Name = "DuckDuckGo Lite";
-            URLTemplate = "https://start.duckduckgo.com/lite/?q={searchTerms}";
+            Description = "Minimal, ad-free version of DuckDuckGo";
+            Alias = "";
             Method = "POST";
+            URLTemplate = "https://start.duckduckgo.com/lite/?q={searchTerms}";
             PostData = "q={searchTerms}";
             SuggestURLTemplate = "https://ac.duckduckgo.com/ac/?q={searchTerms}&type=list";
           }
           {
             Name = "Searx Belgium";
-            URLTemplate = "https://searx.be/?q={searchTerms}";
+            Description = "A privacy-respecting, open metasearch engine";
+            Alias = "";
             Method = "POST";
+            URLTemplate = "https://searx.be/?q={searchTerms}";
             PostData = "q={searchTerms}&category_general=on";
             SuggestURLTemplate = "https://searx.be/autocompleter?q={searchTerms}";
           }
           {
             Name = "MetaGer";
-            URLTemplate = "https://metager.org/meta/meta.ger3?eingabe={searchTerms}";
+            Description = "Search safely while having your privacy respected";
+            Alias = "";
             Method = "GET";
+            URLTemplate = "https://metager.org/meta/meta.ger3?eingabe={searchTerms}";
             SuggestURLTemplate = "https://metager.org/suggest?query={searchTerms}";
           }
           {
             Name = "Startpage";
-            URLTemplate = "https://www.startpage.com/sp/search?query={searchTerms}&cat=web&pl=opensearch";
+            Description = "Search and browse the internet without being tracked or targeted";
+            Alias = "";
             Method = "GET";
+            URLTemplate = "https://www.startpage.com/sp/search?query={searchTerms}&cat=web&pl=opensearch";
             SuggestURLTemplate = "https://www.startpage.com/osuggestions?q={searchTerms}";
           }
           {
             Name = "Mojeek";
-            URLTemplate = "https://www.mojeek.com/search?q={searchTerms}";
+            Description = "A web search engine that provides unbiased, fast, and relevant search results combined with a no tracking privacy policy";
+            Alias = "";
             Method = "GET";
+            URLTemplate = "https://www.mojeek.com/search?q={searchTerms}";
           }
         ];
       };
@@ -184,7 +194,7 @@
   '';
 in {
   home.file = {
-    ".librewolf/policies/policies.json".text = builtins.toJSON policies;
+    ".librewolf/policies.json".text = builtins.toJSON policies;
     ".librewolf/librewolf.overrides.cfg".text = overridesCfg;
   };
 }

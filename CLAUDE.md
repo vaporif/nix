@@ -33,6 +33,7 @@ Run `just` to see all available commands. Key ones:
 | `just lint-lua` | Selene + stylua for Lua files |
 | `just lint-nix` | Flake check + alejandra + statix + deadnix |
 | `just fmt` | Format all (Lua + Nix + TOML) |
+| `just keymaps` | Regenerate docs/keymaps.md from source files |
 | `just cache` | Build and push to Cachix |
 | `just setup-hooks` | Enable git hooks |
 
@@ -115,9 +116,12 @@ flake.nix                    # Entry point; thin wiring only (inputs + module co
 │   ├── darwin/              # macOS-specific home config (Secretive, Claude desktop, UTM SSH)
 │   └── linux/               # NixOS-specific home config (systemd services)
 ├── scripts/
+│   ├── dump-keymaps.lua     # Auto-generates docs/keymaps.md (nvim, skhd, karabiner, wezterm, yazi)
 │   ├── setup.sh             # Cross-platform bootstrap script for forks
 │   ├── git-bare-clone.sh    # Bare clone with main worktree
 │   └── git-meta.sh          # Worktree config sync (.meta/)
+├── docs/
+│   └── keymaps.md           # Auto-generated keybinding reference (all apps)
 ├── overlays/                # Custom package overlays
 └── pkgs/                    # Custom package definitions
 ```
@@ -158,12 +162,17 @@ Typed NixOS options defined in `modules/options.nix` under `config.custom.*`. Ho
 
 Configured in `home/common/mcp.nix`. Available servers:
 - **serena** - Semantic code editing (recommended for this repo, has nixd + lua-language-server)
-- **filesystem** - File access
+- **filesystem** - File access (Documents, config, cargo, go, nix store)
+- **git** - Git operations
 - **github** - GitHub operations (uses `gh auth token`)
 - **context7** - Library documentation
 - **nixos** - NixOS/nix-darwin option search
 - **tavily** - Web search
 - **deepl** - Translation
+- **sequential-thinking** - Step-by-step reasoning
+- **time** - Time/timezone utilities
+- **memory** - Knowledge graph memory
+- **qdrant** - Vector search memory (collection: `claude-memory`)
 
 ## Secrets Management
 

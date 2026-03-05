@@ -85,6 +85,10 @@ lazy-update:
 setup-hooks:
     git config core.hooksPath .githooks
 
+# Regenerate docs/keymaps.md from source files
+keymaps:
+    nvim -l scripts/dump-keymaps.lua config/nvim/lua > docs/keymaps.md
+
 # Build and push to cachix
 cache:
     #!/usr/bin/env bash

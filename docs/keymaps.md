@@ -50,7 +50,6 @@
 | `<leader>fi` | n | type def[i]nition |
 | `<leader>fs` | n | document [s]ymbols |
 | `<leader>fw` | n | [w]orkspace symbols |
-| `<leader>fn` | n | [n]eovim files |
 | `<leader>ft` | n | work[t]rees |
 
 ### Git Hunks (<leader>h)
@@ -166,17 +165,17 @@
 
 | Key | Mode | Action |
 |-----|------|--------|
-| `<C-y>` | i | select_and_accept |
-| `<C-p>` | i | select_prev |
-| `<C-n>` | i | select_next |
-| `<C-space>` | i | show |
-| `<C-e>` | i | hide |
 | `<Tab>` | i | snippet_forward |
 | `<S-Tab>` | i | snippet_backward |
 | `<Up>` | i | select_prev |
 | `<Down>` | i | select_next |
 | `<S-j>` | i | scroll_documentation_up |
 | `<S-k>` | i | scroll_documentation_down |
+| `<C-y>` | i | select_and_accept |
+| `<C-p>` | i | select_prev |
+| `<C-n>` | i | select_next |
+| `<C-space>` | i | show |
+| `<C-e>` | i | hide |
 
 ### Other
 

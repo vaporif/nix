@@ -26,6 +26,17 @@ INSTALL_PATH="/Applications"
 LIBREWOLF_GPG_KEY="40339DD82B12EF16"
 GPG_KEY_URL="https://repo.librewolf.net/pubkey.gpg"
 
+# Deploy Nix-generated policies into LibreWolf app bundle
+deploy_policies() {
+    local POLICIES_SRC="${HOME}/.librewolf/policies.json"
+    local POLICIES_DST="${INSTALL_PATH}/${APP_NAME}/Contents/Resources/distribution/policies.json"
+    if [[ -f "${POLICIES_SRC}" ]]; then
+        echo "Deploying custom policies.json..."
+        mkdir -p "$(dirname "${POLICIES_DST}")"
+        cp "${POLICIES_SRC}" "${POLICIES_DST}"
+    fi
+}
+
 # Function to get latest version
 get_latest_version() {
     local api_response grep_result sed_result sorted_result
@@ -74,6 +85,7 @@ install_librewolf() {
         echo "Installed version: ${INSTALLED_VERSION}"
         if [[ "${INSTALLED_VERSION}" = "${VERSION}" ]]; then
             echo "LibreWolf is already up to date. Skipping installation."
+            deploy_policies
             exit 0
         fi
     else
@@ -143,6 +155,9 @@ install_librewolf() {
     # Copy app to Applications
     echo "Installing LibreWolf to ${INSTALL_PATH}..."
     cp -R "${VOLUME_PATH}/${APP_NAME}" "${INSTALL_PATH}/"
+
+    # Deploy policies into freshly installed app
+    deploy_policies
 
     # Unmount DMG
     echo "Cleaning up..."

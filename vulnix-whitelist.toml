@@ -85,6 +85,10 @@ cve = [
 [bytes]
 comment = "Haskell bytes library, not npm bytes"
 
+[filelock]
+comment = "Haskell filelock (flock/LockFileEx bindings), not Python filelock (tox-dev)"
+cve = ["CVE-2025-68146", "CVE-2026-22701"]
+
 [snappy]
 comment = "Haskell snappy, not npm snappy"
 cve = ["CVE-2023-28115", "CVE-2023-41330"]

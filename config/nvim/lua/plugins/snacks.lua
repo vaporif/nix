@@ -16,3 +16,7 @@ end, { desc = 'Lazy[g]it' })
 vim.keymap.set('n', '<leader>l', function()
   require('snacks').lazygit.log()
 end, { desc = 'git [l]ogs' })
+
+vim.keymap.set('n', '<leader>D', function()
+  require('snacks').terminal 'gh dash'
+end, { desc = 'gh [D]ash' })

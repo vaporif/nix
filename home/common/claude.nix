@@ -38,6 +38,12 @@
       version = readPluginVersion "${inputs.claude-code-plugins}/plugins/code-review";
     }
     {
+      name = "skill-creator";
+      description = "Create, test, and optimize Claude Code skills";
+      source = patchPlugin "skill-creator";
+      version = readPluginVersion "${inputs.claude-code-plugins}/plugins/skill-creator";
+    }
+    {
       name = "superpowers";
       description = "Core skills: TDD, debugging, collaboration patterns";
       source = inputs.superpowers;

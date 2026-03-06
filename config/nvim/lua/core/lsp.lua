@@ -142,9 +142,14 @@ vim.lsp.config.solidity_ls_nomicfoundation = {
 }
 vim.lsp.enable 'solidity_ls_nomicfoundation'
 
+local lsp_restart_attempts = {}
+local lsp_attach_time = {}
+
 vim.api.nvim_create_autocmd('LspAttach', {
   group = vim.api.nvim_create_augroup('lsp-attach', { clear = true }),
   callback = function(event)
+    lsp_attach_time[event.buf] = vim.uv.now()
+
     local map = function(keys, func, desc)
       vim.keymap.set('n', keys, func, { buffer = event.buf, desc = desc })
     end
@@ -161,17 +166,21 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
     local client = vim.lsp.get_client_by_id(event.data.client_id)
     if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
-      local augroup = vim.api.nvim_create_augroup('lsp-highlight', { clear = false })
+      local highlight_augroup = vim.api.nvim_create_augroup('lsp-highlight-' .. event.buf, { clear = true })
 
       vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
         buffer = event.buf,
-        group = augroup,
-        callback = vim.lsp.buf.document_highlight,
+        group = highlight_augroup,
+        callback = function()
+          if #vim.lsp.get_clients { bufnr = event.buf } > 0 then
+            vim.lsp.buf.document_highlight()
+          end
+        end,
       })
 
       vim.api.nvim_create_autocmd('CursorHold', {
         buffer = event.buf,
-        group = augroup,
+        group = highlight_augroup,
         callback = function()
           vim.diagnostic.open_float(nil, {
             focus = false,
@@ -183,7 +192,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
       vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
         buffer = event.buf,
-        group = augroup,
+        group = highlight_augroup,
         callback = vim.lsp.buf.clear_references,
       })
     end
@@ -200,5 +209,52 @@ vim.api.nvim_create_autocmd('LspAttach', {
     if client and client.name == 'ruff' then
       client.server_capabilities.hoverProvider = false
     end
+  end,
+})
+
+-- which-key v3 clears all buffer triggers (including <Space>) on LspDetach via
+-- Buf.clear → Triggers.detach. Its 50ms recovery timer silently fails to rebuild
+-- them (race with current_buf tracking / CursorHold floats). We clean up stale
+-- highlight autocmds, auto-restart lost servers, and force which-key to
+-- re-register triggers after its clear.
+vim.api.nvim_create_autocmd('LspDetach', {
+  group = vim.api.nvim_create_augroup('lsp-detach', { clear = true }),
+  callback = function(event)
+    local remaining = vim.lsp.get_clients { bufnr = event.buf }
+    if #remaining == 0 then
+      pcall(vim.api.nvim_del_augroup_by_name, 'lsp-highlight-' .. event.buf)
+      vim.lsp.buf.clear_references()
+    end
+
+    -- Auto-restart: if buffer has no clients after detach, re-attach (max 3 attempts).
+    -- Counter resets only if the server was stable (attached >10s), preventing infinite
+    -- restart loops for servers that start then immediately crash.
+    local attached_for = lsp_attach_time[event.buf] and (vim.uv.now() - lsp_attach_time[event.buf]) or 0
+    if attached_for > 10000 then
+      lsp_restart_attempts[event.buf] = nil
+    end
+
+    vim.defer_fn(function()
+      if not vim.api.nvim_buf_is_valid(event.buf) then
+        return
+      end
+      if #vim.lsp.get_clients { bufnr = event.buf } == 0 then
+        local key = event.buf
+        lsp_restart_attempts[key] = (lsp_restart_attempts[key] or 0) + 1
+        if lsp_restart_attempts[key] <= 3 then
+          vim.notify('LSP lost for buffer, restarting (' .. lsp_restart_attempts[key] .. '/3)...', vim.log.levels.WARN)
+          vim.api.nvim_buf_call(event.buf, function()
+            vim.cmd 'LspStart'
+          end)
+        end
+      end
+    end, 1000)
+
+    vim.defer_fn(function()
+      local ok, wk_buf = pcall(require, 'which-key.buf')
+      if ok and vim.api.nvim_buf_is_valid(event.buf) then
+        wk_buf.get { buf = event.buf, update = true }
+      end
+    end, 100)
   end,
 })

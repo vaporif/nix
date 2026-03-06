@@ -43,7 +43,7 @@
     };
     earthtone-nvim = {
       url = "github:vaporif/earthtone.nvim";
-      flake = false;
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-devshells.url = "github:vaporif/nix-devshells";
     parry = {
@@ -90,7 +90,7 @@
     mkPkgs = system:
       import nixpkgs {
         inherit system;
-        overlays = [localPackages];
+        overlays = [localPackages inputs.earthtone-nvim.overlays.default];
       };
 
     allowUnfreePredicate = pkg:
@@ -123,7 +123,7 @@
       specialArgs = {inherit inputs;};
       modules = [
         {
-          nixpkgs.overlays = [localPackages];
+          nixpkgs.overlays = [localPackages inputs.earthtone-nvim.overlays.default];
           nixpkgs.config.allowUnfreePredicate = allowUnfreePredicate;
         }
         ./hosts/macbook.nix
@@ -159,7 +159,7 @@
       specialArgs = {inherit inputs;};
       modules = [
         {
-          nixpkgs.overlays = [localPackages];
+          nixpkgs.overlays = [localPackages inputs.earthtone-nvim.overlays.default];
           nixpkgs.config.allowUnfreePredicate = allowUnfreePredicate;
         }
         ./hosts/nixos.nix

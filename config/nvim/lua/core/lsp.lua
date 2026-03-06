@@ -149,7 +149,6 @@ vim.api.nvim_create_autocmd('LspAttach', {
   group = vim.api.nvim_create_augroup('lsp-attach', { clear = true }),
   callback = function(event)
     lsp_attach_time[event.buf] = vim.uv.now()
-    lsp_restart_attempts[event.buf] = nil
 
     local map = function(keys, func, desc)
       vim.keymap.set('n', keys, func, { buffer = event.buf, desc = desc })

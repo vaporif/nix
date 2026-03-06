@@ -229,7 +229,14 @@ vim.api.nvim_create_autocmd('LspDetach', {
       vim.lsp.buf.clear_references()
     end
 
-    -- Auto-restart: if buffer has no clients after detach, re-attach (max 3 attempts)
+    -- Auto-restart: if buffer has no clients after detach, re-attach (max 3 attempts).
+    -- Counter resets only if the server was stable (attached >10s), preventing infinite
+    -- restart loops for servers that start then immediately crash.
+    local attached_for = lsp_attach_time[event.buf] and (vim.uv.now() - lsp_attach_time[event.buf]) or 0
+    if attached_for > 10000 then
+      lsp_restart_attempts[event.buf] = nil
+    end
+
     vim.defer_fn(function()
       if not vim.api.nvim_buf_is_valid(event.buf) then
         return
@@ -243,8 +250,6 @@ vim.api.nvim_create_autocmd('LspDetach', {
             vim.cmd 'LspStart'
           end)
         end
-      else
-        lsp_restart_attempts[event.buf] = nil
       end
     end, 1000)
 

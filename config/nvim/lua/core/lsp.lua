@@ -224,7 +224,7 @@ vim.api.nvim_create_autocmd('LspDetach', {
   group = vim.api.nvim_create_augroup('lsp-detach', { clear = true }),
   callback = function(event)
     local remaining = vim.lsp.get_clients { bufnr = event.buf }
-    if #remaining <= 1 then
+    if #remaining == 0 then
       pcall(vim.api.nvim_del_augroup_by_name, 'lsp-highlight-' .. event.buf)
       vim.lsp.buf.clear_references()
     end

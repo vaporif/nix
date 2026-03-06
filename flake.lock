@@ -853,17 +853,17 @@
     "yamb-yazi": {
       "flake": false,
       "locked": {
-        "lastModified": 1740743840,
-        "narHash": "sha256-NMxZ8/7HQgs+BsZeH4nEglWsRH2ibAzq7hRSyrtFDTA=",
+        "lastModified": 1764593341,
+        "narHash": "sha256-3Cp3+v0laSVsDdTyG26EOh2xt18ER8P9Nla9vtRuj9k=",
         "owner": "h-hg",
         "repo": "yamb.yazi",
-        "rev": "22af0033be18eead7b04c2768767d38ccfbaa05b",
+        "rev": "5f2e22e784dd5fc830cd85885a6d1d6690b52298",
         "type": "github"
       },
       "original": {
         "owner": "h-hg",
         "repo": "yamb.yazi",
-        "rev": "22af0033be18eead7b04c2768767d38ccfbaa05b",
+        "rev": "5f2e22e784dd5fc830cd85885a6d1d6690b52298",
         "type": "github"
       }
     }

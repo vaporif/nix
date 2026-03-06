@@ -26,7 +26,7 @@
       flake = false;
     };
     yamb-yazi = {
-      url = "github:h-hg/yamb.yazi/22af0033be18eead7b04c2768767d38ccfbaa05b";
+      url = "github:h-hg/yamb.yazi/5f2e22e784dd5fc830cd85885a6d1d6690b52298";
       flake = false;
     };
     vim-tidal = {

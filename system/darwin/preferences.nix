@@ -42,6 +42,7 @@ _: {
       LoginwindowText = "derp durp";
       SHOWFULLNAME = true;
       DisableConsoleAccess = true;
+      autoLoginUser = null;
     };
     LaunchServices.LSQuarantine = true;
     smb = {

@@ -83,7 +83,7 @@ in {
 
       specs = {
         colorscheme = {
-          data = mkPlugin "earthtone.nvim" inputs.earthtone-nvim;
+          data = pkgs.vimPlugins.earthtone-nvim;
           lazy = false;
           before = ["INIT_MAIN"];
         };

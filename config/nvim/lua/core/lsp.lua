@@ -1,8 +1,7 @@
 vim.diagnostic.config {
-  virtual_text = {
-    prefix = '●',
-    source = true,
-  },
+  virtual_text = false,
+  virtual_lines = false,
+  underline = true,
   float = {
     source = true,
   },
@@ -65,18 +64,22 @@ vim.lsp.config.cairo_ls = {
 }
 vim.lsp.enable 'cairo_ls'
 
-local nixpkgs_expr = string.format('import (builtins.getFlake "%s").inputs.nixpkgs { }', vim.fn.getcwd())
 vim.lsp.config.nixd = {
   settings = {
     nixd = {
-      nixpkgs = {
-        expr = nixpkgs_expr,
-      },
       formatting = {
         command = { 'alejandra', '-q' },
       },
     },
   },
+  on_init = function(client)
+    local root = client.config.root_dir or vim.fn.getcwd()
+    local nixpkgs_expr = string.format('import (builtins.getFlake "%s").inputs.nixpkgs { }', root)
+    client.config.settings = vim.tbl_deep_extend('force', client.config.settings, {
+      nixd = { nixpkgs = { expr = nixpkgs_expr } },
+    })
+    client.notify('workspace/didChangeConfiguration', { settings = client.config.settings })
+  end,
 }
 
 vim.lsp.enable 'nixd'
@@ -171,22 +174,17 @@ vim.api.nvim_create_autocmd('LspAttach', {
       vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
         buffer = event.buf,
         group = highlight_augroup,
-        callback = function()
+        callback = function(args)
           if #vim.lsp.get_clients { bufnr = event.buf } > 0 then
             vim.lsp.buf.document_highlight()
           end
-        end,
-      })
-
-      vim.api.nvim_create_autocmd('CursorHold', {
-        buffer = event.buf,
-        group = highlight_augroup,
-        callback = function()
-          vim.diagnostic.open_float(nil, {
-            focus = false,
-            scope = 'cursor',
-            close_events = { 'CursorMoved', 'CursorMovedI', 'BufHidden', 'InsertEnter', 'WinLeave' },
-          })
+          if args.event == 'CursorHold' then
+            vim.diagnostic.open_float(nil, {
+              focus = false,
+              scope = 'cursor',
+              close_events = { 'CursorMoved', 'CursorMovedI', 'BufHidden', 'InsertEnter', 'WinLeave' },
+            })
+          end
         end,
       })
 
@@ -196,15 +194,6 @@ vim.api.nvim_create_autocmd('LspAttach', {
         callback = vim.lsp.buf.clear_references,
       })
     end
-    vim.diagnostic.config {
-      virtual_text = false,
-      virtual_lines = false,
-      signs = true,
-      underline = true,
-      float = {
-        source = true,
-      },
-    }
     -- Disable ruff hover feature in favor of Pyright
     if client and client.name == 'ruff' then
       client.server_capabilities.hoverProvider = false

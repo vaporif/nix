@@ -193,11 +193,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
       vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
         buffer = event.buf,
         group = highlight_augroup,
-        callback = function()
-          if #vim.lsp.get_clients { bufnr = event.buf } > 0 then
-            vim.lsp.buf.clear_references()
-          end
-        end,
+        callback = vim.lsp.buf.clear_references,
       })
     end
     vim.diagnostic.config {

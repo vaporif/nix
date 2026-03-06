@@ -143,10 +143,12 @@ vim.lsp.config.solidity_ls_nomicfoundation = {
 vim.lsp.enable 'solidity_ls_nomicfoundation'
 
 local lsp_restart_attempts = {}
+local lsp_attach_time = {}
 
 vim.api.nvim_create_autocmd('LspAttach', {
   group = vim.api.nvim_create_augroup('lsp-attach', { clear = true }),
   callback = function(event)
+    lsp_attach_time[event.buf] = vim.uv.now()
     lsp_restart_attempts[event.buf] = nil
 
     local map = function(keys, func, desc)

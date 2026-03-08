@@ -18,14 +18,6 @@ require('lze').load {
         end,
         formatters_by_ft = {
           lua = { 'stylua' },
-          go = { 'golangci_lint' },
-        },
-        formatters = {
-          golangci_lint = {
-            command = 'golangci-lint',
-            args = { 'run', '--fix', '$FILENAME' },
-            stdin = false,
-          },
         },
       }
     end,

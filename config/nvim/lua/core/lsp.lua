@@ -37,6 +37,13 @@ vim.lsp.config.lua_ls = {
 }
 vim.lsp.enable 'lua_ls'
 vim.lsp.enable 'ts_ls'
+vim.lsp.config.gopls = {
+  settings = {
+    gopls = {
+      gofumpt = true,
+    },
+  },
+}
 vim.lsp.enable 'gopls'
 
 local corelib_path = os.getenv 'CAIRO_CORELIB_PATH'

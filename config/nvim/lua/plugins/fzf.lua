@@ -14,7 +14,7 @@ require('lze').load {
       { '<leader>fc', '<cmd>FzfLua git_bcommits<cr>', desc = 'buffer [c]ommits' },
       { '<leader>fm', '<cmd>Noice fzf<cr>', desc = '[m]essages' },
       { 'gd', '<cmd>FzfLua lsp_definitions<cr>', desc = 'goto [d]efinition' },
-      { 'gR', '<cmd>FzfLua lsp_references<cr>', desc = 'goto [R]eferences (fzf-lua)' },
+      { 'gr', '<cmd>FzfLua lsp_references<cr>', desc = 'goto [r]eferences (fzf-lua)' },
       { 'gI', '<cmd>FzfLua lsp_implementations<cr>', desc = 'goto [I]mplementation' },
       { '<leader>fi', '<cmd>FzfLua lsp_typedefs<cr>', desc = 'type def[i]nition' },
       { '<leader>fs', '<cmd>FzfLua lsp_document_symbols<cr>', desc = 'document [s]ymbols' },

@@ -7,6 +7,7 @@ require('lze').load {
   { 'nvim-dap-ui', on_require = 'dapui' },
   { 'nvim-dap-go', on_require = 'dap-go' },
   { 'nvim-treesitter-textobjects', on_require = 'nvim-treesitter-textobjects' },
+  { 'nvim-navic', on_require = 'nvim-navic' },
   { 'neotest-golang', dep_of = 'neotest' },
   { 'neotest-python', dep_of = 'neotest' },
   { 'neotest-vitest', dep_of = 'neotest' },

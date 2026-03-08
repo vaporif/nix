@@ -166,7 +166,7 @@ in {
             which-key-nvim
             noice-nvim
             alpha-nvim
-            trouble-nvim
+            nvim-navic
           ];
         };
 

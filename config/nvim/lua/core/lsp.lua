@@ -155,11 +155,15 @@ vim.lsp.enable 'solidity_ls_nomicfoundation'
 vim.api.nvim_create_autocmd('LspAttach', {
   group = vim.api.nvim_create_augroup('lsp-attach', { clear = true }),
   callback = function(event)
+    local client = vim.lsp.get_client_by_id(event.data.client_id)
+    if client and client:supports_method 'textDocument/documentSymbol' then
+      require('nvim-navic').attach(client, event.buf)
+    end
+
     local map = function(keys, func, desc)
       vim.keymap.set('n', keys, func, { buffer = event.buf, desc = desc })
     end
 
-    map('gr', vim.lsp.buf.references, 'goto [r]eferences')
     map('gD', vim.lsp.buf.declaration, 'goto [D]eclaration')
     map('<leader>r', vim.lsp.buf.rename, '[r]ename')
     map('<leader>ca', vim.lsp.buf.code_action, '[a]ction')
@@ -169,7 +173,6 @@ vim.api.nvim_create_autocmd('LspAttach', {
       vim.lsp.buf.code_action { context = { only = { 'source.organizeImports' }, diagnostics = {} }, apply = true }
     end, { buffer = 0, desc = 'organize [i]mports' })
 
-    local client = vim.lsp.get_client_by_id(event.data.client_id)
     if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
       local highlight_augroup = vim.api.nvim_create_augroup('lsp-highlight-' .. event.buf, { clear = true })
 

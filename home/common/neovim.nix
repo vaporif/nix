@@ -6,13 +6,6 @@
 }: let
   cfg = config.custom;
 
-  sharedLspPackages = with pkgs; [
-    lua-language-server
-    typescript-language-server
-    basedpyright
-    nixd
-  ];
-
   mkPlugin = name: src:
     pkgs.vimUtils.buildVimPlugin {
       pname = name;
@@ -219,7 +212,7 @@ in {
         tools = {
           data = null;
           extraPackages =
-            sharedLspPackages
+            cfg.lspPackages
             ++ (with pkgs; [
               lua51Packages.luarocks
               lua51Packages.lua

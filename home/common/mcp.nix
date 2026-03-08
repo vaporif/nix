@@ -8,13 +8,6 @@
   cfg = config.custom;
   homeDir = config.home.homeDirectory;
 
-  sharedLspPackages = with pkgs; [
-    lua-language-server
-    typescript-language-server
-    basedpyright
-    nixd
-  ];
-
   serenaPatched = inputs.mcp-servers-nix.packages.${pkgs.stdenv.hostPlatform.system}.serena.overrideAttrs (_: {
     version = "0.1.4-unstable-2025-12-28";
     src = pkgs.fetchFromGitHub {
@@ -55,7 +48,7 @@
         context = "claude-code";
         enableWebDashboard = true;
         extraPackages =
-          sharedLspPackages
+          cfg.lspPackages
           ++ (with pkgs; [
             rust-analyzer
             gopls

@@ -39,13 +39,13 @@ require('lze').load {
       -- move to next/prev
       for _, m in ipairs {
         { ']f', 'goto_next_start', '@function.outer', 'next function start' },
-        { ']c', 'goto_next_start', '@class.outer', 'next class start' },
+        { ']t', 'goto_next_start', '@class.outer', 'next class/type start' },
         { ']F', 'goto_next_end', '@function.outer', 'next function end' },
-        { ']C', 'goto_next_end', '@class.outer', 'next class end' },
+        { ']T', 'goto_next_end', '@class.outer', 'next class/type end' },
         { '[f', 'goto_previous_start', '@function.outer', 'prev function start' },
-        { '[c', 'goto_previous_start', '@class.outer', 'prev class start' },
+        { '[t', 'goto_previous_start', '@class.outer', 'prev class/type start' },
         { '[F', 'goto_previous_end', '@function.outer', 'prev function end' },
-        { '[C', 'goto_previous_end', '@class.outer', 'prev class end' },
+        { '[T', 'goto_previous_end', '@class.outer', 'prev class/type end' },
       } do
         vim.keymap.set({ 'n', 'x', 'o' }, m[1], function()
           move[m[2]](m[3], 'textobjects')

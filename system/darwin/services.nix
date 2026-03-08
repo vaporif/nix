@@ -19,6 +19,9 @@ _: {
         hyper - p : open -a "Spotify"               # s[p]otify
       '';
     };
-    openssh.enable = false;
+    openssh = {
+      enable = false;
+      hostKeys = [];
+    };
   };
 }

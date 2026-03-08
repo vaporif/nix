@@ -4,7 +4,6 @@ require('lze').load {
   { 'nui.nvim', on_require = 'nui' },
   { 'nvim-web-devicons', on_require = 'nvim-web-devicons' },
   { 'promise-async', on_require = { 'promise', 'async' } },
-  { 'guihua.lua', on_require = { 'guihua', 'fzy' } },
   { 'nvim-dap-ui', on_require = 'dapui' },
   { 'nvim-dap-go', on_require = 'dap-go' },
   { 'nvim-treesitter-textobjects', on_require = 'nvim-treesitter-textobjects' },

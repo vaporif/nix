@@ -191,14 +191,6 @@ in {
           ];
         };
 
-        go = {
-          lazy = true;
-          data = with pkgs.vimPlugins; [
-            go-nvim
-            guihua-lua
-          ];
-        };
-
         tidal = {
           lazy = true;
           data = mkPlugin "vim-tidal-lua" inputs.vim-tidal-lua;

@@ -92,10 +92,14 @@ require('lze').load {
       }
     end,
   },
-}
-
--- auto-session: loaded eagerly by Nix, just call setup
-local home = vim.env.HOME
-require('auto-session').setup {
-  suppressed_dirs = { home, home .. '/Repos', home .. '/Downloads', '/' },
+  {
+    'auto-session',
+    -- loaded eagerly by Nix, just call setup
+    after = function()
+      local home = vim.env.HOME
+      require('auto-session').setup {
+        suppressed_dirs = { home, home .. '/Repos', home .. '/Downloads', '/' },
+      }
+    end,
+  },
 }

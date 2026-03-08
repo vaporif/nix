@@ -45,11 +45,11 @@ vim.keymap.set({ 'n', 'v', 'o' }, 'k', '<Nop>')
 vim.keymap.set({ 'n', 'v', 'o' }, 'l', '<Nop>')
 
 -- ; -> :
-vim.keymap.set({ 'n', 'v', 'x' }, ';', ':')
+vim.keymap.set({ 'n', 'x' }, ';', ':')
 
 -- disable macros fully
-vim.keymap.set({ 'n', 'v', 'x' }, 'q', function() end)
-vim.keymap.set({ 'n', 'v', 'x' }, 'Q', function() end)
+vim.keymap.set({ 'n', 'x' }, 'q', function() end)
+vim.keymap.set({ 'n', 'x' }, 'Q', function() end)
 
 -- delete default code operations
 for _, key in ipairs { 'grn', 'grr', 'gri', 'gra' } do

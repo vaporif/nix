@@ -183,7 +183,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
           if #vim.lsp.get_clients { bufnr = event.buf } > 0 then
             vim.lsp.buf.document_highlight()
           end
-          if args.event == 'CursorHold' then
+          if args.event == 'CursorHold' and #vim.diagnostic.get(event.buf, { lnum = vim.api.nvim_win_get_cursor(0)[1] - 1 }) > 0 then
             vim.diagnostic.open_float(nil, {
               focus = false,
               scope = 'cursor',

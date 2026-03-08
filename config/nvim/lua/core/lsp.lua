@@ -165,7 +165,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
     end
 
     map('gD', vim.lsp.buf.declaration, 'goto [D]eclaration')
-    map('<leader>r', vim.lsp.buf.rename, '[r]ename')
+    vim.keymap.set('n', '<leader>r', function()
+      return ':IncRename ' .. vim.fn.expand '<cword>'
+    end, { buffer = event.buf, desc = '[r]ename', expr = true })
     map('<leader>ca', vim.lsp.buf.code_action, '[a]ction')
     map('<leader>cR', '<cmd>LspRestart<CR>', '[R]estart LSP')
 
@@ -173,45 +175,22 @@ vim.api.nvim_create_autocmd('LspAttach', {
       vim.lsp.buf.code_action { context = { only = { 'source.organizeImports' }, diagnostics = {} }, apply = true }
     end, { buffer = 0, desc = 'organize [i]mports' })
 
-    if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
-      local highlight_augroup = vim.api.nvim_create_augroup('lsp-highlight-' .. event.buf, { clear = true })
-
-      vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
-        buffer = event.buf,
-        group = highlight_augroup,
-        callback = function(args)
-          if #vim.lsp.get_clients { bufnr = event.buf } > 0 then
-            vim.lsp.buf.document_highlight()
-          end
-          if args.event == 'CursorHold' and #vim.diagnostic.get(event.buf, { lnum = vim.api.nvim_win_get_cursor(0)[1] - 1 }) > 0 then
-            vim.diagnostic.open_float(nil, {
-              focus = false,
-              scope = 'cursor',
-              close_events = { 'CursorMoved', 'CursorMovedI', 'BufHidden', 'InsertEnter', 'WinLeave' },
-            })
-          end
-        end,
-      })
-
-      vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
-        buffer = event.buf,
-        group = highlight_augroup,
-        callback = vim.lsp.buf.clear_references,
-      })
-    end
+    vim.api.nvim_create_autocmd('CursorHold', {
+      buffer = event.buf,
+      group = vim.api.nvim_create_augroup('lsp-diagnostic-float-' .. event.buf, { clear = true }),
+      callback = function()
+        if #vim.diagnostic.get(event.buf, { lnum = vim.api.nvim_win_get_cursor(0)[1] - 1 }) > 0 then
+          vim.diagnostic.open_float(nil, {
+            focus = false,
+            scope = 'cursor',
+            close_events = { 'CursorMoved', 'CursorMovedI', 'BufHidden', 'InsertEnter', 'WinLeave' },
+          })
+        end
+      end,
+    })
     -- Disable ruff hover feature in favor of Pyright
     if client and client.name == 'ruff' then
       client.server_capabilities.hoverProvider = false
-    end
-  end,
-})
-
-vim.api.nvim_create_autocmd('LspDetach', {
-  group = vim.api.nvim_create_augroup('lsp-detach', { clear = true }),
-  callback = function(event)
-    if #vim.lsp.get_clients { bufnr = event.buf } == 0 then
-      pcall(vim.api.nvim_del_augroup_by_name, 'lsp-highlight-' .. event.buf)
-      vim.lsp.buf.clear_references()
     end
   end,
 })

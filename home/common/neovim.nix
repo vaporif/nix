@@ -165,7 +165,6 @@ in {
             lualine-nvim
             which-key-nvim
             noice-nvim
-            alpha-nvim
             nvim-navic
           ];
         };
@@ -211,6 +210,7 @@ in {
             grug-far-nvim
             nvim-ufo
             promise-async
+            inc-rename-nvim
             guess-indent-nvim
             render-markdown-nvim
           ];

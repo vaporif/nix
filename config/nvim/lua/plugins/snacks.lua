@@ -7,6 +7,34 @@ require('snacks').setup {
   picker = {
     ui_select = true,
   },
+  words = { enabled = true },
+  indent = {
+    char = '│',
+    animate = { enabled = false },
+    scope = { enabled = true },
+  },
+  dashboard = {
+    preset = {
+      header = [[
+░░░░░░░░▀▀▀██████▄▄▄░░░░░░░░░░░░
+░░░░░░▄▄▄▄▄░░█████████▄░░░░░░░░░
+░░░░░▀▀▀▀█████▌░▀▐▄░▀▐█░░░░░░░░░
+░░░▀▀█████▄▄░▀██████▄██░░░░░░░░░
+░░░▀▄▄▄▄▄░░▀▀█▄▀█════█▀░░░░░░░░░
+░░░░░░░░▀▀▀▄░░▀▀███░▀░░░░░░▄▄░░░
+░░░░░▄███▀▀██▄████████▄░▄▀▀▀██▌░
+░░░██▀▄▄▄██▀▄███▀░▀▀████░░░░░▀█▄
+▄▀▀▀▄██▄▀▀▌████▒▒▒▒▒▒███░░░░▌▄▄▀
+▌░░░░▐▀████▐███▒▒▒▒▒▐██▌░░░░░░░░
+▀▄░░▄▀░░░▀▀████▒▒▒▒▄██▀░░░░░░░░░
+░░▀▀░░░░░░▀▀█████████▀░░░░░░░░░░]],
+    },
+    sections = {
+      { section = 'header' },
+      { section = 'recent_files', cwd = true, limit = 8, padding = 1 },
+      { section = 'recent_files', limit = 8, padding = 1 },
+    },
+  },
 }
 
 vim.keymap.set('n', '<leader>g', function()

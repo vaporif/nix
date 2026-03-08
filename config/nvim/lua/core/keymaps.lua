@@ -30,6 +30,10 @@ vim.keymap.set('n', '<leader>sh', '<cmd>split<CR>', { desc = '[h]orizontally' })
 -- Buffer navigation
 vim.keymap.set('n', '<S-h>', '<cmd>bprevious<CR>', { desc = 'Prev buffer' })
 vim.keymap.set('n', '<S-l>', '<cmd>bnext<CR>', { desc = 'Next buffer' })
+vim.keymap.set('n', '<leader>bp', '<cmd>bprevious<CR>', { desc = '[p]revious' })
+vim.keymap.set('n', '<leader>bn', '<cmd>bnext<CR>', { desc = '[n]ext' })
+vim.keymap.set('n', '<leader>bd', '<cmd>bdelete<CR>', { desc = '[d]elete' })
+vim.keymap.set('n', '<leader>bo', '<cmd>%bdelete|edit#|bdelete#<CR>', { desc = '[o]nly (close others)' })
 
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>', { desc = 'Clear search highlight' })
 vim.keymap.set('i', 'ii', '<Esc>')

@@ -43,7 +43,7 @@ require('lze').load {
           { '<leader>q', group = '[q]uickreplace' },
           { '<leader>c', group = '[c]ode' },
           { '<leader>d', group = '[d]ebug' },
-          { '<leader>b', group = 'trou[b]le' },
+          { '<leader>b', group = '[b]uffer' },
           { '<leader>t', group = '[t]est' },
           { '<leader>h', group = '[h]unk', mode = { 'n', 'v' } },
         },

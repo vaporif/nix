@@ -20,6 +20,13 @@ in {
     ./librewolf.nix
   ];
 
+  custom.lspPackages = with pkgs; [
+    lua-language-server
+    typescript-language-server
+    basedpyright
+    nixd
+  ];
+
   manual = {
     manpages.enable = false;
     html.enable = false;

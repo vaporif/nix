@@ -66,6 +66,11 @@
         description = "Cachix cache public key";
       };
     };
+    lspPackages = lib.mkOption {
+      type = lib.types.listOf lib.types.package;
+      default = [];
+      description = "Shared LSP packages for neovim and MCP servers";
+    };
   };
 
   config.custom.homeDir =

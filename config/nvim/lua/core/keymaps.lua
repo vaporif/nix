@@ -43,6 +43,11 @@ vim.keymap.set({ 'n', 'v', 'o' }, 'l', '<Nop>')
 -- ; -> :
 vim.keymap.set({ 'n', 'v', 'x' }, ';', ':')
 
+-- Require double-press to record macros — bare q poisons which-key's
+-- async trigger registration via in_macro() returning true
+vim.keymap.set('n', 'q', '<Nop>')
+vim.keymap.set('n', 'qq', 'q', { desc = 'record macro' })
+
 -- delete default code operations
 for _, key in ipairs { 'grn', 'grr', 'gri', 'gra' } do
   pcall(vim.keymap.del, 'n', key)

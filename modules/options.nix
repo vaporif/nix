@@ -1,6 +1,5 @@
 {
   lib,
-  pkgs,
   config,
   ...
 }: {
@@ -70,7 +69,7 @@
   };
 
   config.custom.homeDir =
-    if pkgs.stdenv.isDarwin
+    if lib.hasSuffix "darwin" config.custom.system
     then "/Users/${config.custom.user}"
     else "/home/${config.custom.user}";
 }

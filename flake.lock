@@ -816,17 +816,17 @@
     "visual-explainer": {
       "flake": false,
       "locked": {
-        "lastModified": 1772770231,
-        "narHash": "sha256-ZTqOGDNjCwcsbJlBrOuV5PwizQzvaUW13db43JeLErc=",
+        "lastModified": 1773010628,
+        "narHash": "sha256-gr8R+WBYZeAaz17PcqL/cUhM33C0OiHb2sokGVhCj2w=",
         "owner": "nicobailon",
         "repo": "visual-explainer",
-        "rev": "f41c48fd507c95f53151047788662e91def8c673",
+        "rev": "4dad56f8167274dfbee7d46865fb98f918721184",
         "type": "github"
       },
       "original": {
         "owner": "nicobailon",
         "repo": "visual-explainer",
-        "rev": "f41c48fd507c95f53151047788662e91def8c673",
+        "rev": "4dad56f8167274dfbee7d46865fb98f918721184",
         "type": "github"
       }
     },

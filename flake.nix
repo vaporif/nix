@@ -67,7 +67,7 @@
       flake = false;
     };
     visual-explainer = {
-      url = "github:nicobailon/visual-explainer/f41c48fd507c95f53151047788662e91def8c673";
+      url = "github:nicobailon/visual-explainer/4dad56f8167274dfbee7d46865fb98f918721184";
       flake = false;
     };
   };

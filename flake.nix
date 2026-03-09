@@ -11,52 +11,39 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    sops-nix.url = "github:Mic92/sops-nix";
     stylix = {
       url = "github:nix-community/stylix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    mcp-servers-nix = {
-      url = "github:vaporif/mcp-servers-nix/qdrant";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    mcp-nixos.url = "github:utensils/mcp-nixos";
-    sops-nix.url = "github:Mic92/sops-nix";
-    fzf-git-sh = {
-      url = "https://raw.githubusercontent.com/junegunn/fzf-git.sh/c823ffd521cb4a3a65a5cf87f1b1104ef651c3de/fzf-git.sh";
-      flake = false;
-    };
-    yamb-yazi = {
-      url = "github:h-hg/yamb.yazi/22af0033be18eead7b04c2768767d38ccfbaa05b";
-      flake = false;
-    };
-    vim-tidal = {
-      url = "github:tidalcycles/vim-tidal/e440fe5bdfe07f805e21e6872099685d38e8b761";
-      flake = false;
-    };
-    claude-code-plugins = {
-      url = "github:anthropics/claude-plugins-official";
-      flake = false;
-    };
-    superpowers = {
-      url = "github:obra/superpowers/e4a2375cb705ca5800f0833528ce36a3faf9017a";
-      flake = false;
-    };
-    earthtone-nvim = {
-      url = "github:vaporif/earthtone.nvim";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+
     nix-devshells.url = "github:vaporif/nix-devshells";
     parry = {
       url = "github:vaporif/parry";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    mcp-servers-nix = {
+      url = "github:vaporif/mcp-servers-nix/qdrant";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    mcp-nixos.url = "github:utensils/mcp-nixos";
+    claude-code-plugins = {
+      url = "github:anthropics/claude-plugins-official";
+      flake = false;
+    };
+    superpowers = {
+      url = "github:obra/superpowers";
+      flake = false;
+    };
+
     wrappers = {
       url = "github:BirdeeHub/nix-wrapper-modules";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    vim-tidal-lua = {
-      url = "github:vaporif/vim-tidal-lua";
-      flake = false;
+    earthtone-nvim = {
+      url = "github:vaporif/earthtone.nvim";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     difftastic-nvim = {
       url = "github:clabby/difftastic.nvim";
@@ -67,7 +54,20 @@
       flake = false;
     };
     visual-explainer = {
-      url = "github:nicobailon/visual-explainer/f41c48fd507c95f53151047788662e91def8c673";
+      url = "github:nicobailon/visual-explainer";
+      flake = false;
+    };
+    vim-tidal = {
+      url = "github:tidalcycles/vim-tidal";
+      flake = false;
+    };
+    vim-tidal-lua = {
+      url = "github:vaporif/vim-tidal-lua";
+      flake = false;
+    };
+
+    yamb-yazi = {
+      url = "github:h-hg/yamb.yazi";
       flake = false;
     };
   };

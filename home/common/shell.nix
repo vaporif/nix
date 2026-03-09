@@ -1,10 +1,4 @@
-{
-  pkgs,
-  inputs,
-  ...
-}: let
-  fzf-git-sh-package = pkgs.writeShellScriptBin "fzf-git.sh" (builtins.readFile inputs.fzf-git-sh);
-in {
+{pkgs, ...}: {
   programs = {
     ripgrep.enable = true;
     fd.enable = true;
@@ -165,7 +159,7 @@ in {
       initContent = ''
         ulimit -Sn 4096
         ulimit -Sl unlimited
-        source ${fzf-git-sh-package}/bin/fzf-git.sh
+
         bindkey '^F' fzf-file-widget
         bindkey -r '^T'
       '';

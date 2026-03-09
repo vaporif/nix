@@ -11,7 +11,7 @@ in {
   programs = {
     gh = {
       enable = true;
-      extensions = [pkgs.gh-dash];
+      extensions = [pkgs.gh-dash pkgs.gh-f];
       settings.aliases = {
         co = "pr checkout";
         pv = "pr view --web";

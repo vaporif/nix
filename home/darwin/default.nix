@@ -16,12 +16,6 @@ in {
     sessionVariables = lib.optionalAttrs (cfg.sshAgent == "secretive") {
       SSH_AUTH_SOCK = "${homeDir}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";
     };
-    file."Library/Application Support/Claude/claude_desktop_config.json".source = cfg.mcpServersConfig;
-    activation.setupClaudeCodeMcp = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      $DRY_RUN_CMD mkdir -p "${homeDir}/Library/Application Support/ClaudeCode"
-      $DRY_RUN_CMD rm -f "${homeDir}/Library/Application Support/ClaudeCode/managed-mcp.json"
-      $DRY_RUN_CMD cp ${cfg.mcpServersConfig} "${homeDir}/Library/Application Support/ClaudeCode/managed-mcp.json"
-    '';
   };
 
   programs.ssh = {

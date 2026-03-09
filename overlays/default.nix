@@ -89,6 +89,17 @@ in
       ];
     };
   }
+  // {
+    # Skip ast-grep check (test_scan_invalid_rule_id fails with illegal byte sequence in sandbox)
+    ast-grep = prev.ast-grep.overrideAttrs (_: {
+      doCheck = false;
+    });
+
+    # Skip nodejs_22 checks (network tests fail in sandbox, not cached on Hydra for aarch64-darwin)
+    nodejs-slim_22 = prev.nodejs-slim_22.overrideAttrs (_: {
+      doCheck = false;
+    });
+  }
   // prev.lib.optionalAttrs prev.stdenv.isDarwin {
     # Skip curl-impersonate check (AppleIDN not compiled on macOS 15)
     curl-impersonate = prev.curl-impersonate.overrideAttrs (_: {

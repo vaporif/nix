@@ -12,6 +12,10 @@ _: {
       "homebrew/services"
     ];
 
+    brews = [
+      "molten-vk"
+    ];
+
     casks = [
       "supercollider"
       "spotify"

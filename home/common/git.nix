@@ -39,7 +39,7 @@ in {
 
     git = {
       enable = true;
-      ignores = [".direnv" ".serena" ".claude" "CLAUDE.md" ".serena.bak" ".claude.bak" ".envrc.bak" ".parry-guard.redb" "CLAUDE.md.bak"];
+      ignores = [".direnv" ".serena" ".claude" "CLAUDE.md" ".serena.bak" ".claude.bak" ".envrc.bak" ".parry-guard.redb" "CLAUDE.md.bak" "docs/superpowers/"];
       settings = {
         user = {
           inherit (cfg.git) name email;

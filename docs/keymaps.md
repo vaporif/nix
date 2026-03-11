@@ -19,6 +19,7 @@
 | `<leader>p` | n | har[p]oon |
 | `<leader>g` | n | Lazy[g]it |
 | `<leader>l` | n | git [l]ogs |
+| `<leader>D` | n | gh [D]ash |
 
 ### Code (<leader>c)
 
@@ -51,6 +52,7 @@
 | `<leader>fs` | n | document [s]ymbols |
 | `<leader>fw` | n | [w]orkspace symbols |
 | `<leader>ft` | n | work[t]rees |
+| `<leader>fT` | n | [T]odos |
 
 ### Git Hunks (<leader>h)
 
@@ -111,23 +113,19 @@
 
 | Key | Mode | Action |
 |-----|------|--------|
-| `<leader>bt` | n | [t]odo |
-| `<leader>bd` | n | [d]iagnostics |
-| `<leader>bb` | n | [b]uffer |
-| `<leader>bs` | n | [s]ymbols |
-| `<leader>bl` | n | [L]SP Definitions / references / ... |
-| `<leader>bo` | n | l[o]ocation |
-| `<leader>bq` | n | [q]uickfix |
+| `<leader>bp` | n | [p]revious |
+| `<leader>bn` | n | [n]ext |
+| `<leader>bd` | n | [d]elete |
+| `<leader>bo` | n | [o]nly (close others) |
 
 ### Goto (g)
 
 | Key | Mode | Action |
 |-----|------|--------|
-| `gr` | n | goto [r]eferences |
 | `gD` | n | goto [D]eclaration |
 | `g?` | n | Difftastic help |
 | `gd` | n | goto [d]efinition |
-| `gR` | n | goto [R]eferences (fzf-lua) |
+| `gr` | n | goto [r]eferences (fzf-lua) |
 | `gI` | n | goto [I]mplementation |
 | `gp` | n x | GPut after |
 | `gP` | n x | GPut before |
@@ -143,15 +141,13 @@
 | `]g` | n | next [g]it hunk |
 | `[g` | n | prev [g]it hunk |
 | `]f` | n x o | next function start |
-| `]c` | n x o | next class start |
+| `]t` | n x o | next class/type start |
 | `]F` | n x o | next function end |
-| `]C` | n x o | next class end |
+| `]T` | n x o | next class/type end |
 | `[f` | n x o | prev function start |
-| `[c` | n x o | prev class start |
+| `[t` | n x o | prev class/type start |
 | `[F` | n x o | prev function end |
-| `[C` | n x o | prev class end |
-| `]x` | n | Next trouble item |
-| `[x` | n | Previous trouble item |
+| `[T` | n x o | prev class/type end |
 
 ### Ctrl bindings
 
@@ -195,6 +191,7 @@
 | `ic` | x o | inner class |
 | `aa` | x o | outer parameter |
 | `ia` | x o | inner parameter |
+| `p` | n x | Put after |
 | `P` | n x | Put before |
 | `s` | n | Substitute |
 | `ss` | n | Substitute line |

@@ -2,7 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(nix-store:*)",
-      "mcp__qdrant__qdrant-store",
+      "mcp__qdrant__qdrant-store"
     ],
     "deny": [],
     "ask": []

@@ -11,13 +11,19 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    sops-nix.url = "github:Mic92/sops-nix";
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     stylix = {
       url = "github:nix-community/stylix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nix-devshells.url = "github:vaporif/nix-devshells";
+    nix-devshells = {
+      url = "github:vaporif/nix-devshells";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     parry = {
       url = "github:vaporif/parry";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -27,7 +33,14 @@
       url = "github:vaporif/mcp-servers-nix/qdrant";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    mcp-nixos.url = "github:utensils/mcp-nixos";
+    mcp-nixos = {
+      url = "github:utensils/mcp-nixos";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    mcp-youtube = {
+      url = "github:vaporif/mcp-server-youtube";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     claude-code-plugins = {
       url = "github:anthropics/claude-plugins-official";
       flake = false;

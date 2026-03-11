@@ -20,6 +20,8 @@
 
   mcp-nixos-package = inputs.mcp-nixos.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
+  youtube-mcp-package = inputs.mcp-youtube.packages.${pkgs.stdenv.hostPlatform.system}.default;
+
   mcpConfig = {
     programs = {
       filesystem = {
@@ -84,6 +86,12 @@
       };
       nixos = {
         command = "${mcp-nixos-package}/bin/mcp-nixos";
+      };
+      youtube = {
+        command = "${pkgs.writeShellScript "youtube-mcp-wrapper" ''
+          export YOUTUBE_API_KEY="$(cat /run/secrets/youtube-key)"
+          exec ${lib.getExe youtube-mcp-package}
+        ''}";
       };
       serena.args = lib.mkAfter ["--project-from-cwd"];
     };

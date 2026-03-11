@@ -248,6 +248,10 @@ comment = "Node package manager, build-time dep"
 comment = "CVE-2026-22693: NULL deref on OOM (DoS), fixed in 12.3.0; older 12.2.0 in build closure awaiting upstream"
 cve = ["CVE-2026-22693"]
 
+[libssh]
+comment = "CVE-2026-3731: SFTP OOB read (5.3 CVSS), fixed in 0.11.4; runtime via ffmpeg-headless, low exposure (no untrusted SFTP); awaiting upstream nixpkgs bump"
+cve = ["CVE-2026-3731"]
+
 [libxml2]
 comment = "Build-time XML parser, transitive dep"
 

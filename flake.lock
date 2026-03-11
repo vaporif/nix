@@ -407,11 +407,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1773187696,
-        "narHash": "sha256-QCkpU7S6f6GJIn6F601ohbHY+OMDiS6+yLitp4hPg0Q=",
+        "lastModified": 1773226361,
+        "narHash": "sha256-SDos4npaOEav0zZvxUCRogQzOeDHBhT8Z+4T0nY9jOQ=",
         "owner": "vaporif",
         "repo": "mcp-server-youtube",
-        "rev": "5a6707b143131a8779f0ee0cb070a27b7d2466fb",
+        "rev": "85e12dfaf547eb04c838aabd69b99f3cbc763c70",
         "type": "github"
       },
       "original": {
@@ -748,11 +748,11 @@
     "superpowers": {
       "flake": false,
       "locked": {
-        "lastModified": 1773103048,
-        "narHash": "sha256-Re8VNhcgbfmW/AENCcDc/hRTlkVT9e+AE/vrQkbqs68=",
+        "lastModified": 1773196405,
+        "narHash": "sha256-WxBpBLl0kWC7EnqewDL0XXYvHjOF/pI3yi03h3AuLHo=",
         "owner": "obra",
         "repo": "superpowers",
-        "rev": "33e55e60b2efcb69509bc233dfc128112012b2c8",
+        "rev": "5ef73d25b71e69e63a74eae359fb26c7a6ac8fc0",
         "type": "github"
       },
       "original": {

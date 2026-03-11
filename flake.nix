@@ -28,6 +28,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     mcp-nixos.url = "github:utensils/mcp-nixos";
+    mcp-youtube.url = "github:vaporif/mcp-server-youtube";
     claude-code-plugins = {
       url = "github:anthropics/claude-plugins-official";
       flake = false;

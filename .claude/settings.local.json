@@ -2,7 +2,15 @@
   "permissions": {
     "allow": [
       "Bash(nix-store:*)",
-      "mcp__qdrant__qdrant-store"
+      "mcp__qdrant__qdrant-store",
+      "Bash(git ls-remote:*)",
+      "Read(//private/tmp/youtube-mcp-server/**)",
+      "Bash(npm install --package-lock-only)",
+      "Bash(nix-shell:*)",
+      "Bash(nix store:*)",
+      "Read(//private/tmp/**)",
+      "Bash(tar -xzf /nix/store/bw7fs8lxz1v37n3d4sbcadq52s1dnxli-qdrant.tar.gz)",
+      "Bash(nix flake:*)"
     ],
     "deny": [],
     "ask": []

@@ -120,20 +120,31 @@
       system: (mkPkgs system).alejandra
     );
 
-    checks = nixpkgs.lib.genAttrs supportedSystems (system: let
-      chkPkgs = mkPkgs system;
-    in
-      {
-        formatting = chkPkgs.runCommand "check-formatting" {} ''
-          ${chkPkgs.alejandra}/bin/alejandra -c ${./.} && touch $out
-        '';
-      }
-      // nixpkgs.lib.optionalAttrs chkPkgs.stdenv.isDarwin (
-        chkPkgs.unclog.passthru.tests
-        // chkPkgs.nomicfoundation_solidity_language_server.passthru.tests
-        // chkPkgs.claude_formatter.passthru.tests
-        // chkPkgs.tidal_script.passthru.tests
-      ));
+    checks =
+      nixpkgs.lib.genAttrs supportedSystems (system: let
+        chkPkgs = mkPkgs system;
+      in
+        {
+          formatting = chkPkgs.runCommand "check-formatting" {} ''
+            ${chkPkgs.alejandra}/bin/alejandra -c ${./.} && touch $out
+          '';
+        }
+        // nixpkgs.lib.optionalAttrs chkPkgs.stdenv.isDarwin (
+          chkPkgs.unclog.passthru.tests
+          // chkPkgs.nomicfoundation_solidity_language_server.passthru.tests
+          // chkPkgs.claude_formatter.passthru.tests
+          // chkPkgs.tidal_script.passthru.tests
+        ))
+      // {
+        x86_64-linux = let
+          testPkgs = mkPkgs "x86_64-linux";
+        in {
+          claude-security = import ./tests/claude-security.nix {
+            pkgs = testPkgs;
+            inherit home-manager;
+          };
+        };
+      };
 
     darwinConfigurations.MacBook-Pro = nix-darwin.lib.darwinSystem {
       system = "aarch64-darwin";

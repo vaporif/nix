@@ -10,7 +10,10 @@ flake.nix (Entry point, thin wiring — inputs + module composition)
     ├── modules/
     │       ├── options.nix (Typed NixOS options: config.custom.* — imported by system + HM)
     │       ├── nix.nix (Shared Nix settings)
-    │       └── theme.nix (Shared Stylix theme)
+    │       ├── theme.nix (Shared Stylix theme)
+    │       └── claude-security/ (HM module: programs.claude-code.security — hooks, deny/allow, settingsFragment)
+    ├── tests/
+    │       └── claude-security.nix (nixosTest: VM-based integration tests)
     ├── overlays/ (Custom package overlays)
     ├── pkgs/ (Custom package definitions)
     ├── system/
@@ -70,6 +73,10 @@ All modules consume typed options from `modules/options.nix`:
 | `options.nix` | Typed NixOS options (config.custom.*) — foundation of config system |
 | `nix.nix` | Shared Nix settings |
 | `theme.nix` | Shared Stylix theme |
+| `claude-security/default.nix` | HM module: `programs.claude-code.security` — typed options for hooks, deny/allow lists, generates `settingsFragment` |
+| `claude-security/scripts/wrap.nix` | Wraps hook scripts with build-time placeholder substitution + makeWrapper for runtime deps |
+| `claude-security/scripts/check-bash-command.sh` | Bash validation hook — shfmt AST parsing, blocklist, pipe-to-shell detection |
+| `claude-security/scripts/notify.sh` | Notification hook — macOS desktop + ntfy.sh phone push |
 
 ### `system/darwin/` - macOS System Configuration
 | File | Purpose |
@@ -127,9 +134,14 @@ All modules consume typed options from `modules/options.nix`:
 ### `config/claude/hooks/` - Claude Code Hook Scripts
 | File | Purpose |
 |---------|---------| 
-| `notify.sh` | macOS notification + ntfy.sh phone push when Claude needs input |
 | `auto-recall.sh` | Auto-inject Qdrant memories on first prompt per session |
-| `check-bash-command.sh` | Security check for bash commands |
+
+Note: `check-bash-command.sh` and `notify.sh` moved to `modules/claude-security/scripts/` (wrapped with nix store paths).
+
+### `tests/` - Integration Tests
+| File | Purpose |
+|------|---------| 
+| `claude-security.nix` | nixosTest: VM-based tests for security module (deny list, hooks, bash validation) |
 
 ### `config/claude-commands/` - Claude Code Custom Commands
 | File | Purpose |

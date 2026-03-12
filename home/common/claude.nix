@@ -120,7 +120,19 @@
       lastUpdated = "2025-01-01T00:00:00.000Z";
     };
   };
+
+  sec = config.programs.claude-code.security.settingsFragment;
 in {
+  imports = [../../modules/claude-security];
+
+  programs.claude-code.security = {
+    enable = true;
+    hooks.notification.ntfy = {
+      enable = true;
+      topicFile = "/run/secrets/ntfy-topic";
+    };
+  };
+
   home.file =
     {
       "${nixPluginsPath}/.claude-plugin/marketplace.json".text = nixPluginsMarketplace;
@@ -142,28 +154,76 @@ in {
       ".claude/commands/vulnix-triage.md".source = ../../config/claude-commands/vulnix-triage.md;
 
       ".claude/CLAUDE.md".source = ../../config/claude/CLAUDE.md;
-      ".claude/settings.json".text = let
-        replaced = builtins.replaceStrings ["@homeDir@"] [homeDir] (builtins.readFile ../../config/claude/settings.json);
-        raw = builtins.fromJSON replaced;
-        merged = raw // {inherit enabledPlugins;};
-      in
-        builtins.toJSON merged;
+      ".claude/settings.json".text = builtins.toJSON {
+        "$schema" = "https://json.schemastore.org/claude-code-settings.json";
+        alwaysThinkingEnabled = true;
+        inherit enabledPlugins;
+        env = {
+          CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
+        };
+        hooks = {
+          PreToolUse =
+            sec.hooks.PreToolUse
+            ++ [
+              {
+                hooks = [
+                  {
+                    command = "parry hook";
+                    type = "command";
+                  }
+                ];
+                matcher = "Bash|Read|Write|Edit|Glob|Grep|WebFetch|WebSearch|NotebookEdit|Task|mcp__.*";
+              }
+            ];
+          PostToolUse = [
+            {
+              hooks = [
+                {
+                  command = "claude-formatter";
+                  type = "command";
+                }
+              ];
+              matcher = "Edit|Write";
+            }
+            {
+              hooks = [
+                {
+                  command = "parry hook";
+                  type = "command";
+                }
+              ];
+              matcher = "Read|WebFetch|Bash|mcp__github__get_file_contents|mcp__filesystem__read_file|mcp__filesystem__read_text_file";
+            }
+          ];
+          inherit (sec.hooks) Notification;
+          UserPromptSubmit = [
+            {
+              hooks = [
+                {
+                  command = "parry hook";
+                  type = "command";
+                }
+                {
+                  command = "${homeDir}/.claude/hooks/auto-recall.sh";
+                  type = "command";
+                }
+              ];
+              matcher = "";
+            }
+          ];
+        };
+        permissions = {
+          inherit (sec.permissions) allow deny;
+        };
+      };
       ".claude/settings.local.json".text = builtins.toJSON {
         permissions = {
           allow = [];
           deny = [];
         };
       };
-      ".claude/hooks/check-bash-command.sh" = {
-        source = ../../config/claude/hooks/check-bash-command.sh;
-        executable = true;
-      };
       ".claude/hooks/auto-recall.sh" = {
         source = ../../config/claude/hooks/auto-recall.sh;
-        executable = true;
-      };
-      ".claude/hooks/notify.sh" = {
-        source = ../../config/claude/hooks/notify.sh;
         executable = true;
       };
     }

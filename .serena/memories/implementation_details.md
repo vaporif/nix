@@ -416,16 +416,37 @@ Enable with `just setup-hooks`
 
 ---
 
-## 14. Notification System
+## 14. Claude Code Security Module
 
-**Location**: `config/claude/hooks/notify.sh`
+**Location**: `modules/claude-security/`
 
-**Implementation**:
-- Triggers on Claude Code `Notification` hook event (idle_prompt, permission_prompt)
-- macOS: `osascript` desktop notification with Glass sound
-- Phone: ntfy.sh push notification (topic from SOPS `ntfy-topic` secret)
-- jq parsing uses `<<<` heredoc with `2>/dev/null || fallback` for robustness
-- curl runs backgrounded (`&`) to avoid blocking Claude
+**Architecture**:
+- Home-manager module exposing typed options under `programs.claude-code.security`
+- Imported by `home/common/claude.nix`, which merges `settingsFragment` with plugin/env config to produce `~/.claude/settings.json` entirely in Nix
+- No more `config/claude/settings.json` template — settings generated declaratively
+
+**Hook Scripts** (`scripts/`):
+- `check-bash-command.sh`: Parses bash AST via shfmt, checks against configurable blocklist and pipe-to-shell patterns. Uses `@blockedCommands@` and `@blockedPatterns@` build-time placeholders.
+- `notify.sh`: macOS desktop notification + ntfy.sh phone push. Uses `@sound@`, `@ntfyEnabled@`, `@ntfyServerUrl@`, `@ntfyTopicFile@` placeholders.
+- `wrap.nix`: Substitutes placeholders via `builtins.replaceStrings`, wraps scripts with `symlinkJoin` + `makeWrapper` for runtime deps (shfmt, jq, curl, etc.). Uses `writeShellScriptBin` (not `writeShellApplication`) because scripts rely on non-zero exits for fallback.
+
+**Options** (`programs.claude-code.security.*`):
+- `hooks.bashValidation.{enable, blockedCommands, blockedPatterns}`
+- `hooks.notification.{enable, sound, ntfy.{enable, serverUrl, topicFile}}`
+- `permissions.{deniedDirectories, deniedFiles, deniedAbsolutePaths, deniedGitOperations, extraDenied}`
+- `permissions.{allowedTools, extraAllowed}` — 240 pre-approved read-only tools
+- `permissions.confirmBeforeWrite` — list of `{tool, reason}` submodules for PreToolUse confirmation
+- `settingsFragment` (read-only output) — consumed by claude.nix
+
+**Deny List Generation**:
+- Directories: `expandTilde` + `/**` glob → Read/Write/Edit triple
+- Files: `expandTilde` → Read/Write/Edit triple (no glob)
+- Absolute paths: used as-is → Read/Write/Edit triple
+- Git operations: raw MCP tool names
+
+**Integration Tests** (`tests/claude-security.nix`):
+- nixosTest running in NixOS VM (x86_64-linux in `flake.nix` checks)
+- Validates: deny list generation, tilde expansion, hook wiring, store paths executable, bash validation blocks dangerous commands, allows safe commands, catches pipe-to-shell patterns
 
 ---
 

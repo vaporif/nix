@@ -95,7 +95,10 @@ flake.nix                    # Entry point; thin wiring only (inputs + module co
 ├── modules/
 │   ├── options.nix          # Typed NixOS options (config.custom.*) — imported by system + HM
 │   ├── nix.nix              # Shared Nix settings
-│   └── theme.nix            # Shared Stylix theme
+│   ├── theme.nix            # Shared Stylix theme
+│   └── claude-security/     # HM module: programs.claude-code.security (hooks, deny list, allow list)
+│       ├── default.nix      # Typed options, settingsFragment output
+│       └── scripts/         # Hook scripts with build-time placeholders + wrap.nix
 ├── system/
 │   ├── darwin/
 │   │   └── default.nix      # macOS-only: nix-darwin system config, skhd, SOPS, firewall
@@ -121,6 +124,8 @@ flake.nix                    # Entry point; thin wiring only (inputs + module co
 │   ├── setup.sh             # Cross-platform bootstrap script for forks
 │   ├── git-bare-clone.sh    # Bare clone with main worktree
 │   └── git-meta.sh          # Worktree config sync (.meta/)
+├── tests/
+│   └── claude-security.nix  # nixosTest: VM-based integration tests for security module
 ├── docs/
 │   └── keymaps.md           # Auto-generated keybinding reference (all apps)
 ├── overlays/                # Custom package overlays
@@ -225,6 +230,21 @@ Custom git subcommands installed via `writeShellScriptBin` in `home/packages.nix
 - **Umask**: Stricter 077 - new files only readable by owner
 - **Sudo timeout**: 1 minute
 
+### Claude Code Security Module
+
+Home-manager module at `modules/claude-security/` exposes typed options under `programs.claude-code.security`. Imported by `home/common/claude.nix`. Generates a read-only `settingsFragment` (hooks + permissions) consumed when building `~/.claude/settings.json`.
+
+**Hooks** (PreToolUse):
+- **Bash validation**: Parses command AST via shfmt, blocks dangerous commands (`rm`, `sudo`, `dd`, etc.) and pipe-to-shell patterns (`curl|sh`, `wget|python`)
+- **Confirm-before-write**: Prompts before `mcp__filesystem__delete_file`, `mcp__qdrant__qdrant-store`, `mcp__serena__write_memory`
+- **Notification**: macOS desktop notification + optional ntfy.sh phone push
+
+**Permissions**: Typed deny lists for directories (`~/.ssh`, `~/.aws`, browser data, chat apps), files (`~/.netrc`, history), absolute paths (`/run/secrets/**`), and MCP git write operations. Allow list covers 240 pre-approved read-only tools.
+
+Hook scripts use build-time placeholders (`@blockedCommands@`, `@sound@`, etc.) substituted by `scripts/wrap.nix`, which also wraps them with runtime dependencies via `makeWrapper`.
+
+**Integration tests**: `tests/claude-security.nix` — nixosTest running in a NixOS VM, validates deny list generation, hook wiring, tilde expansion, and end-to-end bash validation.
+
 ### CI Policy Checks
 - **Vulnerability scanning**: `vulnix` with `vulnix-whitelist.toml`
 - **Input freshness**: Warns if flake inputs >30 days old
@@ -243,7 +263,8 @@ Custom git subcommands installed via `writeShellScriptBin` in `home/packages.nix
 - **Qdrant**: Runs as launchd agent on macOS (`home/darwin/`), systemd user service on NixOS (`home/linux/`)
 - **External devshell**: Rust tools via `~/.envrc` (run `direnv allow ~` after setup)
 - **Theme**: Stylix manages colors/fonts across all apps; shared via `modules/theme.nix`
-- **Notifications**: `config/claude/hooks/notify.sh` — macOS desktop notification + phone push via ntfy.sh (topic from SOPS `ntfy-topic`)
+- **Notifications**: Wrapped nix store script via `modules/claude-security/scripts/notify.sh` — macOS desktop notification + phone push via ntfy.sh (topic from SOPS `ntfy-topic`)
+- **Claude security module**: `modules/claude-security/` — reusable HM module generating `settingsFragment` with hooks + permissions. `claude.nix` imports it, merges fragment with plugin/env config to produce `~/.claude/settings.json` entirely in Nix (no more `config/claude/settings.json` template)
 - **Git SSH rewrite**: `url."git@github.com:".insteadOf` rewrites HTTPS to SSH for GitHub (works with forwarded Secretive agent on NixOS VM)
 - **Agent teams**: Experimental feature enabled via `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` env var in settings
 

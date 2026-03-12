@@ -30,7 +30,7 @@ if [[ -z "$COMMANDS" ]]; then
 fi
 
 # Blocklist: commands that should never run without confirmation
-BLOCKED="rm rmdir sudo doas eval dd mkfs shred"
+BLOCKED="@blockedCommands@"
 for cmd in $COMMANDS; do
   cmd_base=$(basename "$cmd")
   for blocked in $BLOCKED; do
@@ -41,8 +41,11 @@ for cmd in $COMMANDS; do
 done
 
 # Catch piping remote content to a shell/interpreter
-if echo "$COMMAND" | grep -qE 'curl.*\|.*(ba)?sh|wget.*\|.*(ba)?sh|curl.*\|.*python|wget.*\|.*python'; then
-  block "Piping remote content to shell/interpreter. Confirm with user."
-fi
+PATTERNS="@blockedPatterns@"
+for pattern in $PATTERNS; do
+  if echo "$COMMAND" | grep -qE "$pattern"; then
+    block "Piping remote content to shell/interpreter. Confirm with user."
+  fi
+done
 
 exit 0

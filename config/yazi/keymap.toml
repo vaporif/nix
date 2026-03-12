@@ -5,7 +5,7 @@ run = '''shell 'nvim "$1"' --block'''
 [[mgr.prepend_keymap]]
 on = ["b", "r"]
 run = "cd ~/Repos/"
-desc = "Go to Repos"
+desc = "Go to [r]epos"
 
 [[mgr.prepend_keymap]]
 on = ["b", "m"]

@@ -25,7 +25,7 @@ desc = "Go to [l]ogos"
 [[mgr.prepend_keymap]]
 on = ["b", "e"]
 run = "cd ~/Repos/solana-ibc"
-desc = "Go to solana-ibc"
+desc = "Go to [e]ureka solana-ibc"
 
 [[mgr.prepend_keymap]]
 on = ["u", "a"]

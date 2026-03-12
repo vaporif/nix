@@ -347,11 +347,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1773286336,
-        "narHash": "sha256-+yFtmhOHterllxWmV6YbdevTXpJdGS0mS0UmJ0k9fh0=",
+        "lastModified": 1773324064,
+        "narHash": "sha256-CxgWYEenlf1z5KmbUSnBJ10rwfcV5Hbc00arXA6AMJc=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "7d06e0cefe6e4a1e85b2b3274dcb0b3da242a557",
+        "rev": "7cd3093fc6a08f72b42761a37891624812859453",
         "type": "github"
       },
       "original": {
@@ -411,11 +411,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1773242040,
-        "narHash": "sha256-ET/V0eY4RO8QL4uxICjG0TQNilsR1udKuEEqag/WfzU=",
+        "lastModified": 1773328926,
+        "narHash": "sha256-wCf8BDbewe4FbSliPFhsdyNJ7eA5Sqqugk7nPeHdFrA=",
         "owner": "vaporif",
         "repo": "mcp-server-youtube",
-        "rev": "6279cb8caa19c71d47994ff68976861ab9fb5622",
+        "rev": "57182fc4e0f7f220c0c5cce32adc75fc5c6bcf28",
         "type": "github"
       },
       "original": {
@@ -580,6 +580,7 @@
         "vim-tidal": "vim-tidal",
         "vim-tidal-lua": "vim-tidal-lua",
         "visual-explainer": "visual-explainer",
+        "wezterm-agent-deck": "wezterm-agent-deck",
         "wrappers": "wrappers",
         "yamb-yazi": "yamb-yazi"
       }
@@ -846,6 +847,22 @@
       "original": {
         "owner": "nicobailon",
         "repo": "visual-explainer",
+        "type": "github"
+      }
+    },
+    "wezterm-agent-deck": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1768942539,
+        "narHash": "sha256-nb5eCStxsgLBgZSNZjOBMYLNbv0haxXM+6609FywnwE=",
+        "owner": "Eric162",
+        "repo": "wezterm-agent-deck",
+        "rev": "bd5a57e7806032998e6cae56ade67b72a08b7868",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Eric162",
+        "repo": "wezterm-agent-deck",
         "type": "github"
       }
     },

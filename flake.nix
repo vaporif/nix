@@ -83,6 +83,10 @@
       url = "github:h-hg/yamb.yazi";
       flake = false;
     };
+    wezterm-agent-deck = {
+      url = "github:Eric162/wezterm-agent-deck";
+      flake = false;
+    };
   };
 
   outputs = inputs @ {

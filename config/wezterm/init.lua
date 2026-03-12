@@ -27,6 +27,8 @@ wezterm.on('gui-startup', function(cmd)
   window:gui_window():maximize()
 end)
 
+local agent_deck = dofile '@agentDeckPath@'
+
 local config = {
   color_scheme = 'earthtone-light',
   line_height = 1.0,
@@ -206,6 +208,52 @@ local config = {
     },
   },
 }
+
+agent_deck.apply_to_config(config, {
+  icons = {
+    style = 'nerd',
+    nerd = {
+      working = wezterm.nerdfonts.cod_terminal,
+      waiting = wezterm.nerdfonts.cod_bell,
+      idle = wezterm.nerdfonts.cod_dash,
+      inactive = wezterm.nerdfonts.cod_circle_outline,
+    },
+  },
+  colors = {
+    working = '#607530',
+    waiting = '#a2362f',
+    idle = '#2c7670',
+    inactive = '#72817a',
+  },
+  right_status = { enabled = false },
+  notifications = {
+    enabled = true,
+    on_waiting = true,
+  },
+})
+
+wezterm.on('update-status', function(window, pane)
+  for _, tab in ipairs(window:mux_window():tabs()) do
+    for _, p in ipairs(tab:panes()) do
+      agent_deck.update_pane(p)
+    end
+  end
+
+  local counts = agent_deck.count_agents_by_status()
+  local cfg = agent_deck.get_config()
+  local items = {}
+
+  if counts.waiting > 0 then
+    table.insert(items, { Foreground = { Color = cfg.colors.waiting } })
+    table.insert(items, { Text = ' ' .. counts.waiting .. ' waiting ' })
+  end
+  if counts.working > 0 then
+    table.insert(items, { Foreground = { Color = cfg.colors.working } })
+    table.insert(items, { Text = ' ' .. counts.working .. ' working ' })
+  end
+
+  window:set_right_status(wezterm.format(items))
+end)
 
 -- Use Secretive's SSH agent if available
 local secretive_sock = wezterm.home_dir .. '/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh'

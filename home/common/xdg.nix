@@ -8,7 +8,7 @@ in {
   programs.wezterm = {
     enable = true;
     enableZshIntegration = true;
-    extraConfig = builtins.replaceStrings ["@configPath@"] [cfg.configPath] (builtins.readFile ../../config/wezterm/init.lua);
+    extraConfig = builtins.replaceStrings ["@configPath@" "@agentDeckPath@"] [cfg.configPath "${inputs.wezterm-agent-deck}/plugin/init.lua"] (builtins.readFile ../../config/wezterm/init.lua);
   };
 
   xdg.configFile = {

@@ -13,7 +13,6 @@ in {
     auto-optimise-store = true;
     max-jobs = "auto";
     cores = 0;
-    eval-cores = 0;
     substituters =
       [
         "https://cache.nixos.org"

@@ -69,13 +69,13 @@ switch:
         hostname=$(scutil --get LocalHostName)
         nom build ".#darwinConfigurations.${hostname}.system"
         [[ -e /run/current-system ]] && nvd diff /run/current-system ./result || true
-        sudo nix-env --profile /nix/var/nix/profiles/system --set ./result
+        sudo -H nix-env --profile /nix/var/nix/profiles/system --set ./result
         sudo ./result/activate
     else
         hostname=$(hostname -s)
         nom build ".#nixosConfigurations.${hostname}.config.system.build.toplevel"
         [[ -e /run/current-system ]] && nvd diff /run/current-system ./result || true
-        sudo nix-env --profile /nix/var/nix/profiles/system --set ./result
+        sudo -H nix-env --profile /nix/var/nix/profiles/system --set ./result
         sudo ./result/bin/switch-to-configuration switch
     fi
 

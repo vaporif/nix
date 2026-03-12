@@ -9,13 +9,18 @@ desc = "Go to Repos"
 
 [[mgr.prepend_keymap]]
 on = ["b", "m"]
+run = "cd ~/Repos/mercury"
+desc = "Go to [m]ercury"
+
+[[mgr.prepend_keymap]]
+on = ["b", "n"]
 run = "cd @configPath@" # substituted at build time by builtins.replaceStrings
-desc = "Go to nix"
+desc = "Go to [n]ix"
 
 [[mgr.prepend_keymap]]
 on = ["b", "l"]
 run = "cd ~/Repos/logos"
-desc = "Go to logos"
+desc = "Go to [l]ogos"
 
 [[mgr.prepend_keymap]]
 on = ["b", "e"]

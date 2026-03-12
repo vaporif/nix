@@ -1,7 +1,11 @@
-{config, ...}: let
+{
+  config,
+  lib,
+  ...
+}: let
   cfg = config.custom;
 in {
-  nix.extraOptions = ''
+  environment.etc."nix/nix.custom.conf".text = lib.mkAfter ''
     !include /run/secrets/nix-access-tokens
   '';
   nix.settings = {
@@ -9,6 +13,7 @@ in {
     auto-optimise-store = true;
     max-jobs = "auto";
     cores = 0;
+    eval-cores = 0;
     substituters =
       [
         "https://cache.nixos.org"

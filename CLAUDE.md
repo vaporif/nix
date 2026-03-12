@@ -35,6 +35,7 @@ Run `just` to see all available commands. Key ones:
 | `just fmt` | Format all (Lua + Nix + TOML) |
 | `just keymaps` | Regenerate docs/keymaps.md from source files |
 | `just cache` | Build and push to Cachix |
+| `just gc <age>` | Delete generations older than age and garbage collect (e.g., `just gc 30d`) |
 | `just setup-hooks` | Enable git hooks |
 
 Tools: `selene`, `stylua`, `alejandra`, `statix`, `deadnix`, `typos`, `taplo`, `shellcheck`, `actionlint`, `jaq`, `gitleaks`

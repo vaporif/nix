@@ -82,6 +82,10 @@ cve = [
   "CVE-2023-45853",
 ]
 
+[commonmark]
+comment = "Haskell commonmark library, not PHP league/commonmark"
+cve = ["CVE-2026-30838"]
+
 [bytes]
 comment = "Haskell bytes library, not npm bytes"
 

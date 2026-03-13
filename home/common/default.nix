@@ -57,7 +57,7 @@ in {
 
     parry = {
       enable = true;
-      package = inputs.parry.packages.${pkgs.stdenv.hostPlatform.system}.onnx;
+      package = inputs.parry.packages.${pkgs.stdenv.hostPlatform.system}.default;
       hfTokenFile = "/run/secrets/hf-token-scan-injection";
       ignorePaths = ["${cfg.homeDir}/Repos/parry" cfg.configPath "${cfg.homeDir}/Repos/mcp-server-qdrant"];
     };

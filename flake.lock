@@ -117,11 +117,11 @@
     "difftastic-nvim": {
       "flake": false,
       "locked": {
-        "lastModified": 1771811117,
-        "narHash": "sha256-v+vKCS7p8frYnb91ebX23fJe+DkeRKC/oy+R4VsRdaE=",
+        "lastModified": 1773498517,
+        "narHash": "sha256-Q2ZEhZWAfrp2bJHIteUeCSNm+nECq2+Fgzf/idXUfcM=",
         "owner": "clabby",
         "repo": "difftastic.nvim",
-        "rev": "a8e1feea15ee10aa2fed78e287a2b56136f91687",
+        "rev": "ace99315cdb526836cb01198d2171e5e774ef5bf",
         "type": "github"
       },
       "original": {
@@ -547,11 +547,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1773441656,
-        "narHash": "sha256-EDkz18YTCFVeYLi1X7S2VMyW6bLemPkgK2K/+foIQHY=",
+        "lastModified": 1773499669,
+        "narHash": "sha256-mDJDjNJo6fvxnAQ9V6+VOlDRL/I/1nhuKtgApYLZTy4=",
         "owner": "vaporif",
         "repo": "parry-guard",
-        "rev": "0a5251e11ee58c4a93bde134a204a3cc23d23d27",
+        "rev": "903afdb53bd35fe937f8105190816e548a6fddc9",
         "type": "github"
       },
       "original": {

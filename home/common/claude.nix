@@ -15,6 +15,12 @@
       find $out -name '*.sh' -exec sed -i '1s|#!/bin/bash|#!/usr/bin/env bash|' {} \;
     '';
 
+  patchedSuperpowers = pkgs.applyPatches {
+    name = "superpowers-patched";
+    src = inputs.superpowers;
+    patches = [../../patches/superpowers-no-auto-commit.patch];
+  };
+
   readPluginVersion = src:
     (builtins.fromJSON (builtins.readFile "${src}/.claude-plugin/plugin.json")).version or "unknown";
 
@@ -46,7 +52,7 @@
     {
       name = "superpowers";
       description = "Core skills: TDD, debugging, collaboration patterns";
-      source = inputs.superpowers;
+      source = patchedSuperpowers;
       version = readPluginVersion inputs.superpowers;
     }
     {

@@ -19,6 +19,25 @@ globs: "**/*.rs"
 - Group imports: `std` → external crates → `crate::` — one `use` block per group
 - Unsafe: isolate in minimal blocks, document invariants, prefer safe abstractions
 
+## Concurrency
+
+- Prefer `tokio::task::JoinSet` or `futures::stream::FuturesUnordered` for concurrent work over sequential `.await` loops
+- Use `Stream` + `StreamExt::buffer_unordered(n)` for bounded parallel processing of iterators
+- Prefer `tokio::sync::mpsc` for work distribution, `broadcast` for fan-out
+- Use `tokio::select!` for racing futures — always handle all branches
+- Shared state: prefer message passing over `Arc<Mutex<T>>`; when mutex is needed, minimize critical sections
+- CPU-bound work goes on `tokio::task::spawn_blocking` — never block the async runtime
+
+## Performance
+
+- Prefer `&[T]` and iterators over cloning collections — avoid `.clone()` unless ownership is needed
+- Use `Vec::with_capacity(n)` when size is known — avoids reallocations
+- Prefer `Box<str>` / `Arc<str>` over `String` for immutable shared strings
+- Use `rayon` for CPU-bound parallelism — `.par_iter()` is a drop-in replacement for `.iter()`
+- Prefer `bytes::Bytes` over `Vec<u8>` for zero-copy buffer sharing
+- Use `SmallVec` or `tinyvec` for small, stack-allocated collections that rarely exceed N elements
+- Profile before optimizing — `cargo flamegraph` or `criterion` for benchmarks, not guesswork
+
 ## Toolchain
 
 - `cargo fmt` is non-negotiable — all code must be formatted before commit

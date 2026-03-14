@@ -40,3 +40,4 @@ globs: "**/*.sol"
 - Upgradeable contracts: no constructors, use `initializer` modifier, reserve storage gaps (`uint256[50] private __gap`)
 - Avoid `approve` for ERC-20 — use `increaseAllowance`/`decreaseAllowance` to prevent approval race conditions
 - Timelocks on sensitive admin functions — give users time to exit before parameter changes take effect
+- Reference SWC Registry (swcregistry.io) for known vulnerability patterns

@@ -168,7 +168,7 @@ in {
               {
                 hooks = [
                   {
-                    command = "parry hook";
+                    command = "parry-guard hook";
                     type = "command";
                   }
                 ];
@@ -188,7 +188,7 @@ in {
             {
               hooks = [
                 {
-                  command = "parry hook";
+                  command = "parry-guard hook";
                   type = "command";
                 }
               ];
@@ -200,7 +200,7 @@ in {
             {
               hooks = [
                 {
-                  command = "parry hook";
+                  command = "parry-guard hook";
                   type = "command";
                 }
                 {

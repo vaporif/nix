@@ -24,8 +24,8 @@
       url = "github:vaporif/nix-devshells";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    parry = {
-      url = "github:vaporif/parry";
+    parry-guard = {
+      url = "github:vaporif/parry-guard";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -95,7 +95,7 @@
     home-manager,
     stylix,
     sops-nix,
-    parry,
+    parry-guard,
     ...
   }: let
     supportedSystems = ["aarch64-darwin" "aarch64-linux"];
@@ -174,7 +174,7 @@
               ./hosts/macbook.nix
               ./home/common
               ./home/darwin
-              parry.homeManagerModules.default
+              parry-guard.homeManagerModules.default
             ];
             backupFileExtension = "backup";
           };
@@ -212,7 +212,7 @@
               ./hosts/nixos.nix
               ./home/common
               ./home/linux
-              parry.homeManagerModules.default
+              parry-guard.homeManagerModules.default
             ];
             backupFileExtension = "backup";
           };

@@ -86,7 +86,7 @@ All modules consume typed options from `modules/options.nix`:
 ### `home/common/` - Shared Home Manager Configuration
 | File | Purpose |
 |------|---------|
-| `default.nix` | Imports only (~20 lines) + base config (manual, home basics, parry) |
+| `default.nix` | Imports only (~20 lines) + base config (manual, home basics, parry-guard) |
 | `claude.nix` | Claude Code plugins, settings, hooks, commands, marketplace |
 | `git.nix` | Git config, lazygit, gh CLI, SSH signing |
 | `ssh.nix` | Hardened SSH client config |

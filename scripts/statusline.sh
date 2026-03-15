@@ -20,18 +20,18 @@ RESET="\033[0m"
 # --- Helpers ---
 
 jq_r() {
-  jq -r "$1" <<< "$input" 2>/dev/null
+  jq -r "$1" <<< "${input}" 2>/dev/null
 }
 
 jq_val() {
-  jq "$1" <<< "$input" 2>/dev/null
+  jq "$1" <<< "${input}" 2>/dev/null
 }
 
 extract_diff_num() {
   local text="$1" keyword="$2"
-  case "$OS" in
-    Darwin) echo "$text" | grep -oE "[0-9]+ $keyword" | grep -oE '[0-9]+' ;;
-    *) echo "$text" | grep -oP "\d+(?= $keyword)" ;;
+  case "${OS}" in
+    Darwin) echo "${text}" | grep -oE "[0-9]+ ${keyword}" | grep -oE '[0-9]+' || true ;;
+    *) echo "${text}" | grep -oP "\d+(?= ${keyword})" || true ;;
   esac
 }
 
@@ -39,14 +39,14 @@ extract_diff_num() {
 
 context_color() {
   local pct=$1
-  if [ "$pct" -ge 80 ]; then
-    echo "$BRICK_BOLD"
-  elif [ "$pct" -ge 60 ]; then
-    echo "$BRICK"
-  elif [ "$pct" -ge 50 ]; then
-    echo "$TOFFEE"
+  if [[ "${pct}" -ge 80 ]]; then
+    echo "${BRICK_BOLD}"
+  elif [[ "${pct}" -ge 60 ]]; then
+    echo "${BRICK}"
+  elif [[ "${pct}" -ge 50 ]]; then
+    echo "${TOFFEE}"
   else
-    echo "$OLIVE"
+    echo "${OLIVE}"
   fi
 }
 
@@ -54,13 +54,13 @@ context_color() {
 
 MODEL=$(jq_r '.model.display_name // "Unknown"')
 
-SETTINGS_FILE="$HOME/.claude/settings.json"
+SETTINGS_FILE="${HOME}/.claude/settings.json"
 EFFORT=""
-if [ -f "$SETTINGS_FILE" ]; then
-  EFFORT=$(jq -r '.effortLevel // "high"' "$SETTINGS_FILE" 2>/dev/null)
+if [[ -f "${SETTINGS_FILE}" ]]; then
+  EFFORT=$(jq -r '.effortLevel // "high"' "${SETTINGS_FILE}" 2>/dev/null)
 fi
 
-case "$EFFORT" in
+case "${EFFORT}" in
   low)  EFFORT_DISPLAY=" ${DIM}low${RESET}" ;;
   medium) EFFORT_DISPLAY=" ${DIM}med${RESET}" ;;
   *) EFFORT_DISPLAY=" ${DIM}high${RESET}" ;;
@@ -73,9 +73,9 @@ USED_PCT=$(jq_r '.context_window.used_percentage // empty')
 USAGE=$(jq_val '.context_window.current_usage // null')
 EXCEEDS_200K=$(jq_r '.exceeds_200k_tokens // "false"')
 
-if [ "$USAGE" != "null" ] && [ -n "$USAGE" ]; then
-  CURRENT=$(echo "$USAGE" | jq '.input_tokens + .cache_creation_input_tokens + .cache_read_input_tokens')
-  TOKEN_NUM=$(awk "BEGIN {printf \"%.1f\", $CURRENT / 1000}")
+if [[ "${USAGE}" != "null" ]] && [[ -n "${USAGE}" ]]; then
+  CURRENT=$(echo "${USAGE}" | jq '.input_tokens + .cache_creation_input_tokens + .cache_read_input_tokens')
+  TOKEN_NUM=$(awk "BEGIN {printf \"%.1f\", ${CURRENT} / 1000}")
   TOKEN_DISPLAY="${TOKEN_NUM}${DIM}k${RESET}"
 else
   CURRENT=0
@@ -83,9 +83,9 @@ else
 fi
 
 # Use pre-calculated percentage if available, otherwise compute
-if [ -n "$USED_PCT" ] && [ "$USED_PCT" != "null" ]; then
+if [[ -n "${USED_PCT}" ]] && [[ "${USED_PCT}" != "null" ]]; then
   PERCENT="${USED_PCT%%.*}"
-elif [ -n "$CONTEXT_SIZE" ] && [ "$CONTEXT_SIZE" != "0" ] && [ "$CURRENT" -gt 0 ]; then
+elif [[ -n "${CONTEXT_SIZE}" ]] && [[ "${CONTEXT_SIZE}" != "0" ]] && [[ "${CURRENT}" -gt 0 ]]; then
   PERCENT=$((CURRENT * 100 / CONTEXT_SIZE))
 else
   PERCENT=0
@@ -93,21 +93,21 @@ fi
 
 # Format context limit
 CTX_LIMIT_DISPLAY=""
-if [ -n "$CONTEXT_SIZE" ] && [ "$CONTEXT_SIZE" != "null" ]; then
-  if [ "$CONTEXT_SIZE" -ge 1000000 ]; then
-    CTX_LIMIT=$(awk "BEGIN {v=$CONTEXT_SIZE/1000000; if (v==int(v)) printf \"%d\", v; else printf \"%.1f\", v}")
+if [[ -n "${CONTEXT_SIZE}" ]] && [[ "${CONTEXT_SIZE}" != "null" ]]; then
+  if [[ "${CONTEXT_SIZE}" -ge 1000000 ]]; then
+    CTX_LIMIT=$(awk "BEGIN {v=${CONTEXT_SIZE}/1000000; if (v==int(v)) printf \"%d\", v; else printf \"%.1f\", v}")
     CTX_LIMIT_DISPLAY="/${CTX_LIMIT}${DIM}M${RESET}"
   else
-    CTX_LIMIT=$(awk "BEGIN {v=$CONTEXT_SIZE/1000; if (v==int(v)) printf \"%d\", v; else printf \"%.1f\", v}")
+    CTX_LIMIT=$(awk "BEGIN {v=${CONTEXT_SIZE}/1000; if (v==int(v)) printf \"%d\", v; else printf \"%.1f\", v}")
     CTX_LIMIT_DISPLAY="/${CTX_LIMIT}${DIM}K${RESET}"
   fi
 fi
 
-CTX_COLOR=$(context_color "$PERCENT")
+CTX_COLOR=$(context_color "${PERCENT}")
 
 # 200k warning badge
 EXCEED_BADGE=""
-if [ "$EXCEEDS_200K" = "true" ]; then
+if [[ "${EXCEEDS_200K}" = "true" ]]; then
   EXCEED_BADGE=" ${PLUM}!200K${RESET}"
 fi
 
@@ -115,7 +115,7 @@ fi
 
 VIM_MODE=""
 VIM_RAW=$(jq_r '.vim.mode // empty')
-if [ -n "$VIM_RAW" ]; then
+if [[ -n "${VIM_RAW}" ]]; then
   VIM_MODE=" | ${TEAL}${VIM_RAW}${RESET}"
 fi
 
@@ -127,16 +127,17 @@ GIT_DIFF=""
 if git rev-parse --git-dir > /dev/null 2>&1; then
   BRANCH=$(git branch --show-current 2>/dev/null)
 
-  if [ -n "$BRANCH" ]; then
-    if [ "$BRANCH" = "master" ] || [ "$BRANCH" = "main" ]; then
-      BRANCH_COLOR="$BRICK"
+  if [[ -n "${BRANCH}" ]]; then
+    if [[ "${BRANCH}" = "master" ]] || [[ "${BRANCH}" = "main" ]]; then
+      BRANCH_COLOR="${BRICK}"
     else
-      BRANCH_COLOR="$OLIVE"
+      BRANCH_COLOR="${OLIVE}"
     fi
 
     # Dirty indicator
     DIRTY=""
-    if [ -n "$(git status --porcelain 2>/dev/null | head -1)" ]; then
+    PORCELAIN=$(git status --porcelain 2>/dev/null | head -1 || true)
+    if [[ -n "${PORCELAIN}" ]]; then
       DIRTY=" ${TOFFEE}*${RESET}"
     fi
 
@@ -145,14 +146,14 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
 
   DIFF_STATS=$(git diff HEAD --shortstat 2>/dev/null)
 
-  if [ -n "$DIFF_STATS" ]; then
-    FILES=$(extract_diff_num "$DIFF_STATS" "file")
-    ADDED=$(extract_diff_num "$DIFF_STATS" "insertion")
-    REMOVED=$(extract_diff_num "$DIFF_STATS" "deletion")
+  if [[ -n "${DIFF_STATS}" ]]; then
+    FILES=$(extract_diff_num "${DIFF_STATS}" "file")
+    ADDED=$(extract_diff_num "${DIFF_STATS}" "insertion")
+    REMOVED=$(extract_diff_num "${DIFF_STATS}" "deletion")
 
-    [ -z "$FILES" ] && FILES="0"
-    [ -z "$ADDED" ] && ADDED="0"
-    [ -z "$REMOVED" ] && REMOVED="0"
+    [[ -z "${FILES}" ]] && FILES="0"
+    [[ -z "${ADDED}" ]] && ADDED="0"
+    [[ -z "${REMOVED}" ]] && REMOVED="0"
 
     GIT_DIFF=" ${DIM}${FILES}f${RESET} ${OLIVE}+${ADDED}${RESET} ${BRICK}-${REMOVED}${RESET}"
   fi
@@ -162,7 +163,7 @@ fi
 
 WORKTREE=""
 WT_NAME=$(jq_r '.worktree.name // empty')
-if [ -n "$WT_NAME" ]; then
+if [[ -n "${WT_NAME}" ]]; then
   WORKTREE=" | ${TEAL}wt:${WT_NAME}${RESET}"
 fi
 
@@ -170,7 +171,7 @@ fi
 
 AGENT=""
 AGENT_NAME=$(jq_r '.agent.name // empty')
-if [ -n "$AGENT_NAME" ]; then
+if [[ -n "${AGENT_NAME}" ]]; then
   AGENT=" | ${PLUM}agent:${AGENT_NAME}${RESET}"
 fi
 

@@ -241,8 +241,8 @@ format_time_until() {
 USAGE_LIMITS=$(get_usage_limits)
 
 if [[ -n "${USAGE_LIMITS}" ]]; then
-  FIVE_HOUR=$(echo "${USAGE_LIMITS}" | jq -r '.five_hour.utilization // empty' | cut -d. -f1)
-  SEVEN_DAY=$(echo "${USAGE_LIMITS}" | jq -r '.seven_day.utilization // empty' | cut -d. -f1)
+  FIVE_HOUR=$(echo "${USAGE_LIMITS}" | jq -r '.five_hour.utilization // empty' | cut -d. -f1 || true)
+  SEVEN_DAY=$(echo "${USAGE_LIMITS}" | jq -r '.seven_day.utilization // empty' | cut -d. -f1 || true)
   FIVE_RESET=$(echo "${USAGE_LIMITS}" | jq -r '.five_hour.resets_at // empty')
   SEVEN_RESET=$(echo "${USAGE_LIMITS}" | jq -r '.seven_day.resets_at // empty')
 

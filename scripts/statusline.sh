@@ -2,8 +2,7 @@
 
 # Claude Code statusline — cross-platform (macOS + Linux)
 # Shows: model+effort, context tokens, vim mode, git branch+diff, worktree, agent
-# Line 2: session + daily token usage (session % of day)
-# Line 3: API rate limits (5h/7d) via OAuth usage endpoint
+# Line 2: API rate limits (5h/7d) via OAuth usage endpoint
 
 input=$(cat)
 OS=$(uname -s)
@@ -276,66 +275,8 @@ if [[ -n "${USAGE_LIMITS}" ]]; then
   fi
 fi
 
-# --- Session + daily token usage ---
-# Tracks cumulative totals (input + output) per session and per calendar day.
-# Uses /tmp cache files; session cache is keyed by session_id, daily by date.
-
-SESSION_IN=$(jq_r '.context_window.total_input_tokens // 0')
-SESSION_OUT=$(jq_r '.context_window.total_output_tokens // 0')
-SESSION_TOKENS=$(( SESSION_IN + SESSION_OUT ))
-
-TODAY=$(date +%Y-%m-%d)
-SESSION_ID=$(jq_r '.session_id // empty')
-DAILY_CACHE="/tmp/claude-daily-tokens-${TODAY}"
-TOKEN_USAGE_DISPLAY=""
-
-if [[ -n "${SESSION_ID}" ]] && [[ "${SESSION_TOKENS}" -gt 0 ]]; then
-  SESSION_CACHE="/tmp/claude-session-tokens-${SESSION_ID}"
-
-  # High-water mark: only propagate net-new tokens to the daily total
-  PREV_SESSION=0
-  if [[ -f "${SESSION_CACHE}" ]]; then
-    _val=$(cat "${SESSION_CACHE}" 2>/dev/null)
-    [[ "${_val}" =~ ^[0-9]+$ ]] && PREV_SESSION="${_val}"
-  fi
-
-  if [[ "${SESSION_TOKENS}" -gt "${PREV_SESSION}" ]]; then
-    DELTA=$(( SESSION_TOKENS - PREV_SESSION ))
-    echo "${SESSION_TOKENS}" > "${SESSION_CACHE}"
-
-    DAILY_PREV=0
-    if [[ -f "${DAILY_CACHE}" ]]; then
-      _val=$(cat "${DAILY_CACHE}" 2>/dev/null)
-      [[ "${_val}" =~ ^[0-9]+$ ]] && DAILY_PREV="${_val}"
-    fi
-    echo $(( DAILY_PREV + DELTA )) > "${DAILY_CACHE}"
-  fi
-
-  DAILY_TOTAL=0
-  if [[ -f "${DAILY_CACHE}" ]]; then
-    _val=$(cat "${DAILY_CACHE}" 2>/dev/null)
-    [[ "${_val}" =~ ^[0-9]+$ ]] && DAILY_TOTAL="${_val}"
-  fi
-
-  SESSION_K=$(awk "BEGIN {printf \"%.1f\", ${SESSION_TOKENS} / 1000}")
-  DAILY_K=$(awk "BEGIN {printf \"%.1f\", ${DAILY_TOTAL} / 1000}")
-
-  SESSION_PCT=0
-  if [[ "${DAILY_TOTAL}" -gt 0 ]]; then
-    SESSION_PCT=$(awk "BEGIN {printf \"%d\", (${SESSION_TOKENS} / ${DAILY_TOTAL}) * 100}")
-  fi
-
-  TOKEN_USAGE_DISPLAY="s: ${OLIVE}${SESSION_K}${DIM}k${RESET} | d: ${TOFFEE}${DAILY_K}${DIM}k${RESET} ${DIM}(${SESSION_PCT}%)${RESET}"
-fi
-
 # --- Output ---
 
 echo -e "[${MODEL}${EFFORT_DISPLAY}] ${CTX_COLOR}${TOKEN_DISPLAY}${RESET}${CTX_LIMIT_DISPLAY} ${DIM}(${CTX_COLOR}${PERCENT}%${RESET}${DIM})${RESET}${COMPACT_BADGE}${VIM_MODE}${GIT_BRANCH}${GIT_DIFF}${WORKTREE}${AGENT}"
 
-LINE2=""
-[[ -n "${TOKEN_USAGE_DISPLAY}" ]] && LINE2="${TOKEN_USAGE_DISPLAY}"
-if [[ -n "${LIMITS_DISPLAY}" ]]; then
-  [[ -n "${LINE2}" ]] && LINE2="${LINE2} ${DIM}|${RESET} "
-  LINE2="${LINE2}${LIMITS_DISPLAY}"
-fi
-[[ -n "${LINE2}" ]] && echo -e "${LINE2}"
+[[ -n "${LIMITS_DISPLAY}" ]] && echo -e "${LIMITS_DISPLAY}"

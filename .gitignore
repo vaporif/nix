@@ -1,5 +1,6 @@
 # Override global ignores - track these in this repo
 !.serena
 !.claude
+.claude/rules/
 !CLAUDE.md
 result

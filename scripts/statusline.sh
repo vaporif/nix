@@ -209,7 +209,7 @@ get_usage_limits() {
   if [[ -f "${USAGE_CACHE}" ]]; then
     local file_mtime cache_age
     case "${OS}" in
-      Darwin) file_mtime=$(stat -f %m "${USAGE_CACHE}" 2>/dev/null || echo 0) ;;
+      Darwin) file_mtime=$(/usr/bin/stat -f %m "${USAGE_CACHE}" 2>/dev/null || echo 0) ;;
       *) file_mtime=$(stat -c %Y "${USAGE_CACHE}" 2>/dev/null || echo 0) ;;
     esac
     cache_age=$(( $(date +%s) - file_mtime ))
@@ -233,7 +233,7 @@ format_time_until() {
   local timestamp="${reset_at%%.*}"  # strip .000Z
   timestamp="${timestamp%Z}"         # strip trailing Z if no millis
   case "${OS}" in
-    Darwin) reset_epoch=$(TZ=UTC date -jf "%Y-%m-%dT%H:%M:%S" "${timestamp}" "+%s" 2>/dev/null) ;;
+    Darwin) reset_epoch=$(TZ=UTC /bin/date -jf "%Y-%m-%dT%H:%M:%S" "${timestamp}" "+%s" 2>/dev/null) ;;
     *) reset_epoch=$(TZ=UTC date -d "${timestamp/T/ }" "+%s" 2>/dev/null) ;;
   esac
   [[ -z "${reset_epoch}" ]] && return

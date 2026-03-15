@@ -74,7 +74,7 @@ sync_entry() {
       mv "${dst}" "${dst}.bak"
     fi
     mkdir -p "${dst}"
-    rsync -a --exclude 'cache/' --exclude '.bak' "${src}/" "${dst}/"
+    rsync -a --exclude 'cache/' --exclude 'rules/' --exclude '.bak' "${src}/" "${dst}/"
   else
     if [[ -f "${dst}" ]]; then
       cp -f "${dst}" "${dst}.bak"
@@ -101,7 +101,7 @@ diff_entry() {
   fi
 
   if [[ -d "${src}" ]]; then
-    diff -rq --exclude='cache' --exclude='.bak' "${src}" "${dst}" 2>/dev/null || true
+    diff -rq --exclude='cache' --exclude='rules' --exclude='.bak' "${src}" "${dst}" 2>/dev/null || true
   else
     diff -u --label ".meta/${entry}" --label "worktree/${entry}" "${src}" "${dst}" 2>/dev/null || true
   fi

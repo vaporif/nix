@@ -70,6 +70,10 @@
       url = "github:nicobailon/visual-explainer";
       flake = false;
     };
+    wshobson-agents = {
+      url = "github:wshobson/agents";
+      flake = false;
+    };
     vim-tidal = {
       url = "github:tidalcycles/vim-tidal";
       flake = false;

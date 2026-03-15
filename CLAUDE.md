@@ -14,276 +14,49 @@ Cross-platform Nix configuration for macOS (nix-darwin) and NixOS. Manages syste
 
 ```bash
 just switch                   # Apply configuration changes
-nix flake update              # Update all flake inputs
-sops secrets/secrets.yaml     # Edit encrypted secrets
 just check                    # Run all linting checks
 just fmt                      # Format all files
+nix flake update              # Update all flake inputs
+sops secrets/secrets.yaml     # Edit encrypted secrets
 git meta <push|pull|diff|init>  # Sync .meta/ configs with worktrees
 ```
 
-## Linting & Formatting
-
-Run `just` to see all available commands. Key ones:
-
-| Command | Description |
-|---------|-------------|
-| `just switch` | Apply configuration (auto-detects platform) |
-| `just check` | Run all checks (lint + policy) |
-| `just check-policy` | Policy checks (freshness, pinning) |
-| `just lint-lua` | Selene + stylua for Lua files |
-| `just lint-nix` | Flake check + alejandra + statix + deadnix |
-| `just fmt` | Format all (Lua + Nix + TOML) |
-| `just keymaps` | Regenerate docs/keymaps.md from source files |
-| `just cache` | Build and push to Cachix |
-| `just gc <age>` | Delete generations older than age and garbage collect (e.g., `just gc 30d`) |
-| `just setup-hooks` | Enable git hooks |
-
 Tools: `selene`, `stylua`, `alejandra`, `statix`, `deadnix`, `typos`, `taplo`, `shellcheck`, `actionlint`, `jaq`, `gitleaks`
-
-## Git Hooks
-
-Enable with `just setup-hooks` or `git config core.hooksPath .githooks`:
-- **pre-commit**: Auto-formats code with `just fmt`
-- **pre-push**: Runs `just check` then `just cache`
-
-Skip hooks when needed: `git commit --no-verify` or `git push --no-verify`
-
-## Cachix
-
-Binary cache at https://vaporif.cachix.org for faster builds:
-- CI automatically pushes builds
-- Local: `just cache` to build and push
-- Auth: `cachix authtoken <token>` (one-time setup)
-
-## Shell Aliases
-
-- `a` - Claude Code CLI
-- `ap` - Claude Code with `--print`
-- `ai` - Claude Code with `--dangerously-skip-permissions`
-- `ar` - Claude Code with `--resume`
-- `g` - Lazygit
-- `e` - Neovim
-- `t` - Yazi file manager
-- `ls` - eza (with hidden files)
-- `cat` - bat (syntax highlighting)
-
-## Application Shortcuts (skhd — macOS only)
-
-Uses `hyper` key (caps lock via Karabiner):
-
-| Key | App |
-|-----|-----|
-| `hyper + r` | Librewolf |
-| `hyper + t` | WezTerm |
-| `hyper + c` | Claude |
-| `hyper + s` | Slack |
-| `hyper + b` | Brave |
-| `hyper + d` | Discord |
-| `hyper + w` | WhatsApp |
-| `hyper + m` | Ableton Live |
-| `hyper + l` | Signal |
-| `hyper + p` | Spotify |
 
 ## Architecture
 
 ```
-flake.nix                    # Entry point; thin wiring only (inputs + module composition)
-├── hosts/
-│   ├── common.nix           # NixOS module: shared config.custom.* (user, git, cachix, timezone)
-│   ├── macbook.nix          # NixOS module: imports common.nix, sets hostname, system, configPath, sshAgent
-│   └── nixos.nix            # NixOS module: imports common.nix, sets hostname, system, configPath
-├── modules/
-│   ├── options.nix          # Typed NixOS options (config.custom.*) — imported by system + HM
-│   ├── nix.nix              # Shared Nix settings
-│   ├── theme.nix            # Shared Stylix theme
-│   └── claude-security/     # HM module: programs.claude-code.security (hooks, deny list, allow list)
-│       ├── default.nix      # Typed options, settingsFragment output
-│       └── scripts/         # Hook scripts with build-time placeholders + wrap.nix
-├── system/
-│   ├── darwin/
-│   │   └── default.nix      # macOS-only: nix-darwin system config, skhd, SOPS, firewall
-│   └── nixos/
-│       ├── default.nix      # NixOS system config: openssh, user account
-│       └── hardware-configuration.nix  # Machine-specific (forkers: regenerate)
-├── home/
-│   ├── common/
-│   │   ├── default.nix      # Imports only (~20 lines)
-│   │   ├── claude.nix       # Claude Code plugins, settings, hooks, commands
-│   │   ├── git.nix          # Git config, lazygit, gh CLI
-│   │   ├── ssh.nix          # Hardened SSH client config
-│   │   ├── mcp.nix          # MCP server configuration (serena, filesystem, github, etc.)
-│   │   ├── qdrant.nix       # Qdrant config.yaml generation
-│   │   ├── xdg.nix          # xdg.configFile: wezterm, yazi, tidal, procs
-│   │   ├── packages.nix     # User packages (home.packages)
-│   │   ├── shell.nix        # Shell programs (zsh, fzf, atuin, etc.)
-│   │   └── neovim.nix       # Neovim via nix-wrapper-modules (plugins, LSPs, treesitter)
-│   ├── darwin/              # macOS-specific home config (Secretive, Claude desktop, UTM SSH)
-│   └── linux/               # NixOS-specific home config (systemd services)
-├── scripts/
-│   ├── dump-keymaps.lua     # Auto-generates docs/keymaps.md (nvim, skhd, karabiner, wezterm, yazi)
-│   ├── setup.sh             # Cross-platform bootstrap script for forks
-│   ├── git-bare-clone.sh    # Bare clone with main worktree
-│   └── git-meta.sh          # Worktree config sync (.meta/)
-├── tests/
-│   └── claude-security.nix  # nixosTest: VM-based integration tests for security module
-├── docs/
-│   └── keymaps.md           # Auto-generated keybinding reference (all apps)
+flake.nix                    # Entry point (inputs + module composition)
+├── hosts/                   # Host configs: common.nix, macbook.nix, nixos.nix
+├── modules/                 # Shared: options.nix, nix.nix, theme.nix, claude-security/
+├── system/{darwin,nixos}/   # Platform system configs
+├── home/{common,darwin,linux}/ # Home Manager configs
+├── config/                  # Dotfiles: nvim/, wezterm/, yazi/, karabiner/
+├── scripts/                 # Helper scripts (setup, git-meta, git-bare-clone, keymaps)
+├── tests/                   # Integration tests (claude-security.nix)
 ├── overlays/                # Custom package overlays
 └── pkgs/                    # Custom package definitions
 ```
 
-### Config Files (dotfiles)
-
-Application configs live in `/config/` and are symlinked via `xdg.configFile`:
-- `nvim/` - Neovim (Lua, managed by nix-wrapper-modules — `config_directory` points here)
-- `wezterm/` - Terminal (Lua)
-- `yazi/` - File manager
-- `karabiner/` - Keyboard remapping (macOS only)
-
 ### Path Templating (`configPath`)
 
-Config files that reference the repo path use `config.custom.configPath` instead of hardcoded paths. Two mechanisms:
+- **`@configPath@` placeholder** (wezterm, yazi): Substituted via `builtins.replaceStrings` in `home/common/xdg.nix` at build time.
+- **`nix-info` module** (nvim): nix-wrapper-modules injects `config_directory`. `init.lua` reads `_G.nixInfo.settings.config_directory`.
 
-- **`@configPath@` placeholder** (wezterm, yazi): The config file contains a literal `@configPath@` string. In `home/common/xdg.nix`, `builtins.replaceStrings` substitutes it with `config.custom.configPath` at build time. Used when the file is loaded via `.text` or `extraConfig` (not `.source`).
-- **`nix-info` module** (nvim): nix-wrapper-modules injects a `nix-info` plugin with `config_directory` and other settings. `init.lua` reads `_G.nixInfo.settings.config_directory` to find the Lua config path at runtime.
+## Key Patterns
 
-## User-Specific Values
-
-Typed NixOS options defined in `modules/options.nix` under `config.custom.*`. Host configs in `hosts/` set these values — common values in `hosts/common.nix`, per-host overrides in `hosts/<name>.nix` (which imports `common.nix`). All modules consume `config.custom.*` directly. User/home paths in `flake.nix` also derive from `config.custom.user` — no hardcoded usernames.
-
-**Required options** (`config.custom.*`):
-- `user` - username (set in `common.nix`, propagates to all paths)
-- `hostname` - machine name
-- `system` - architecture (`aarch64-darwin` or `aarch64-linux`)
-- `configPath` - path to this repo (derived from `config.custom.user`)
-- `git.{name,email,signingKey}` - git identity and signing key
-- `cachix.{name,publicKey}` - binary cache config
-- `timezone` - system timezone
-- `sshAgent` - SSH agent type (`"secretive"` on macOS, `""` on Linux)
-
-**Optional options** (per-host):
-- `utmHostIp` - IP address of UTM VM for SSH config (macOS only, `null` by default)
-
-## MCP Servers
-
-Configured in `home/common/mcp.nix`. Available servers:
-- **serena** - Semantic code editing (recommended for this repo, has nixd + lua-language-server)
-- **filesystem** - File access (Documents, config, cargo, go, nix store)
-- **git** - Git operations
-- **github** - GitHub operations (uses `gh auth token`)
-- **context7** - Library documentation
-- **nixos** - NixOS/nix-darwin option search
-- **tavily** - Web search
-- **deepl** - Translation
-- **sequential-thinking** - Step-by-step reasoning
-- **time** - Time/timezone utilities
-- **memory** - Knowledge graph memory
-- **qdrant** - Vector search memory (collection: `claude-memory`)
+- **`config.custom.*`**: Typed NixOS options in `modules/options.nix`. All modules consume these instead of `extraSpecialArgs`. Options defined in `hosts/common.nix`, overridden per-host.
+- **lze plugin loading**: Uses `on_require`, `dep_of`, `on_plugin`. Does NOT have a `dep` field. Library deps in `config/nvim/lua/plugins/deps.lua`.
+- **`allowUnfreePredicate`**: Shared unfree allowlist in `flake.nix`, applied to both platforms.
+- **Claude security module**: `modules/claude-security/` — HM module generating `settingsFragment` (hooks + permissions). `claude.nix` merges it into `~/.claude/settings.json`.
+- **Git worktree tools**: `git bclone` (bare clone) and `git meta` (sync .meta/ configs) installed via `home/packages.nix`.
+- **Claude rules (direnv)**: Language rules stored in `~/.config/claude-rules/` (nix-managed). Use `use claude_rules` in `.envrc` to symlink relevant rules into project-local `.claude/rules/`. Auto-detects languages when called without args. Explicit: `use claude_rules go nix`. See `config/direnv/claude-rules.sh`.
 
 ## Secrets Management
 
-SOPS with age encryption:
+SOPS with age encryption. Key: `~/.config/sops/age/key.txt`
 ```bash
 sops secrets/secrets.yaml              # Edit secrets
-cat /run/secrets/<secret-name>         # Access at runtime
+# Define in nix: sops.secrets.my-secret = { };
+# Access at runtime: /run/secrets/<secret-name>
 ```
-
-Key: `~/.config/sops/age/key.txt`
-
-Managed secrets: `openrouter-key`, `tavily-key`, `youtube-key`, `deepl-key`, `hf-token-scan-injection`, `ntfy-topic`, `nix-access-tokens`
-
-## Claude Code Plugins
-
-Nix-managed plugins from `github:anthropics/claude-code`:
-- **feature-dev** - Feature development workflow
-- **ralph-wiggum** - Iterative development loops
-- **code-review** - PR code review
-- **superpowers** - Structured workflows (brainstorming, debugging, TDD, etc.)
-
-### Custom Commands
-
-Defined in `config/claude-commands/`, wired via `home/common/claude.nix`:
-- `/cleanup` - Code review and cleanup of branch changes
-- `/commit` - Generate commit message from staged changes
-- `/docs` - Update all documentation (CLAUDE.md, Serena, auto memory, Qdrant)
-- `/pr` - Generate PR title and description
-- `/recall` - Search Qdrant memory
-- `/remember` - Store context in Qdrant
-
-## Git Worktree Tools
-
-Custom git subcommands installed via `writeShellScriptBin` in `home/packages.nix`:
-
-- **`git bclone <url>`** - Bare clone with main worktree (`scripts/git-bare-clone.sh`)
-- **`git meta <cmd>`** - Sync non-tracked config files between `.meta/` and worktrees (`scripts/git-meta.sh`)
-  - `pull` - `.meta/` → worktree (like `git pull`: bring configs to you)
-  - `push` - worktree → `.meta/` (like `git push`: send configs to central store)
-  - `diff` - show differences between `.meta/` and worktree
-  - `init` - create `.meta/` and populate from current worktree
-  - File list from `.meta/.files` manifest, defaults: `.envrc`, `.serena/`, `.claude/`, `CLAUDE.md`
-
-## Security & Policy Enforcement
-
-- **Secrets**: SOPS with age encryption (key at `~/.config/sops/age/key.txt`)
-- **TouchID**: Enabled for sudo via `security.pam.services.sudo_local.touchIdAuth`
-- **Firewall**: Application firewall with stealth mode enabled
-- **Umask**: Stricter 077 - new files only readable by owner
-- **Sudo timeout**: 1 minute
-
-### Claude Code Security Module
-
-Home-manager module at `modules/claude-security/` exposes typed options under `programs.claude-code.security`. Imported by `home/common/claude.nix`. Generates a read-only `settingsFragment` (hooks + permissions) consumed when building `~/.claude/settings.json`.
-
-**Hooks** (PreToolUse):
-- **Bash validation**: Parses command AST via shfmt, blocks dangerous commands (`rm`, `sudo`, `dd`, etc.) and pipe-to-shell patterns (`curl|sh`, `wget|python`)
-- **Confirm-before-write**: Prompts before `mcp__filesystem__delete_file`, `mcp__qdrant__qdrant-store`, `mcp__serena__write_memory`
-- **Notification**: macOS desktop notification + optional ntfy.sh phone push
-
-**Permissions**: Typed deny lists for directories (`~/.ssh`, `~/.aws`, browser data, chat apps), files (`~/.netrc`, history), absolute paths (`/run/secrets/**`), and MCP git write operations. Allow list covers 240 pre-approved read-only tools.
-
-Hook scripts use build-time placeholders (`@blockedCommands@`, `@sound@`, etc.) substituted by `scripts/wrap.nix`, which also wraps them with runtime dependencies via `makeWrapper`.
-
-**Integration tests**: `tests/claude-security.nix` — nixosTest running in a NixOS VM, validates deny list generation, hook wiring, tilde expansion, and end-to-end bash validation.
-
-### CI Policy Checks
-- **Vulnerability scanning**: `vulnix` with `vulnix-whitelist.toml`
-- **Input freshness**: Warns if flake inputs >30 days old
-- **Pinned inputs**: Fails if any inputs are unpinned
-- **Secret scanning**: `gitleaks` prevents committing secrets
-- **License compliance**: Unfree packages must be allowlisted in `flake.nix`
-
-## Key Implementation Details
-
-- **`modules/options.nix`**: Typed NixOS options under `config.custom.*` — imported by both system modules and home-manager modules. Type system validates required fields at eval time
-- **`config.custom.*` pattern**: All modules consume `config.custom.user`, `config.custom.configPath`, etc. instead of `extraSpecialArgs` passthrough. `flake.nix` uses inline module functions to read `config.custom.user` for `users.users` and `home-manager.users`
-- **`allowUnfreePredicate`**: Shared unfree allowlist (`spacetimedb`, `claude-code`), applied to both platforms
-- **Neovim**: Managed via `nix-wrapper-modules` (`home/common/neovim.nix`). Plugins installed by Nix into `start/` (eager) or `opt/` (lazy), loaded at runtime by `lze` plugin manager. Plugin configs in `config/nvim/lua/plugins/`. Update plugins via `nix flake update`
-- **lze patterns**: Uses `on_require` (load on module require), `dep_of` (load before another plugin), `on_plugin` (load after another plugin). Does NOT have a `dep` field. Library deps registered in `config/nvim/lua/plugins/deps.lua`
-- **LibreWolf**: Auto-updated via `scripts/install-librewolf.sh` on macOS
-- **Qdrant**: Runs as launchd agent on macOS (`home/darwin/`), systemd user service on NixOS (`home/linux/`)
-- **External devshell**: Rust tools via `~/.envrc` (run `direnv allow ~` after setup)
-- **Theme**: Stylix manages colors/fonts across all apps; shared via `modules/theme.nix`
-- **Notifications**: Wrapped nix store script via `modules/claude-security/scripts/notify.sh` — macOS desktop notification + phone push via ntfy.sh (topic from SOPS `ntfy-topic`)
-- **Claude security module**: `modules/claude-security/` — reusable HM module generating `settingsFragment` with hooks + permissions. `claude.nix` imports it, merges fragment with plugin/env config to produce `~/.claude/settings.json` entirely in Nix (no more `config/claude/settings.json` template)
-- **Git SSH rewrite**: `url."git@github.com:".insteadOf` rewrites HTTPS to SSH for GitHub (works with forwarded Secretive agent on NixOS VM)
-- **Agent teams**: Experimental feature enabled via `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` env var in settings
-
-## Common Tasks
-
-### Adding a Package
-1. Edit `home/common/` for shared packages, `home/darwin/` or `home/linux/` for platform-specific, or `system/darwin/`/`system/nixos/` for system packages
-2. Run `just switch`
-
-### Adding/Updating Secrets
-1. Edit: `sops secrets/secrets.yaml`
-2. Define in nix: `sops.secrets.my-secret = { };` (in `system/security.nix`)
-3. Access at runtime: `/run/secrets/my-secret`
-
-### Adding MCP Servers
-1. Edit `home/common/mcp.nix`
-2. Follow existing patterns (see `programs` or `settings.servers`)
-3. Apply and restart Claude app
-
-### Modifying Shell Aliases
-1. Edit shell config in `home/common/` → `shellAliases` section
-2. Apply with `just switch`

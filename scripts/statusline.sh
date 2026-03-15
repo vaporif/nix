@@ -2,6 +2,7 @@
 
 # Claude Code statusline — cross-platform (macOS + Linux)
 # Shows: model+effort, context tokens, vim mode, git branch+diff, worktree, agent
+# Line 2: API rate limits (5h/7d) via OAuth usage endpoint
 
 input=$(cat)
 OS=$(uname -s)
@@ -35,7 +36,7 @@ extract_diff_num() {
   esac
 }
 
-# --- Context color based on token count ---
+# --- Context color based on percentage ---
 
 context_color() {
   local pct=$1
@@ -175,6 +176,96 @@ if [[ -n "${AGENT_NAME}" ]]; then
   AGENT=" | ${PLUM}agent:${AGENT_NAME}${RESET}"
 fi
 
+# --- API usage limits (cached, OAuth) ---
+
+USAGE_CACHE="/tmp/claude-usage-cache"
+CACHE_MAX_AGE=60
+LIMITS_DISPLAY=""
+
+fetch_usage_limits() {
+  local creds_file="${HOME}/.claude/.credentials.json"
+  [[ -f "${creds_file}" ]] || return
+  local token
+  token=$(jq -r '.claudeAiOauth.accessToken // empty' "${creds_file}" 2>/dev/null)
+  [[ -n "${token}" ]] || return
+  curl -s --max-time 2 -H "Authorization: Bearer ${token}" \
+    -H "anthropic-beta: oauth-2025-04-20" \
+    https://api.anthropic.com/api/oauth/usage
+}
+
+get_usage_limits() {
+  if [[ -f "${USAGE_CACHE}" ]]; then
+    local file_mtime cache_age
+    case "${OS}" in
+      Darwin) file_mtime=$(stat -f %m "${USAGE_CACHE}" 2>/dev/null || echo 0) ;;
+      *) file_mtime=$(stat -c %Y "${USAGE_CACHE}" 2>/dev/null || echo 0) ;;
+    esac
+    cache_age=$(( $(date +%s) - file_mtime ))
+    if [[ "${cache_age}" -lt "${CACHE_MAX_AGE}" ]]; then
+      cat "${USAGE_CACHE}"
+      return
+    fi
+  fi
+  local data
+  data=$(fetch_usage_limits)
+  if [[ -n "${data}" ]]; then
+    echo "${data}" > "${USAGE_CACHE}"
+    echo "${data}"
+  fi
+}
+
+format_time_until() {
+  local reset_at="$1"
+  [[ -z "${reset_at}" ]] || [[ "${reset_at}" = "null" ]] && return
+  local reset_epoch now_epoch diff
+  local timestamp="${reset_at%%.*}"  # strip .000Z
+  timestamp="${timestamp%Z}"         # strip trailing Z if no millis
+  case "${OS}" in
+    Darwin) reset_epoch=$(TZ=UTC date -jf "%Y-%m-%dT%H:%M:%S" "${timestamp}" "+%s" 2>/dev/null) ;;
+    *) reset_epoch=$(TZ=UTC date -d "${timestamp/T/ }" "+%s" 2>/dev/null) ;;
+  esac
+  [[ -z "${reset_epoch}" ]] && return
+  now_epoch=$(date +%s)
+  diff=$((reset_epoch - now_epoch))
+  [[ "${diff}" -le 0 ]] && echo "now" && return
+  local days=$((diff / 86400)) hours=$(((diff % 86400) / 3600)) mins=$(((diff % 3600) / 60))
+  if [[ "${days}" -gt 0 ]]; then
+    echo "${days}d${hours}h"
+  elif [[ "${hours}" -gt 0 ]]; then
+    echo "${hours}h${mins}m"
+  else
+    echo "${mins}m"
+  fi
+}
+
+USAGE_LIMITS=$(get_usage_limits)
+
+if [[ -n "${USAGE_LIMITS}" ]]; then
+  FIVE_HOUR=$(echo "${USAGE_LIMITS}" | jq -r '.five_hour.utilization // empty' | cut -d. -f1)
+  SEVEN_DAY=$(echo "${USAGE_LIMITS}" | jq -r '.seven_day.utilization // empty' | cut -d. -f1)
+  FIVE_RESET=$(echo "${USAGE_LIMITS}" | jq -r '.five_hour.resets_at // empty')
+  SEVEN_RESET=$(echo "${USAGE_LIMITS}" | jq -r '.seven_day.resets_at // empty')
+
+  if [[ -n "${FIVE_HOUR}" ]] && [[ -n "${SEVEN_DAY}" ]]; then
+    FIVE_COLOR=$(context_color "${FIVE_HOUR}")
+    SEVEN_COLOR=$(context_color "${SEVEN_DAY}")
+
+    FIVE_TIME=$(format_time_until "${FIVE_RESET}")
+    SEVEN_TIME=$(format_time_until "${SEVEN_RESET}")
+
+    FIVE_DISPLAY="5h: ${FIVE_COLOR}${FIVE_HOUR}%${RESET}"
+    [[ -n "${FIVE_TIME}" ]] && FIVE_DISPLAY="${FIVE_DISPLAY} ${DIM}→${RESET} ${PLUM}${FIVE_TIME}${RESET}"
+
+    SEVEN_DISPLAY="7d: ${SEVEN_COLOR}${SEVEN_DAY}%${RESET}"
+    [[ -n "${SEVEN_TIME}" ]] && SEVEN_DISPLAY="${SEVEN_DISPLAY} ${DIM}→${RESET} ${PLUM}${SEVEN_TIME}${RESET}"
+
+    LIMITS_DISPLAY="${FIVE_DISPLAY} | ${SEVEN_DISPLAY}"
+  fi
+fi
+
 # --- Output ---
 
 echo -e "[${MODEL}${EFFORT_DISPLAY}] ${CTX_COLOR}${TOKEN_DISPLAY}${RESET}${CTX_LIMIT_DISPLAY} ${DIM}(${CTX_COLOR}${PERCENT}%${RESET}${DIM})${RESET}${EXCEED_BADGE}${VIM_MODE}${GIT_BRANCH}${GIT_DIFF}${WORKTREE}${AGENT}"
+if [[ -n "${LIMITS_DISPLAY}" ]]; then
+  echo -e "${LIMITS_DISPLAY}"
+fi

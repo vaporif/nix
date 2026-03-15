@@ -582,6 +582,7 @@
         "visual-explainer": "visual-explainer",
         "wezterm-agent-deck": "wezterm-agent-deck",
         "wrappers": "wrappers",
+        "wshobson-agents": "wshobson-agents",
         "yamb-yazi": "yamb-yazi"
       }
     },
@@ -883,6 +884,22 @@
       "original": {
         "owner": "BirdeeHub",
         "repo": "nix-wrapper-modules",
+        "type": "github"
+      }
+    },
+    "wshobson-agents": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1772899075,
+        "narHash": "sha256-28WOUfgSPKC8cvY2CpIgFna79mkxO3Z9V6Qik3WsFM8=",
+        "owner": "wshobson",
+        "repo": "agents",
+        "rev": "a6f0f457c4e41cbb0ad329b691d28e255a829210",
+        "type": "github"
+      },
+      "original": {
+        "owner": "wshobson",
+        "repo": "agents",
         "type": "github"
       }
     },

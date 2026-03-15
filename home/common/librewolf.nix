@@ -5,7 +5,6 @@
       private_browsing = true;
     };
     "jid1-MnnxcxisBPnSXQ@jetpack" = {slug = "privacy-badger17";};
-    "CanvasBlocker@kkapsner.de" = {slug = "canvasblocker";};
     "jid1-KKzOGWgsW3Ao4Q@jetpack" = {slug = "i-dont-care-about-cookies";};
     "{446900e4-71c2-419f-a6a7-df9c091e268b}" = {slug = "bitwarden-password-manager";};
     "{d7742d87-e61d-4b78-b8a1-b469842139fa}" = {slug = "vimium-ff";};

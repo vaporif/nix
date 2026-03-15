@@ -17,7 +17,7 @@ in {
       SSH_AUTH_SOCK = "${homeDir}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";
     };
     # Claude Desktop reads from ~/Library/, Claude Code from /Library/ (system activation)
-    file."Library/Application Support/Claude/claude_desktop_config.json".source = cfg.mcpServersConfig;
+    file."Library/Application Support/Claude/claude_desktop_config.json".source = cfg.desktopMcpServersConfig;
   };
 
   programs.ssh = {

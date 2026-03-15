@@ -8,9 +8,9 @@
   claudePluginsBase = ".claude/plugins/marketplaces";
   nixPluginsPath = "${claudePluginsBase}/nix-plugins";
 
-  patchPlugin = name:
+  patchPlugin = src: name:
     pkgs.runCommand "claude-plugin-${name}" {} ''
-      cp -r ${inputs.claude-code-plugins}/plugins/${name} $out
+      cp -r ${src}/plugins/${name} $out
       chmod -R u+w $out
       find $out -name '*.sh' -exec sed -i '1s|#!/bin/bash|#!/usr/bin/env bash|' {} \;
     '';
@@ -24,29 +24,33 @@
   readPluginVersion = src:
     (builtins.fromJSON (builtins.readFile "${src}/.claude-plugin/plugin.json")).version or "unknown";
 
+  officialPlugin = patchPlugin inputs.claude-code-plugins;
+  wshobsonPlugin = patchPlugin inputs.wshobson-agents;
+
   plugins = [
+    # Anthropic official plugins
     {
       name = "feature-dev";
       description = "Comprehensive feature development workflow";
-      source = patchPlugin "feature-dev";
+      source = officialPlugin "feature-dev";
       version = readPluginVersion "${inputs.claude-code-plugins}/plugins/feature-dev";
     }
     {
       name = "ralph-loop";
       description = "Iterative development loops";
-      source = patchPlugin "ralph-loop";
+      source = officialPlugin "ralph-loop";
       version = readPluginVersion "${inputs.claude-code-plugins}/plugins/ralph-loop";
     }
     {
       name = "code-review";
       description = "Multi-agent PR code review";
-      source = patchPlugin "code-review";
+      source = officialPlugin "code-review";
       version = readPluginVersion "${inputs.claude-code-plugins}/plugins/code-review";
     }
     {
       name = "skill-creator";
       description = "Create, test, and optimize Claude Code skills";
-      source = patchPlugin "skill-creator";
+      source = officialPlugin "skill-creator";
       version = readPluginVersion "${inputs.claude-code-plugins}/plugins/skill-creator";
     }
     {
@@ -60,6 +64,38 @@
       description = "Generate HTML pages for diagrams, diff reviews, plan reviews, and data tables";
       source = inputs.visual-explainer;
       version = readPluginVersion inputs.visual-explainer;
+    }
+    # wshobson community plugins
+    {
+      name = "systems-programming";
+      description = "Rust, Go, C/C++ agents with async patterns and memory safety skills";
+      source = wshobsonPlugin "systems-programming";
+      version = readPluginVersion "${inputs.wshobson-agents}/plugins/systems-programming";
+    }
+    {
+      name = "security-scanning";
+      description = "STRIDE threat modeling, SAST, dependency scanning, security hardening";
+      source = wshobsonPlugin "security-scanning";
+      version = readPluginVersion "${inputs.wshobson-agents}/plugins/security-scanning";
+    }
+    {
+      name = "git-pr-workflows";
+      description = "PR enhancement, git workflow automation, repo onboarding";
+      source = wshobsonPlugin "git-pr-workflows";
+      version = readPluginVersion "${inputs.wshobson-agents}/plugins/git-pr-workflows";
+    }
+    {
+      name = "blockchain-web3";
+      description = "Solidity security, DeFi protocols, NFT standards, Web3 testing";
+      source = wshobsonPlugin "blockchain-web3";
+      version = readPluginVersion "${inputs.wshobson-agents}/plugins/blockchain-web3";
+    }
+    {
+      name = "agent-teams";
+      # heaviest plugin: ~250 tokens in system prompt (17 skills/commands/agents)
+      description = "Multi-agent team orchestration for parallel review, debugging, and development";
+      source = wshobsonPlugin "agent-teams";
+      version = readPluginVersion "${inputs.wshobson-agents}/plugins/agent-teams";
     }
   ];
 
@@ -145,11 +181,16 @@ in {
       ".claude/plugins/installed_plugins.json".text = installedPlugins;
       ".claude/plugins/known_marketplaces.json".text = knownMarketplaces;
 
-      ".claude/rules/nix.md".source = ../../config/claude-rules/nix.md;
-      ".claude/rules/lua.md".source = ../../config/claude-rules/lua.md;
-      ".claude/rules/rust.md".source = ../../config/claude-rules/rust.md;
-      ".claude/rules/go.md".source = ../../config/claude-rules/go.md;
-      ".claude/rules/solidity.md".source = ../../config/claude-rules/solidity.md;
+      # Central rules store — not auto-loaded by Claude Code
+      # Use `use claude_rules` in .envrc to symlink into project
+      ".config/claude-rules/nix.md".source = ../../config/claude-rules/nix.md;
+      ".config/claude-rules/lua.md".source = ../../config/claude-rules/lua.md;
+      ".config/claude-rules/rust.md".source = ../../config/claude-rules/rust.md;
+      ".config/claude-rules/go.md".source = ../../config/claude-rules/go.md;
+      ".config/claude-rules/solidity.md".source = ../../config/claude-rules/solidity.md;
+
+      # Direnv custom function for claude rules
+      ".config/direnv/lib/claude-rules.sh".source = ../../config/direnv/claude-rules.sh;
 
       ".claude/commands/remember.md".source = ../../config/claude-commands/remember.md;
       ".claude/commands/recall.md".source = ../../config/claude-commands/recall.md;
@@ -158,6 +199,12 @@ in {
       ".claude/commands/pr.md".source = ../../config/claude-commands/pr.md;
       ".claude/commands/docs.md".source = ../../config/claude-commands/docs.md;
       ".claude/commands/vulnix-triage.md".source = ../../config/claude-commands/vulnix-triage.md;
+
+      # Standalone agents (VoltAgent)
+      ".claude/agents/refactoring-specialist.md".source = ../../config/claude-agents/refactoring-specialist.md;
+      ".claude/agents/performance-engineer.md".source = ../../config/claude-agents/performance-engineer.md;
+      ".claude/agents/mcp-developer.md".source = ../../config/claude-agents/mcp-developer.md;
+      ".claude/agents/cli-developer.md".source = ../../config/claude-agents/cli-developer.md;
 
       ".claude/CLAUDE.md".source = ../../config/claude/CLAUDE.md;
       ".claude/settings.json".text = builtins.toJSON {

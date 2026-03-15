@@ -22,91 +22,120 @@
 
   youtube-mcp-package = inputs.mcp-youtube.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
-  mcpConfig = {
-    programs = {
-      filesystem = {
-        enable = true;
-        args = [
-          "${homeDir}/Documents"
-          cfg.configPath
-          "${homeDir}/.cargo"
-          "${homeDir}/go"
-          "/nix/store"
-          "${homeDir}/.config"
-          "${homeDir}/.local/share"
-        ];
-      };
-      git.enable = true;
-      sequential-thinking.enable = true;
-      time = {
-        enable = true;
-        args = ["--local-timezone" cfg.timezone];
-      };
-      context7.enable = true;
-      memory.enable = true;
-      serena = {
-        enable = true;
-        package = serenaPatched;
-        context = "claude-code";
-        enableWebDashboard = true;
-        extraPackages =
-          cfg.lspPackages
-          ++ (with pkgs; [
-            rust-analyzer
-            gopls
-          ]);
-      };
-      deepl = {
-        enable = true;
-        passwordCommand = {
-          DEEPL_API_KEY = ["cat" "/run/secrets/deepl-key"];
-        };
-      };
-      qdrant = {
-        enable = true;
-        env = {
-          QDRANT_URL = "http://localhost:6333";
-          COLLECTION_NAME = "claude-memory";
-          FASTEMBED_CACHE_PATH = "${homeDir}/.cache/fastembed";
-        };
-      };
+  # Shared programs used by both Desktop and Code
+  commonPrograms = {
+    context7.enable = true;
+    serena = {
+      enable = true;
+      package = serenaPatched;
+      context = "claude-code";
+      enableWebDashboard = true;
+      extraPackages =
+        cfg.lspPackages
+        ++ (with pkgs; [
+          rust-analyzer
+          gopls
+        ]);
     };
-    settings.servers = {
-      github = {
-        command = "${pkgs.writeShellScript "github-mcp-wrapper" ''
-          export GITHUB_PERSONAL_ACCESS_TOKEN="$(${lib.getExe pkgs.gh} auth token)"
-          exec ${lib.getExe pkgs.github-mcp-server} stdio
-        ''}";
+    qdrant = {
+      enable = true;
+      env = {
+        QDRANT_URL = "http://localhost:6333";
+        COLLECTION_NAME = "claude-memory";
+        FASTEMBED_CACHE_PATH = "${homeDir}/.cache/fastembed";
       };
-      tavily = {
-        command = "${pkgs.writeShellScript "tavily-mcp-wrapper" ''
-          export TAVILY_API_KEY="$(cat /run/secrets/tavily-key)"
-          exec ${inputs.mcp-servers-nix.packages.${pkgs.stdenv.hostPlatform.system}.tavily-mcp}/bin/tavily-mcp
-        ''}";
-      };
-      nixos = {
-        command = "${mcp-nixos-package}/bin/mcp-nixos";
-      };
-      youtube = {
-        command = "${pkgs.writeShellScript "youtube-mcp-wrapper" ''
-          export YOUTUBE_API_KEY="$(cat /run/secrets/youtube-key)"
-          exec ${lib.getExe youtube-mcp-package}
-        ''}";
-      };
-      serena.args = lib.mkAfter ["--project-from-cwd"];
     };
   };
 
-  mcpServersConfig = inputs.mcp-servers-nix.lib.mkConfig pkgs mcpConfig;
+  # Shared custom servers used by both Desktop and Code
+  commonServers = {
+    github = {
+      command = "${pkgs.writeShellScript "github-mcp-wrapper" ''
+        export GITHUB_PERSONAL_ACCESS_TOKEN="$(${lib.getExe pkgs.gh} auth token)"
+        exec ${lib.getExe pkgs.github-mcp-server} stdio
+      ''}";
+    };
+    tavily = {
+      command = "${pkgs.writeShellScript "tavily-mcp-wrapper" ''
+        export TAVILY_API_KEY="$(cat /run/secrets/tavily-key)"
+        exec ${inputs.mcp-servers-nix.packages.${pkgs.stdenv.hostPlatform.system}.tavily-mcp}/bin/tavily-mcp
+      ''}";
+    };
+    nixos = {
+      command = "${mcp-nixos-package}/bin/mcp-nixos";
+    };
+    serena.args = lib.mkAfter ["--project-from-cwd"];
+  };
+
+  # Desktop-only programs
+  desktopOnlyPrograms = {
+    filesystem = {
+      enable = true;
+      args = [
+        "${homeDir}/Documents"
+        cfg.configPath
+        "${homeDir}/.cargo"
+        "${homeDir}/go"
+        "/nix/store"
+        "${homeDir}/.config"
+        "${homeDir}/.local/share"
+      ];
+    };
+    sequential-thinking.enable = true;
+    time = {
+      enable = true;
+      args = ["--local-timezone" cfg.timezone];
+    };
+    deepl = {
+      enable = true;
+      passwordCommand = {
+        DEEPL_API_KEY = ["cat" "/run/secrets/deepl-key"];
+      };
+    };
+  };
+
+  # Desktop-only custom servers
+  desktopOnlyServers = {
+    youtube = {
+      command = "${pkgs.writeShellScript "youtube-mcp-wrapper" ''
+        export YOUTUBE_API_KEY="$(cat /run/secrets/youtube-key)"
+        exec ${lib.getExe youtube-mcp-package}
+      ''}";
+    };
+  };
+
+  # Claude Desktop: all servers
+  desktopMcpConfig = {
+    programs = commonPrograms // desktopOnlyPrograms;
+    settings.servers = commonServers // desktopOnlyServers;
+  };
+
+  # Claude Code: dev-focused servers only
+  codeMcpConfig = {
+    programs = commonPrograms;
+    settings.servers = commonServers;
+  };
+
+  desktopMcpServersConfig = inputs.mcp-servers-nix.lib.mkConfig pkgs desktopMcpConfig;
+  codeMcpServersConfig = inputs.mcp-servers-nix.lib.mkConfig pkgs codeMcpConfig;
 in {
-  options.custom.mcpServersConfig = lib.mkOption {
-    type = lib.types.path;
-    readOnly = true;
-    description = "Generated MCP servers config file";
+  options.custom = {
+    desktopMcpServersConfig = lib.mkOption {
+      type = lib.types.path;
+      readOnly = true;
+      description = "Generated MCP servers config for Claude Desktop (all servers)";
+    };
+    codeMcpServersConfig = lib.mkOption {
+      type = lib.types.path;
+      readOnly = true;
+      description = "Generated MCP servers config for Claude Code (dev-focused servers)";
+    };
   };
 
   config = {
-    custom.mcpServersConfig = mcpServersConfig;
-    home.file."${config.xdg.configHome}/mcphub/servers.json".source = mcpServersConfig;
+    custom = {
+      inherit desktopMcpServersConfig codeMcpServersConfig;
+    };
+    home.file."${config.xdg.configHome}/mcphub/servers.json".source = codeMcpServersConfig;
   };
 }

@@ -4,7 +4,7 @@
   ...
 }: let
   cfg = config.custom;
-  mcpConfig = config.home-manager.users.${cfg.user}.custom.mcpServersConfig;
+  hmCfg = config.home-manager.users.${cfg.user}.custom;
 in {
   system.activationScripts.postActivation.text = ''
     echo "Installing/updating LibreWolf..."
@@ -15,7 +15,7 @@ in {
     echo "Setting up MCP configs..."
     mkdir -p "/Library/Application Support/Claude"
     mkdir -p "/Library/Application Support/ClaudeCode"
-    ln -sf ${mcpConfig} "/Library/Application Support/Claude/claude_desktop_config.json"
-    ln -sf ${mcpConfig} "/Library/Application Support/ClaudeCode/managed-mcp.json"
+    ln -sf ${hmCfg.desktopMcpServersConfig} "/Library/Application Support/Claude/claude_desktop_config.json"
+    ln -sf ${hmCfg.codeMcpServersConfig} "/Library/Application Support/ClaudeCode/managed-mcp.json"
   '';
 }

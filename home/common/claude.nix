@@ -164,6 +164,10 @@ in {
         "$schema" = "https://json.schemastore.org/claude-code-settings.json";
         alwaysThinkingEnabled = true;
         inherit enabledPlugins;
+        statusLine = {
+          type = "command";
+          command = "${homeDir}/.claude/hooks/statusline.sh";
+        };
         env = {
           CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
         };
@@ -230,6 +234,10 @@ in {
       };
       ".claude/hooks/auto-recall.sh" = {
         source = ../../config/claude/hooks/auto-recall.sh;
+        executable = true;
+      };
+      ".claude/hooks/statusline.sh" = {
+        source = ../../scripts/statusline.sh;
         executable = true;
       };
     }

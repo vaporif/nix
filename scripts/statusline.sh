@@ -180,7 +180,7 @@ fi
 # --- API usage limits (cached, OAuth) ---
 
 USAGE_CACHE="/tmp/claude-usage-cache"
-CACHE_MAX_AGE=60
+CACHE_MAX_AGE=300
 LIMITS_DISPLAY=""
 
 fetch_usage_limits() {
@@ -220,7 +220,7 @@ get_usage_limits() {
   fi
   local data
   data=$(fetch_usage_limits)
-  if [[ -n "${data}" ]]; then
+  if [[ -n "${data}" ]] && ! echo "${data}" | jq -e '.error' > /dev/null 2>&1; then
     echo "${data}" > "${USAGE_CACHE}"
     echo "${data}"
   fi
@@ -280,3 +280,5 @@ fi
 echo -e "[${MODEL}${EFFORT_DISPLAY}] ${CTX_COLOR}${TOKEN_DISPLAY}${RESET}${CTX_LIMIT_DISPLAY} ${DIM}(${CTX_COLOR}${PERCENT}%${RESET}${DIM})${RESET}${COMPACT_BADGE}${VIM_MODE}${GIT_BRANCH}${GIT_DIFF}${WORKTREE}${AGENT}"
 
 [[ -n "${LIMITS_DISPLAY}" ]] && echo -e "${LIMITS_DISPLAY}"
+
+exit 0

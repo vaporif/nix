@@ -183,10 +183,21 @@ CACHE_MAX_AGE=60
 LIMITS_DISPLAY=""
 
 fetch_usage_limits() {
-  local creds_file="${HOME}/.claude/.credentials.json"
-  [[ -f "${creds_file}" ]] || return
   local token
-  token=$(jq -r '.claudeAiOauth.accessToken // empty' "${creds_file}" 2>/dev/null)
+  case "${OS}" in
+    Darwin)
+      # macOS: OAuth token stored in Keychain
+      local creds
+      creds=$(security find-generic-password -s 'Claude Code-credentials' -w 2>/dev/null) || return
+      token=$(echo "${creds}" | jq -r '.claudeAiOauth.accessToken // empty' 2>/dev/null)
+      ;;
+    *)
+      # Linux: OAuth token stored in credentials file
+      local creds_file="${HOME}/.claude/.credentials.json"
+      [[ -f "${creds_file}" ]] || return
+      token=$(jq -r '.claudeAiOauth.accessToken // empty' "${creds_file}" 2>/dev/null)
+      ;;
+  esac
   [[ -n "${token}" ]] || return
   curl -s --max-time 2 -H "Authorization: Bearer ${token}" \
     -H "anthropic-beta: oauth-2025-04-20" \

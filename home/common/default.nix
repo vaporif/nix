@@ -59,7 +59,7 @@ in {
       enable = true;
       package = inputs.parry-guard.packages.${pkgs.stdenv.hostPlatform.system}.default;
       hfTokenFile = "/run/secrets/hf-token-scan-injection";
-      ignorePaths = ["${cfg.homeDir}/Repos/parry-guard" cfg.configPath "${cfg.homeDir}/Repos/mcp-server-qdrant"];
+      ignorePaths = ["${cfg.homeDir}/Repos/parry-guard" cfg.configPath "${cfg.homeDir}/Repos/mcp-server-qdrant" "${cfg.homeDir}/Repos/sp1.nix"];
     };
   };
 }

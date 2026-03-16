@@ -7,15 +7,15 @@
 input=$(cat)
 OS=$(uname -s)
 
-# --- Earthtone palette (24-bit true color) ---
+# --- Earthtone palette (24-bit true color, dark values for light backgrounds) ---
 
-OLIVE="\033[38;2;96;117;48m"
-TOFFEE="\033[38;2;114;89;38m"
-BRICK="\033[38;2;162;54;47m"
-BRICK_BOLD="\033[1;38;2;162;54;47m"
-PLUM="\033[38;2;140;63;101m"
-TEAL="\033[38;2;44;118;112m"
-DIM="\033[2m"
+OLIVE="\033[38;2;60;80;20m"
+TOFFEE="\033[38;2;140;80;10m"
+BRICK="\033[38;2;160;40;30m"
+BRICK_BOLD="\033[1;38;2;140;20;15m"
+PLUM="\033[38;2;120;30;80m"
+TEAL="\033[38;2;20;90;85m"
+DIM="\033[38;2;120;110;95m"
 RESET="\033[0m"
 
 # --- Helpers ---
@@ -40,12 +40,14 @@ extract_diff_num() {
 
 context_color() {
   local pct=$1
-  if [[ "${pct}" -ge 80 ]]; then
+  if [[ "${pct}" -ge 60 ]]; then
     echo "${BRICK_BOLD}"
-  elif [[ "${pct}" -ge 60 ]]; then
-    echo "${BRICK}"
   elif [[ "${pct}" -ge 50 ]]; then
+    echo "${BRICK}"
+  elif [[ "${pct}" -ge 40 ]]; then
     echo "${TOFFEE}"
+  elif [[ "${pct}" -ge 30 ]]; then
+    echo "${PLUM}"
   else
     echo "${OLIVE}"
   fi
@@ -105,12 +107,14 @@ fi
 
 CTX_COLOR=$(context_color "${PERCENT}")
 
-# Compaction warning badge — compaction triggers around 80% of context window
+# Context quality badges
 COMPACT_BADGE=""
 if [[ "${PERCENT}" -ge 80 ]]; then
-  COMPACT_BADGE=" ${BRICK_BOLD}!COMPACT${RESET}"
-elif [[ "${PERCENT}" -ge 70 ]]; then
-  COMPACT_BADGE=" ${PLUM}~COMPACT${RESET}"
+  COMPACT_BADGE=" ${BRICK_BOLD}💥${RESET}"
+elif [[ "${PERCENT}" -ge 60 ]]; then
+  COMPACT_BADGE=" ${BRICK}⛔${RESET}"
+elif [[ "${PERCENT}" -ge 50 ]]; then
+  COMPACT_BADGE=" ${TOFFEE}⚠${RESET}"
 fi
 
 # --- Vim mode ---

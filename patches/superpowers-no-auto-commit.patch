@@ -51,7 +51,7 @@ diff --git a/skills/subagent-driven-development/SKILL.md b/skills/subagent-drive
 index 5150b18..911e33e 100644
 --- a/skills/subagent-driven-development/SKILL.md
 +++ b/skills/subagent-driven-development/SKILL.md
-@@ -99,6 +99,22 @@ Use the least powerful model that can handle each role to conserve cost and incr
+@@ -99,6 +99,20 @@ Use the least powerful model that can handle each role to conserve cost and incr
  - Touches multiple files with integration concerns → standard model
  - Requires design judgment or broad codebase understanding → most capable model
  
@@ -64,8 +64,6 @@ index 5150b18..911e33e 100644
 +|------------------------|--------------------------------------|
 +| Rust                   | systems-programming:rust-pro         |
 +| Go                     | systems-programming:golang-pro       |
-+| C++                    | systems-programming:cpp-pro          |
-+| C                      | systems-programming:c-pro            |
 +| Solidity / Web3 / DeFi | blockchain-web3:blockchain-developer |
 +| General / other        | general-purpose (default)            |
 +

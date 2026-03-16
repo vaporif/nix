@@ -21,11 +21,18 @@
     patches = [../../patches/superpowers-no-auto-commit.patch];
   };
 
+  patchedWshobsonAgents = pkgs.applyPatches {
+    name = "wshobson-agents-patched";
+    src = inputs.wshobson-agents;
+    patches = [../../patches/systems-programming-remove-c-cpp.patch];
+  };
+
   readPluginVersion = src:
     (builtins.fromJSON (builtins.readFile "${src}/.claude-plugin/plugin.json")).version or "unknown";
 
   officialPlugin = patchPlugin inputs.claude-code-plugins;
   wshobsonPlugin = patchPlugin inputs.wshobson-agents;
+  patchedWshobsonPlugin = patchPlugin patchedWshobsonAgents;
 
   plugins = [
     # Anthropic official plugins
@@ -59,17 +66,17 @@
       source = patchedSuperpowers;
       version = readPluginVersion inputs.superpowers;
     }
-    {
-      name = "visual-explainer";
-      description = "Generate HTML pages for diagrams, diff reviews, plan reviews, and data tables";
-      source = inputs.visual-explainer;
-      version = readPluginVersion inputs.visual-explainer;
-    }
+    # {
+    #   name = "visual-explainer";
+    #   description = "Generate HTML pages for diagrams, diff reviews, plan reviews, and data tables";
+    #   source = inputs.visual-explainer;
+    #   version = readPluginVersion inputs.visual-explainer;
+    # }
     # wshobson community plugins
     {
       name = "systems-programming";
-      description = "Rust, Go, C/C++ agents with async patterns and memory safety skills";
-      source = wshobsonPlugin "systems-programming";
+      description = "Rust and Go agents with async patterns and concurrency skills";
+      source = patchedWshobsonPlugin "systems-programming";
       version = readPluginVersion "${inputs.wshobson-agents}/plugins/systems-programming";
     }
     {

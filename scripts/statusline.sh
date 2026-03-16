@@ -184,7 +184,7 @@ fi
 # --- API usage limits (cached, OAuth) ---
 
 USAGE_CACHE="/tmp/claude-usage-cache"
-CACHE_MAX_AGE=300
+CACHE_MAX_AGE=900
 LIMITS_DISPLAY=""
 
 fetch_usage_limits() {

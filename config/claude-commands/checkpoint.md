@@ -8,7 +8,13 @@ Create a checkpoint document that captures everything the next session needs to 
 
 **Steps:**
 
-1. Gather all context from this session:
+1. **Find active session documents.** Check for any plans, specs, or working docs used this session:
+   - Plans: `docs/superpowers/plans/*.md`
+   - Specs: `docs/superpowers/specs/*.md`
+   - Any other doc files read or written during this session
+   - For each active doc, update its checkboxes (`- [ ]` → `- [x]`) to reflect actual progress made
+
+2. Gather all context from this session:
 
 **Session State:**
 - What was the user's original request/goal?
@@ -35,7 +41,7 @@ Create a checkpoint document that captures everything the next session needs to 
 - Anything unresolved that needs attention
 - Questions that still need answers
 
-2. Write the checkpoint document with this structure:
+3. Write the checkpoint document with this structure:
 
 ```markdown
 # Checkpoint: <descriptive title>
@@ -45,6 +51,15 @@ Create a checkpoint document that captures everything the next session needs to 
 
 ## Approach
 <Chosen approach and why. Mention rejected alternatives if relevant>
+
+## Active Documents
+List every plan, spec, or working doc from this session. For each:
+- **Path:** `docs/superpowers/plans/YYYY-MM-DD-<name>.md`
+- **Status:** completed / in-progress / not-started
+- **Notes:** what was done, what remains
+
+The next session MUST read these documents — they contain the full
+task breakdown, design decisions, and progress state.
 
 ## Progress
 
@@ -65,10 +80,11 @@ names, exact error messages, etc.>
 ## Resume Instructions
 <Exact steps for the next session to pick up where this one left off.
 Write as if talking to a fresh Claude with no memory of this session.
-Include what to read first, what to verify, and what to do next.>
+Start with: "Read these files first: <list active documents>".
+Then: what to verify, and what to do next.>
 ```
 
-3. After writing the checkpoint, tell the user:
+4. After writing the checkpoint, tell the user:
    - The checkpoint file path
    - A one-liner they can paste into the next session to resume, e.g.:
      `Read docs/checkpoints/YYYY-MM-DD-<slug>.md and resume from where the previous session left off.`

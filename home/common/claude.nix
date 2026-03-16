@@ -206,6 +206,7 @@ in {
       ".claude/commands/pr.md".source = ../../config/claude-commands/pr.md;
       ".claude/commands/docs.md".source = ../../config/claude-commands/docs.md;
       ".claude/commands/vulnix-triage.md".source = ../../config/claude-commands/vulnix-triage.md;
+      ".claude/commands/checkpoint.md".source = ../../config/claude-commands/checkpoint.md;
 
       # Standalone agents (VoltAgent)
       ".claude/agents/refactoring-specialist.md".source = ../../config/claude-agents/refactoring-specialist.md;

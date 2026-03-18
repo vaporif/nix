@@ -45,6 +45,8 @@ in {
       EDITOR = "nvim";
       VISUAL = "nvim";
       ENABLE_LSP_TOOL = "1";
+      DFT_GRAPH_LIMIT = "500000";
+      DFT_BYTE_LIMIT = "1000000";
     };
     file = {
       ".envrc".text = ''

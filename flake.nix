@@ -150,7 +150,7 @@
         };
       };
 
-    darwinConfigurations.MacBook-Pro = nix-darwin.lib.darwinSystem {
+    darwinConfigurations.burnedapple = nix-darwin.lib.darwinSystem {
       system = "aarch64-darwin";
       specialArgs = {inherit inputs;};
       modules = [

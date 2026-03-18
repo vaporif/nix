@@ -75,6 +75,8 @@ CONTEXT_SIZE=$(jq_r '.context_window.context_window_size // empty')
 USED_PCT=$(jq_r '.context_window.used_percentage // empty')
 USAGE=$(jq_val '.context_window.current_usage // null')
 
+VIRTUAL_LIMIT=200000
+
 if [[ "${USAGE}" != "null" ]] && [[ -n "${USAGE}" ]]; then
   CURRENT=$(echo "${USAGE}" | jq '.input_tokens + .cache_creation_input_tokens + .cache_read_input_tokens')
   TOKEN_NUM=$(awk "BEGIN {printf \"%.1f\", ${CURRENT} / 1000}")
@@ -84,30 +86,53 @@ else
   TOKEN_DISPLAY="0.0${DIM}k${RESET}"
 fi
 
-# Use pre-calculated percentage if available, otherwise compute
-if [[ -n "${USED_PCT}" ]] && [[ "${USED_PCT}" != "null" ]]; then
-  PERCENT="${USED_PCT%%.*}"
-elif [[ -n "${CONTEXT_SIZE}" ]] && [[ "${CONTEXT_SIZE}" != "0" ]] && [[ "${CURRENT}" -gt 0 ]]; then
-  PERCENT=$((CURRENT * 100 / CONTEXT_SIZE))
-else
-  PERCENT=0
+# Determine if extended context (>200K)
+IS_EXTENDED=false
+if [[ -n "${CONTEXT_SIZE}" ]] && [[ "${CONTEXT_SIZE}" != "null" ]] && [[ "${CONTEXT_SIZE}" -gt "${VIRTUAL_LIMIT}" ]]; then
+  IS_EXTENDED=true
 fi
 
-# Format context limit
-CTX_LIMIT_DISPLAY=""
-if [[ -n "${CONTEXT_SIZE}" ]] && [[ "${CONTEXT_SIZE}" != "null" ]]; then
-  if [[ "${CONTEXT_SIZE}" -ge 1000000 ]]; then
-    CTX_LIMIT=$(awk "BEGIN {v=${CONTEXT_SIZE}/1000000; if (v==int(v)) printf \"%d\", v; else printf \"%.1f\", v}")
-    CTX_LIMIT_DISPLAY="/${CTX_LIMIT}${DIM}M${RESET}"
+if [[ "${IS_EXTENDED}" = true ]]; then
+  # Extended context: show usage against 200K virtual limit, plus real limit
+  PERCENT=$((CURRENT * 100 / VIRTUAL_LIMIT))
+  [[ "${PERCENT}" -gt 100 ]] && PERCENT=100
+  CTX_LIMIT_DISPLAY="/200${DIM}K${RESET}"
+
+  # Real context percentage
+  if [[ -n "${USED_PCT}" ]] && [[ "${USED_PCT}" != "null" ]]; then
+    REAL_PERCENT="${USED_PCT%%.*}"
   else
-    CTX_LIMIT=$(awk "BEGIN {v=${CONTEXT_SIZE}/1000; if (v==int(v)) printf \"%d\", v; else printf \"%.1f\", v}")
-    CTX_LIMIT_DISPLAY="/${CTX_LIMIT}${DIM}K${RESET}"
+    REAL_PERCENT=$((CURRENT * 100 / CONTEXT_SIZE))
   fi
+  REAL_CTX_LIMIT=$(awk "BEGIN {v=${CONTEXT_SIZE}/1000000; if (v==int(v)) printf \"%d\", v; else printf \"%.1f\", v}")
+  REAL_CTX_COLOR=$(context_color "${REAL_PERCENT}")
+  REAL_CTX_DISPLAY=" ${REAL_CTX_COLOR}${REAL_CTX_LIMIT}M:${REAL_PERCENT}%${RESET}"
+else
+  # Standard context: original behavior
+  if [[ -n "${USED_PCT}" ]] && [[ "${USED_PCT}" != "null" ]]; then
+    PERCENT="${USED_PCT%%.*}"
+  elif [[ -n "${CONTEXT_SIZE}" ]] && [[ "${CONTEXT_SIZE}" != "0" ]] && [[ "${CURRENT}" -gt 0 ]]; then
+    PERCENT=$((CURRENT * 100 / CONTEXT_SIZE))
+  else
+    PERCENT=0
+  fi
+
+  CTX_LIMIT_DISPLAY=""
+  if [[ -n "${CONTEXT_SIZE}" ]] && [[ "${CONTEXT_SIZE}" != "null" ]]; then
+    if [[ "${CONTEXT_SIZE}" -ge 1000000 ]]; then
+      CTX_LIMIT=$(awk "BEGIN {v=${CONTEXT_SIZE}/1000000; if (v==int(v)) printf \"%d\", v; else printf \"%.1f\", v}")
+      CTX_LIMIT_DISPLAY="/${CTX_LIMIT}${DIM}M${RESET}"
+    else
+      CTX_LIMIT=$(awk "BEGIN {v=${CONTEXT_SIZE}/1000; if (v==int(v)) printf \"%d\", v; else printf \"%.1f\", v}")
+      CTX_LIMIT_DISPLAY="/${CTX_LIMIT}${DIM}K${RESET}"
+    fi
+  fi
+  REAL_CTX_DISPLAY=""
 fi
 
 CTX_COLOR=$(context_color "${PERCENT}")
 
-# Context quality badges
+# Context quality badges (based on 200K percentage for extended, real for standard)
 COMPACT_BADGE=""
 if [[ "${PERCENT}" -ge 80 ]]; then
   COMPACT_BADGE=" ${BRICK_BOLD}💥${RESET}"
@@ -281,7 +306,7 @@ fi
 
 # --- Output ---
 
-echo -e "[${MODEL}${EFFORT_DISPLAY}] ${CTX_COLOR}${TOKEN_DISPLAY}${RESET}${CTX_LIMIT_DISPLAY} ${DIM}(${CTX_COLOR}${PERCENT}%${RESET}${DIM})${RESET}${COMPACT_BADGE}${VIM_MODE}${GIT_BRANCH}${GIT_DIFF}${WORKTREE}${AGENT}"
+echo -e "[${MODEL}${EFFORT_DISPLAY}] ${CTX_COLOR}${TOKEN_DISPLAY}${RESET}${CTX_LIMIT_DISPLAY} ${DIM}(${CTX_COLOR}${PERCENT}%${RESET}${DIM})${RESET}${COMPACT_BADGE}${REAL_CTX_DISPLAY}${VIM_MODE}${GIT_BRANCH}${GIT_DIFF}${WORKTREE}${AGENT}"
 
 [[ -n "${LIMITS_DISPLAY}" ]] && echo -e "${LIMITS_DISPLAY}"
 

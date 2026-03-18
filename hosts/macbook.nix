@@ -1,7 +1,7 @@
 {config, ...}: {
   imports = [./common.nix];
   custom = {
-    hostname = "MacBook-Pro";
+    hostname = "burned-apple";
     system = "aarch64-darwin";
     configPath = "/Users/${config.custom.user}/.config/nix-darwin";
     sshAgent = "secretive";

@@ -36,7 +36,7 @@ jobs:
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
       - name: Build system
-        run: nix build .#darwinConfigurations."MacBook-Pro".system -o result
+        run: nix build .#darwinConfigurations.burnedapple.system -o result
 
       - name: Scan for vulnerabilities
         run: nix run nixpkgs#vulnix -- ./result --whitelist vulnix-whitelist.toml

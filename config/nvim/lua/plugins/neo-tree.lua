@@ -31,10 +31,8 @@ require('lze').load {
               end)
             end,
           },
-          filtered_items = {
-            visible = true,
-            gitignore_source = 'git check-ignore',
-          },
+          filtered_items = { visible = true },
+          async_directory_scan = 'always',
           follow_current_file = { enabled = true, leave_dirs_open = false },
           hijack_netrw_behavior = 'open_current',
           window = {

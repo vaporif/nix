@@ -4,10 +4,19 @@ require('lze').load {
     cmd = 'Neotree',
     after = function()
       require('neo-tree').setup {
+        git_status_async = true,
+        git_status_async_options = {
+          batch_size = 1000,
+          batch_delay = 10,
+          max_lines = 10000,
+        },
         default_component_configs = {
           file_operations = { timeout = 0 },
         },
         filesystem = {
+          filters = {
+            gitignore_source = 'git check-ignore',
+          },
           commands = {
             delete = function(state)
               local inputs = require 'neo-tree.ui.inputs'

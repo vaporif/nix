@@ -27,14 +27,6 @@ require('lze').load {
         desc = 'Remote Flash',
       },
       {
-        'R',
-        function()
-          require('flash').treesitter_search()
-        end,
-        mode = { 'o', 'x' },
-        desc = 'Treesitter Search',
-      },
-      {
         '<c-s>',
         function()
           require('flash').toggle()

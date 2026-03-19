@@ -14,9 +14,6 @@ require('lze').load {
           file_operations = { timeout = 0 },
         },
         filesystem = {
-          filters = {
-            gitignore_source = 'git check-ignore',
-          },
           commands = {
             delete = function(state)
               local inputs = require 'neo-tree.ui.inputs'
@@ -34,7 +31,10 @@ require('lze').load {
               end)
             end,
           },
-          filtered_items = { visible = true },
+          filtered_items = {
+            visible = true,
+            gitignore_source = 'git check-ignore',
+          },
           follow_current_file = { enabled = true, leave_dirs_open = false },
           hijack_netrw_behavior = 'open_current',
           window = {

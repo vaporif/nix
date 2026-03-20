@@ -171,7 +171,7 @@
     };
   };
 
-  isDarwin = pkgs.stdenv.isDarwin;
+  inherit (pkgs.stdenv) isDarwin;
 
   parryHook = {
     hooks = [

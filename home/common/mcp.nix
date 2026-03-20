@@ -61,7 +61,7 @@
     qdrant = {
       command = "${lib.getExe mcp-qdrant-package}";
       env = {
-        QDRANT_URL = "http://localhost:6333";
+        QDRANT_URL = "http://localhost:6334";
         COLLECTION_NAME = "claude-memory";
       };
     };

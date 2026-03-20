@@ -1,35 +1,66 @@
-From e04bc90ef5b05e1bc3fb3cb391aa646f7ad335f8 Mon Sep 17 00:00:00 2001
+From c9ebface56185b91af32b9dfa0422bf4a2c93e56 Mon Sep 17 00:00:00 2001
 From: Dmytro Onypko <vaporif@proton.me>
-Date: Sun, 15 Mar 2026 16:45:06 +0000
-Subject: [PATCH] customizations: no auto-commit, KISS, subagent type routing
+Date: Fri, 20 Mar 2026 20:16:18 +0000
+Subject: [PATCH] customizations: no auto-commit, KISS, subagent routing,
+ memory recall in brainstorming
 
-- Remove auto-commit from brainstorming and writing-plans
-- Add KISS, reuse, and security guidelines to writing-plans
-- Add subagent type selection table for domain-specific agents
-- Route implementer subagents to specialized agents (rust-pro, golang-pro, etc.)
-- Route Web3 code reviews to git-pr-workflows + security-auditor
 ---
- skills/brainstorming/SKILL.md                    |  6 ++----
- skills/subagent-driven-development/SKILL.md      | 16 ++++++++++++++++
- .../code-quality-reviewer-prompt.md              |  4 +++-
- .../implementer-prompt.md                        |  2 +-
- skills/writing-plans/SKILL.md                    | 13 ++++---------
- 5 files changed, 26 insertions(+), 15 deletions(-)
+ skills/brainstorming/SKILL.md                 | 28 +++++++++++--------
+ skills/subagent-driven-development/SKILL.md   | 14 ++++++++++
+ .../code-quality-reviewer-prompt.md           |  4 ++-
+ .../implementer-prompt.md                     |  2 +-
+ skills/writing-plans/SKILL.md                 | 13 +++------
+ 5 files changed, 38 insertions(+), 23 deletions(-)
 
 diff --git a/skills/brainstorming/SKILL.md b/skills/brainstorming/SKILL.md
-index 724dc79..02fe458 100644
+index edbc2b5..4f98e2a 100644
 --- a/skills/brainstorming/SKILL.md
 +++ b/skills/brainstorming/SKILL.md
-@@ -26,7 +26,7 @@ You MUST create a task for each of these items and complete them in order:
- 3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
- 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
- 5. **Present design** — in sections scaled to their complexity, get user approval after each section
+@@ -22,20 +22,23 @@ Every project goes through this process. A todo list, a single-function utility,
+ You MUST create a task for each of these items and complete them in order:
+ 
+ 1. **Explore project context** — check files, docs, recent commits
+-2. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
+-3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
+-4. **Propose 2-3 approaches** — with trade-offs and your recommendation
+-5. **Present design** — in sections scaled to their complexity, get user approval after each section
 -6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
-+6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
- 7. **Spec review loop** — dispatch spec-document-reviewer subagent with precisely crafted review context (never your session history); fix issues and re-dispatch until approved (max 3 iterations, then surface to human)
- 8. **User reviews written spec** — ask user to review the spec file before proceeding
- 9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
-@@ -114,8 +114,6 @@ digraph brainstorming {
+-7. **Spec review loop** — dispatch spec-document-reviewer subagent with precisely crafted review context (never your session history); fix issues and re-dispatch until approved (max 3 iterations, then surface to human)
+-8. **User reviews written spec** — ask user to review the spec file before proceeding
+-9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
++2. **Check memory for prior context** — ask the user: "Want me to check memory for prior context on this?" If yes, run `/recall` with the topic. Do not auto-recall — past decisions may bias exploration.
++3. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
++4. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
++5. **Propose 2-3 approaches** — with trade-offs and your recommendation
++6. **Present design** — in sections scaled to their complexity, get user approval after each section
++7. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
++8. **Spec review loop** — dispatch spec-document-reviewer subagent with precisely crafted review context (never your session history); fix issues and re-dispatch until approved (max 3 iterations, then surface to human)
++9. **User reviews written spec** — ask user to review the spec file before proceeding
++10. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+ 
+ ## Process Flow
+ 
+ ```dot
+ digraph brainstorming {
+     "Explore project context" [shape=box];
++    "Check memory?" [shape=diamond];
++    "Run /recall with topic" [shape=box];
+     "Visual questions ahead?" [shape=diamond];
+     "Offer Visual Companion\n(own message, no other content)" [shape=box];
+     "Ask clarifying questions" [shape=box];
+@@ -48,7 +51,10 @@ digraph brainstorming {
+     "User reviews spec?" [shape=diamond];
+     "Invoke writing-plans skill" [shape=doublecircle];
+ 
+-    "Explore project context" -> "Visual questions ahead?";
++    "Explore project context" -> "Check memory?";
++    "Check memory?" -> "Run /recall with topic" [label="user says yes"];
++    "Check memory?" -> "Visual questions ahead?" [label="no"];
++    "Run /recall with topic" -> "Visual questions ahead?";
+     "Visual questions ahead?" -> "Offer Visual Companion\n(own message, no other content)" [label="yes"];
+     "Visual questions ahead?" -> "Ask clarifying questions" [label="no"];
+     "Offer Visual Companion\n(own message, no other content)" -> "Ask clarifying questions";
+@@ -114,8 +120,6 @@ digraph brainstorming {
  - Write the validated design (spec) to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
    - (User preferences for spec location override this default)
  - Use elements-of-style:writing-clearly-and-concisely skill if available
@@ -38,7 +69,7 @@ index 724dc79..02fe458 100644
  **Spec Review Loop:**
  After writing the spec document:
  
-@@ -126,7 +124,7 @@ After writing the spec document:
+@@ -126,7 +130,7 @@ After writing the spec document:
  **User Review Gate:**
  After the spec review loop passes, ask the user to review the written spec before proceeding:
  
@@ -48,7 +79,7 @@ index 724dc79..02fe458 100644
  Wait for the user's response. If they request changes, make them and re-run the spec review loop. Only proceed once the user approves.
  
 diff --git a/skills/subagent-driven-development/SKILL.md b/skills/subagent-driven-development/SKILL.md
-index 5150b18..911e33e 100644
+index 5150b18..5f27216 100644
 --- a/skills/subagent-driven-development/SKILL.md
 +++ b/skills/subagent-driven-development/SKILL.md
 @@ -99,6 +99,20 @@ Use the least powerful model that can handle each role to conserve cost and incr
@@ -102,7 +133,7 @@ index 400c103..7a7109d 100644
    prompt: |
      You are implementing Task N: [task name]
 diff --git a/skills/writing-plans/SKILL.md b/skills/writing-plans/SKILL.md
-index ed67c5e..c751bca 100644
+index 60f9834..845ef3e 100644
 --- a/skills/writing-plans/SKILL.md
 +++ b/skills/writing-plans/SKILL.md
 @@ -7,7 +7,7 @@ description: Use when you have a spec or requirements for a multi-step task, bef

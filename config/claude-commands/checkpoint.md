@@ -1,83 +1,51 @@
 ---
-description: Save session context before context clear — updates active docs in-place, writes minimal resume pointer
+description: Save session context to Qdrant memory before context clear
 ---
 
-Persist session state so the next context can resume with zero research.
-
-**Principle:** Don't duplicate — update source docs in-place, then write a thin checkpoint that points to them. If no docs exist, create one structured doc that serves as both plan and checkpoint.
-
-**Output file:** `docs/checkpoints/YYYY-MM-DD-<topic-slug>.md`
+Persist session state to Qdrant so the next context can resume with zero research.
 
 **Steps:**
 
-1. **Check for active documents.** Look for plans/specs/docs touched this session:
-   - Plans: `docs/superpowers/plans/*.md`
-   - Specs: `docs/superpowers/specs/*.md`
-   - Any other working docs read or written this session
+1. **Summarize session state.** Collect:
+   - `goal`: one-line session/task goal
+   - Approach taken and key decisions
+   - Progress (with checkboxes: `- [x]` done, `- [ ]` remaining)
+   - Gotchas discovered (file:line refs)
+   - Next steps (exactly what to do first when resuming)
 
-2. **If active docs exist** — update them in-place:
-   - Mark completed checkboxes: `- [ ]` → `- [x]`
-   - Annotate in-progress steps inline: `- [ ] Step 3 — 🔄 auth logic done, tests remain`
-   - Then write a **thin pointer checkpoint:**
+2. **Get context.** Run these commands to populate metadata:
+   - `pwd` for `project_path`
+   - `git branch --show-current` for `branch`
+   - `date -u +%s` for `date` (epoch float)
+   - `date -u +%Y-%m-%dT%H:%M:%SZ` for `date_display` (RFC 3339)
+   - Identify affected `files` (relative paths from project root)
 
-```markdown
-# Checkpoint: <title>
+3. **Check for duplicates.** Search Qdrant with `qdrant-find`:
+   - Query: the goal summary text
+   - Filter: `{"must": [{"key": "project_path", "match": {"value": "<project_path>"}}, {"key": "branch", "match": {"value": "<branch>"}}, {"key": "type", "match": {"value": "checkpoint"}}, {"key": "date", "range": {"gte": <epoch minus 86400>}}]}`
+   - If similar entries found, present them and ask whether to store a new checkpoint or skip
 
-## Goal
-<1-2 sentences>
+4. **Store in Qdrant.** Use `qdrant-store` with:
+   - **Content**: Full structured summary (goal, approach, progress checkboxes, decisions, gotchas, next steps)
+   - **Metadata**:
+     ```json
+     {
+       "type": "checkpoint",
+       "date": <epoch_float>,
+       "date_display": "<RFC 3339>",
+       "summary": "<one-line description>",
+       "project_path": "<absolute path>",
+       "files": ["<relative paths>"],
+       "goal": "<one-line goal>",
+       "outcome": "<success|partial|blocked>",
+       "branch": "<git branch>",
+       "related_to": ["<point IDs from dedup search if related>"]
+     }
+     ```
 
-## Read These First
-- `<path to spec>` — design spec
-- `<path to plan>` — implementation plan (checkboxes updated)
-- <any other active docs>
+5. **Parse the point ID** from the `qdrant-store` response (format: `"stored (id=<point_id>) in collection '...'"`)
 
-## Session Notes
-<ONLY things not in the docs above:>
-- Gotchas discovered (file:line refs)
-- Verbal decisions not in spec/plan
-- Error messages or surprising behavior
-- Blockers or open questions
-
-## Next Steps
-<"Continue from Chunk X, Task Y, Step Z in the plan.">
-<Commands to verify current state before resuming.>
-```
-
-3. **If NO active docs exist** — create a **standalone checkpoint** with enough structure to resume without research:
-
-```markdown
-# Checkpoint: <title>
-
-## Goal
-<1-2 sentences: what the user wants>
-
-## Approach
-<Chosen approach and why. Rejected alternatives if relevant.>
-
-## Progress
-Tasks with checkbox tracking — same format as superpowers plans:
-
-### Chunk 1: <name>
-- [x] Completed step (key details inline)
-- [ ] In-progress step — 🔄 what's done, what remains
-- [ ] Not started step
-
-### Chunk 2: <name>
-- [ ] ...
-
-## Key Context
-- File paths and their roles (file:line refs)
-- Patterns or conventions identified
-- Gotchas, error messages, surprising behavior
-- Dependencies or constraints discovered
-
-## Next Steps
-<Exactly what to do first. Be specific.>
-<Commands to verify current state before resuming.>
-```
-
-4. **Tell the user:**
-   - Which docs were updated (if any)
-   - The checkpoint file path
-   - A resume one-liner:
-     `Read docs/checkpoints/YYYY-MM-DD-<slug>.md and resume the work.`
+6. **Tell the user:**
+   - What was stored (summary)
+   - The point ID
+   - Resume one-liner: `Recall checkpoint: "<summary>"`

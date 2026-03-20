@@ -63,6 +63,7 @@
       env = {
         QDRANT_URL = "http://localhost:6334";
         COLLECTION_NAME = "claude-memory";
+        QDRANT_ALLOW_ARBITRARY_FILTER = "true";
       };
     };
     serena.args = lib.mkAfter ["--project-from-cwd"];

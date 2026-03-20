@@ -427,11 +427,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1774030284,
-        "narHash": "sha256-VKkAtPaIQZ1BjKYVrXgWaAKJpHPbRNJnMwS5UxfPdLI=",
+        "lastModified": 1774032060,
+        "narHash": "sha256-0yU+GFdj20QkKxg82dU4J7p+/U1lltyGtVIlqfZItlc=",
         "owner": "vaporif",
         "repo": "mcp-server-qdrant",
-        "rev": "57ec81efa12ed1b9624895a48f867c37296550fe",
+        "rev": "7902087e85bce2c43cd1d6f851dd45595035dc47",
         "type": "github"
       },
       "original": {

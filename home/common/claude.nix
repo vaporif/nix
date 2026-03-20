@@ -18,7 +18,7 @@
   patchedSuperpowers = pkgs.applyPatches {
     name = "superpowers-patched";
     src = inputs.superpowers;
-    patches = [../../patches/superpowers-no-auto-commit.patch];
+    patches = [../../patches/superpowers-customizations.patch];
   };
 
   patchedWshobsonAgents = pkgs.applyPatches {

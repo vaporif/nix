@@ -58,8 +58,13 @@ in {
   programs = {
     home-manager.enable = true;
 
-    parry-guard = {
+    tmux = {
       enable = true;
+      prefix = "C-a";
+    };
+
+    parry-guard = {
+      enable = pkgs.stdenv.isDarwin;
       package = inputs.parry-guard.packages.${pkgs.stdenv.hostPlatform.system}.default;
       hfTokenFile = "/run/secrets/hf-token-scan-injection";
       ignoreDirs = ["${cfg.homeDir}/Repos/"];

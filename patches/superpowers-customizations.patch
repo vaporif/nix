@@ -1,22 +1,22 @@
-From c9ebface56185b91af32b9dfa0422bf4a2c93e56 Mon Sep 17 00:00:00 2001
+From b8cbd97dc7fbba342a0bd749686adab121c583df Mon Sep 17 00:00:00 2001
 From: Dmytro Onypko <vaporif@proton.me>
 Date: Fri, 20 Mar 2026 20:16:18 +0000
 Subject: [PATCH] customizations: no auto-commit, KISS, subagent routing,
- memory recall in brainstorming
+ memory recall, agent-teams + agent type assignments
 
 ---
- skills/brainstorming/SKILL.md                 | 28 +++++++++++--------
- skills/subagent-driven-development/SKILL.md   | 14 ++++++++++
- .../code-quality-reviewer-prompt.md           |  4 ++-
+ skills/brainstorming/SKILL.md                 | 80 +++++++++++++++----
+ skills/subagent-driven-development/SKILL.md   | 14 ++++
+ .../code-quality-reviewer-prompt.md           |  4 +-
  .../implementer-prompt.md                     |  2 +-
- skills/writing-plans/SKILL.md                 | 13 +++------
- 5 files changed, 38 insertions(+), 23 deletions(-)
+ skills/writing-plans/SKILL.md                 | 13 +--
+ 5 files changed, 86 insertions(+), 27 deletions(-)
 
 diff --git a/skills/brainstorming/SKILL.md b/skills/brainstorming/SKILL.md
-index edbc2b5..4f98e2a 100644
+index edbc2b5..e49610d 100644
 --- a/skills/brainstorming/SKILL.md
 +++ b/skills/brainstorming/SKILL.md
-@@ -22,20 +22,23 @@ Every project goes through this process. A todo list, a single-function utility,
+@@ -22,20 +22,53 @@ Every project goes through this process. A todo list, a single-function utility,
  You MUST create a task for each of these items and complete them in order:
  
  1. **Explore project context** — check files, docs, recent commits
@@ -36,7 +36,37 @@ index edbc2b5..4f98e2a 100644
 +7. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
 +8. **Spec review loop** — dispatch spec-document-reviewer subagent with precisely crafted review context (never your session history); fix issues and re-dispatch until approved (max 3 iterations, then surface to human)
 +9. **User reviews written spec** — ask user to review the spec file before proceeding
-+10. **Transition to implementation** — invoke writing-plans skill to create implementation plan
++10. **Choose execution strategy** — ask the user which implementation approach to use:
++    - **Sequential** (default): invoke writing-plans → executing-plans (single agent, step by step)
++    - **Parallel subagents**: invoke writing-plans → subagent-driven-development (independent tasks in parallel, no inter-agent communication)
++    - **Agent teams**: invoke writing-plans, then spawn a coordinated team via `/team-feature` (persistent agents with tmux panes, shared task list, inter-agent messaging — best for large features with cross-cutting concerns)
++11. **Agent type assignments** (skip for sequential) — present an agent assignment table for each planned task. Analyze the design to suggest the best agent type per task based on language/domain. Present as a multi-select table for the user to review and override:
++
++    ```
++    Task                          | Suggested Agent                          | Override?
++    ------------------------------|------------------------------------------|----------
++    Implement auth middleware      | systems-programming:rust-pro             | [ ]
++    Add API endpoints              | systems-programming:golang-pro           | [ ]
++    Write Solidity contracts       | blockchain-web3:blockchain-developer     | [ ]
++    Update Nix config              | general-purpose                          | [ ]
++    ...                            | ...                                      | [ ]
++    ```
++
++    **Agent type selection guide:**
++
++    | Domain / Language      | Agent Type                               |
++    |------------------------|------------------------------------------|
++    | Rust                   | systems-programming:rust-pro             |
++    | Go                     | systems-programming:golang-pro           |
++    | C                      | systems-programming:c-pro                |
++    | C++                    | systems-programming:cpp-pro              |
++    | Solidity / Web3 / DeFi | blockchain-web3:blockchain-developer     |
++    | Security audit         | security-scanning:security-auditor       |
++    | Code review            | git-pr-workflows:code-reviewer           |
++    | General / other        | general-purpose (default)                |
++
++    Ask the user: "Here are my suggested agent assignments. Change any you'd like, or approve to continue." The user can override any row. Save the final assignments into the spec under an `## Agent Assignments` section so writing-plans and execution skills can reference them.
++12. **Transition to implementation** — invoke writing-plans skill to create the plan (include agent assignments), then execute with the chosen strategy
  
  ## Process Flow
  
@@ -48,9 +78,17 @@ index edbc2b5..4f98e2a 100644
      "Visual questions ahead?" [shape=diamond];
      "Offer Visual Companion\n(own message, no other content)" [shape=box];
      "Ask clarifying questions" [shape=box];
-@@ -48,7 +51,10 @@ digraph brainstorming {
+@@ -46,9 +79,17 @@ digraph brainstorming {
+     "Spec review loop" [shape=box];
+     "Spec review passed?" [shape=diamond];
      "User reviews spec?" [shape=diamond];
-     "Invoke writing-plans skill" [shape=doublecircle];
+-    "Invoke writing-plans skill" [shape=doublecircle];
++    "Choose execution strategy" [shape=diamond];
++    "Agent type assignments\n(multi-select table)" [shape=box];
++    "Sequential\n(executing-plans)" [shape=doublecircle];
++    "Parallel subagents\n(subagent-driven-dev)" [shape=doublecircle];
++    "Agent teams\n(/team-feature)" [shape=doublecircle];
++    "Invoke writing-plans skill" [shape=box];
  
 -    "Explore project context" -> "Visual questions ahead?";
 +    "Explore project context" -> "Check memory?";
@@ -60,7 +98,27 @@ index edbc2b5..4f98e2a 100644
      "Visual questions ahead?" -> "Offer Visual Companion\n(own message, no other content)" [label="yes"];
      "Visual questions ahead?" -> "Ask clarifying questions" [label="no"];
      "Offer Visual Companion\n(own message, no other content)" -> "Ask clarifying questions";
-@@ -114,8 +120,6 @@ digraph brainstorming {
+@@ -62,11 +103,17 @@ digraph brainstorming {
+     "Spec review passed?" -> "Spec review loop" [label="issues found,\nfix and re-dispatch"];
+     "Spec review passed?" -> "User reviews spec?" [label="approved"];
+     "User reviews spec?" -> "Write design doc" [label="changes requested"];
+-    "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
++    "User reviews spec?" -> "Choose execution strategy" [label="approved"];
++    "Choose execution strategy" -> "Invoke writing-plans skill" [label="sequential"];
++    "Choose execution strategy" -> "Agent type assignments\n(multi-select table)" [label="parallel or teams"];
++    "Agent type assignments\n(multi-select table)" -> "Invoke writing-plans skill";
++    "Invoke writing-plans skill" -> "Sequential\n(executing-plans)" [label="sequential"];
++    "Invoke writing-plans skill" -> "Parallel subagents\n(subagent-driven-dev)" [label="parallel"];
++    "Invoke writing-plans skill" -> "Agent teams\n(/team-feature)" [label="teams"];
+ }
+ ```
+ 
+-**The terminal state is invoking writing-plans.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.
++**The terminal state is writing-plans followed by execution.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. Always invoke writing-plans first, then execute with the user's chosen strategy.
+ 
+ ## The Process
+ 
+@@ -114,8 +161,6 @@ digraph brainstorming {
  - Write the validated design (spec) to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
    - (User preferences for spec location override this default)
  - Use elements-of-style:writing-clearly-and-concisely skill if available
@@ -69,7 +127,7 @@ index edbc2b5..4f98e2a 100644
  **Spec Review Loop:**
  After writing the spec document:
  
-@@ -126,7 +130,7 @@ After writing the spec document:
+@@ -126,14 +171,17 @@ After writing the spec document:
  **User Review Gate:**
  After the spec review loop passes, ask the user to review the written spec before proceeding:
  
@@ -77,6 +135,17 @@ index edbc2b5..4f98e2a 100644
 +> "Spec written and saved to `<path>`. Please review it and let me know if you want to make any changes before we start writing out the implementation plan."
  
  Wait for the user's response. If they request changes, make them and re-run the spec review loop. Only proceed once the user approves.
+ 
+ **Implementation:**
+ 
+ - Invoke the writing-plans skill to create a detailed implementation plan
+-- Do NOT invoke any other skill. writing-plans is the next step.
++- Then execute with the user's chosen strategy:
++  - **Sequential**: invoke executing-plans (single agent works through tasks one by one)
++  - **Parallel subagents**: invoke subagent-driven-development (spawns independent Agent subprocesses for each task — no communication between them)
++  - **Agent teams**: use `/team-feature` to spawn a coordinated team (persistent agents in tmux panes with shared task list and inter-agent messaging — best for large features where agents need to coordinate)
+ 
+ ## Key Principles
  
 diff --git a/skills/subagent-driven-development/SKILL.md b/skills/subagent-driven-development/SKILL.md
 index 5150b18..5f27216 100644

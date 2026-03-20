@@ -59,12 +59,17 @@
       command = "${mcp-nixos-package}/bin/mcp-nixos";
     };
     qdrant = {
-      command = "${lib.getExe mcp-qdrant-package}";
-      env = {
-        QDRANT_URL = "http://localhost:6334";
-        COLLECTION_NAME = "claude-memory";
-        QDRANT_ALLOW_ARBITRARY_FILTER = "true";
-      };
+      command = "${pkgs.writeShellScript "qdrant-mcp-wrapper" ''
+        export QDRANT_API_KEY="$(cat /run/secrets/qdrant-api-key)"
+        export QDRANT_URL="${
+          if pkgs.stdenv.isDarwin
+          then "http://localhost:6334"
+          else "http://${cfg.utmGatewayIp}:6334"
+        }"
+        export COLLECTION_NAME="claude-memory"
+        export QDRANT_ALLOW_ARBITRARY_FILTER="true"
+        exec ${lib.getExe mcp-qdrant-package}
+      ''}";
     };
     serena.args = lib.mkAfter ["--project-from-cwd"];
   };

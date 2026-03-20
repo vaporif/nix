@@ -15,7 +15,7 @@ in {
     gnupg.sshKeyPaths = [];
     secrets =
       lib.genAttrs
-      ["openrouter-key" "tavily-key" "youtube-key" "hf-token-scan-injection" "ntfy-topic" "nix-access-tokens"]
+      ["openrouter-key" "tavily-key" "youtube-key" "hf-token-scan-injection" "ntfy-topic" "nix-access-tokens" "qdrant-api-key"]
       (_: {
         owner = cfg.user;
         group =

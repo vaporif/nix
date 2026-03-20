@@ -1,4 +1,4 @@
-{...}: {
+{lib, ...}: {
   imports = [
     ../../modules/sops.nix
   ];
@@ -42,6 +42,27 @@
     # Stricter umask - new files only readable by owner
     activationScripts.umask.text = ''
       launchctl config user umask 077
+    '';
+
+    # Restrict qdrant ports to localhost + UTM subnet only
+    activationScripts.qdrantFirewall.text = let
+      anchorRules = ''
+        pass in quick proto tcp from 127.0.0.0/8 to any port { 6333, 6334 }
+        pass in quick proto tcp from 192.168.64.0/24 to any port { 6333, 6334 }
+        block in quick proto tcp from any to any port { 6333, 6334 }
+      '';
+    in ''
+      mkdir -p /etc/pf.anchors
+      cat > /etc/pf.anchors/qdrant <<'RULES'
+      ${anchorRules}
+      RULES
+
+      if ! grep -q 'anchor "qdrant"' /etc/pf.conf 2>/dev/null; then
+        printf '%s\n' 'anchor "qdrant"' 'load anchor "qdrant" from "/etc/pf.anchors/qdrant"' >> /etc/pf.conf
+      fi
+
+      pfctl -f /etc/pf.conf 2>/dev/null || true
+      pfctl -e 2>/dev/null || true
     '';
 
     # Disable Handoff (activity broadcasting to nearby Apple devices)

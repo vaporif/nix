@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   inputs,
   ...
@@ -170,6 +171,17 @@
     };
   };
 
+  isDarwin = pkgs.stdenv.isDarwin;
+
+  parryHook = {
+    hooks = [
+      {
+        command = "parry-guard hook";
+        type = "command";
+      }
+    ];
+  };
+
   sec = config.programs.claude-code.security.settingsFragment;
 in {
   imports = [../../modules/claude-security];
@@ -220,6 +232,7 @@ in {
       ".claude/settings.json".text = builtins.toJSON {
         "$schema" = "https://json.schemastore.org/claude-code-settings.json";
         alwaysThinkingEnabled = true;
+        teammateMode = "tmux";
         inherit enabledPlugins;
         statusLine = {
           type = "command";
@@ -231,48 +244,27 @@ in {
         hooks = {
           PreToolUse =
             sec.hooks.PreToolUse
-            ++ [
+            ++ lib.optionals isDarwin [
+              (parryHook // {matcher = "Bash|Read|Write|Edit|Glob|Grep|WebFetch|WebSearch|NotebookEdit|Task|mcp__.*";})
+            ];
+          PostToolUse =
+            [
               {
                 hooks = [
                   {
-                    command = "parry-guard hook";
+                    command = "claude-formatter";
                     type = "command";
                   }
                 ];
-                matcher = "Bash|Read|Write|Edit|Glob|Grep|WebFetch|WebSearch|NotebookEdit|Task|mcp__.*";
+                matcher = "Edit|Write";
               }
+            ]
+            ++ lib.optionals isDarwin [
+              (parryHook // {matcher = "Read|WebFetch|Bash|mcp__github__get_file_contents|mcp__filesystem__read_file|mcp__filesystem__read_text_file";})
             ];
-          PostToolUse = [
-            {
-              hooks = [
-                {
-                  command = "claude-formatter";
-                  type = "command";
-                }
-              ];
-              matcher = "Edit|Write";
-            }
-            {
-              hooks = [
-                {
-                  command = "parry-guard hook";
-                  type = "command";
-                }
-              ];
-              matcher = "Read|WebFetch|Bash|mcp__github__get_file_contents|mcp__filesystem__read_file|mcp__filesystem__read_text_file";
-            }
-          ];
           inherit (sec.hooks) Notification;
-          UserPromptSubmit = [
-            {
-              hooks = [
-                {
-                  command = "parry-guard hook";
-                  type = "command";
-                }
-              ];
-              matcher = "";
-            }
+          UserPromptSubmit = lib.optionals isDarwin [
+            (parryHook // {matcher = "";})
           ];
         };
         permissions = {

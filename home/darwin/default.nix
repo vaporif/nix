@@ -42,9 +42,10 @@ in {
     config = {
       Label = "org.qdrant.server";
       ProgramArguments = [
-        "${pkgs.qdrant}/bin/qdrant"
-        "--config-path"
-        "${homeDir}/.qdrant/config.yaml"
+        "${pkgs.writeShellScript "qdrant-wrapper" ''
+          export QDRANT__SERVICE__API_KEY="$(cat /run/secrets/qdrant-api-key)"
+          exec ${pkgs.qdrant}/bin/qdrant --config-path ${homeDir}/.qdrant/config.yaml
+        ''}"
       ];
       RunAtLoad = true;
       KeepAlive = true;

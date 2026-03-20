@@ -47,7 +47,6 @@
           tidal
           cabal-install
         ]))
-      tmux
 
       tdf
 

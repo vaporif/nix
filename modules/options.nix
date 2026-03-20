@@ -39,6 +39,11 @@
       default = null;
       description = "IP of UTM VM for SSH config (macOS only)";
     };
+    utmGatewayIp = lib.mkOption {
+      type = lib.types.str;
+      default = "192.168.64.1";
+      description = "IP of macOS host as seen from UTM VM (NixOS only)";
+    };
     git = {
       name = lib.mkOption {
         type = lib.types.str;

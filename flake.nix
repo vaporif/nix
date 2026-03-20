@@ -30,7 +30,11 @@
     };
 
     mcp-servers-nix = {
-      url = "github:vaporif/mcp-servers-nix/qdrant";
+      url = "github:natsukium/mcp-servers-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    mcp-server-qdrant = {
+      url = "github:vaporif/mcp-server-qdrant";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     mcp-nixos = {

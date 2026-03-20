@@ -20,6 +20,8 @@
 
   mcp-nixos-package = inputs.mcp-nixos.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
+  mcp-qdrant-package = inputs.mcp-server-qdrant.packages.${pkgs.stdenv.hostPlatform.system}.default;
+
   youtube-mcp-package = inputs.mcp-youtube.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   # Shared programs used by both Desktop and Code
@@ -36,14 +38,6 @@
           rust-analyzer
           gopls
         ]);
-    };
-    qdrant = {
-      enable = true;
-      env = {
-        QDRANT_URL = "http://localhost:6333";
-        COLLECTION_NAME = "claude-memory";
-        FASTEMBED_CACHE_PATH = "${homeDir}/.cache/fastembed";
-      };
     };
   };
 
@@ -63,6 +57,13 @@
     };
     nixos = {
       command = "${mcp-nixos-package}/bin/mcp-nixos";
+    };
+    qdrant = {
+      command = "${lib.getExe mcp-qdrant-package}";
+      env = {
+        QDRANT_URL = "http://localhost:6333";
+        COLLECTION_NAME = "claude-memory";
+      };
     };
     serena.args = lib.mkAfter ["--project-from-cwd"];
   };
@@ -85,12 +86,6 @@
     time = {
       enable = true;
       args = ["--local-timezone" cfg.timezone];
-    };
-    deepl = {
-      enable = true;
-      passwordCommand = {
-        DEEPL_API_KEY = ["cat" "/run/secrets/deepl-key"];
-      };
     };
   };
 

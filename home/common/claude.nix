@@ -270,10 +270,6 @@ in {
                   command = "parry-guard hook";
                   type = "command";
                 }
-                {
-                  command = "${homeDir}/.claude/hooks/auto-recall.sh";
-                  type = "command";
-                }
               ];
               matcher = "";
             }
@@ -288,10 +284,6 @@ in {
           allow = [];
           deny = [];
         };
-      };
-      ".claude/hooks/auto-recall.sh" = {
-        source = ../../config/claude/hooks/auto-recall.sh;
-        executable = true;
       };
       ".claude/hooks/statusline.sh" = {
         source = ../../scripts/statusline.sh;

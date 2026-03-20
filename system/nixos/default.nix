@@ -4,6 +4,7 @@
   ...
 }: let
   cfg = config.custom;
+  hmCfg = config.home-manager.users.${cfg.user}.custom;
 in {
   imports = [
     ../../modules/options.nix
@@ -35,6 +36,8 @@ in {
   };
 
   nixpkgs.hostPlatform = cfg.system;
+
+  environment.etc."claude-code/managed-mcp.json".source = hmCfg.codeMcpServersConfig;
 
   system.stateVersion = "25.11";
 }

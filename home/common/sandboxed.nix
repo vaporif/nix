@@ -80,6 +80,9 @@
       (allow file-read* (subpath "/Library/Preferences"))
       (allow file-read* file-write* (regex #"^$HOME/\\.claude\\.json"))
       (allow file-read* file-write* (regex #"^$HOME/\\.CFUserTextEncoding"))
+
+      ;; Plugin hooks need process-exec (shebang → /usr/bin/env)
+      (allow process-exec (subpath "$HOME/.claude/plugins/cache"))
       SBPL
     '';
   };

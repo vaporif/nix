@@ -112,6 +112,7 @@
           rwx = ["." "$HOME/.claude"];
           rw = [
             "$HOME/.cache/nix"
+            "$HOME/.cache/huggingface"
           ];
           ro = [
             "$HOME/.config/claude-rules"
@@ -138,7 +139,7 @@
       CLAUDE_SANDBOX=1
       export CLAUDE_SANDBOX
 
-      mkdir -p "$HOME/.claude" "$HOME/.cache/nix"
+      mkdir -p "$HOME/.claude" "$HOME/.cache/nix" "$HOME/.cache/huggingface"
 
       args=(
         --unshare-all
@@ -174,6 +175,7 @@
       # Read-write home paths
       bind_rw "$HOME/.claude"
       bind_rw "$HOME/.cache/nix"
+      bind_rw "$HOME/.cache/huggingface"
       bind_ro "$HOME/.local/share/gh"
 
       # Claude config in $HOME root

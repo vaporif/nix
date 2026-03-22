@@ -25,7 +25,7 @@ with lib; let
 
   scripts = import ./scripts/wrap.nix {
     inherit pkgs;
-    inherit (cfg.hooks.bashValidation) blockedCommands blockedPatterns;
+    inherit (cfg.hooks.bashValidation) blockedCommands blockedSubcommands deniedSubcommands blockedPatterns;
     notificationSound = cfg.hooks.notification.sound;
     ntfyServerUrl = cfg.hooks.notification.ntfy.serverUrl;
     ntfyTopicFile = cfg.hooks.notification.ntfy.topicFile;
@@ -66,6 +66,7 @@ with lib; let
     (concatMap mkDirDeny cfg.permissions.deniedDirectories)
     ++ (concatMap mkFileDeny cfg.permissions.deniedFiles)
     ++ (concatMap mkAbsDeny cfg.permissions.deniedAbsolutePaths)
+    ++ (map (cmd: "Bash(${cmd}:*)") cfg.permissions.deniedBashCommands)
     ++ cfg.permissions.deniedGitOperations
     ++ cfg.permissions.extraDenied;
 in {
@@ -81,8 +82,18 @@ in {
         };
         blockedCommands = mkOption {
           type = types.listOf types.str;
-          default = ["rm" "rmdir" "sudo" "doas" "eval" "dd" "mkfs" "shred"];
+          default = ["sudo" "doas" "eval" "dd" "mkfs" "shred"];
           description = "Commands that trigger confirmation before execution";
+        };
+        blockedSubcommands = mkOption {
+          type = types.listOf types.str;
+          default = [];
+          description = "Multi-word commands (command + subcommand) that trigger confirmation";
+        };
+        deniedSubcommands = mkOption {
+          type = types.listOf types.str;
+          default = ["git push" "git push --force" "git push -f"];
+          description = "Multi-word commands that are hard-blocked (denied even in unrestricted mode)";
         };
         blockedPatterns = mkOption {
           type = types.listOf types.str;
@@ -183,6 +194,12 @@ in {
         type = types.listOf types.str;
         default = ["/run/secrets/**"];
         description = "Absolute paths denied for Read/Write/Edit. Used as-is (no tilde expansion).";
+      };
+
+      deniedBashCommands = mkOption {
+        type = types.listOf types.str;
+        default = ["git push" "git push *"];
+        description = "Bash commands to deny. Each generates a Bash(<cmd>:*) deny rule.";
       };
 
       deniedGitOperations = mkOption {

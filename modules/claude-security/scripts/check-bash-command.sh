@@ -17,6 +17,11 @@ block() {
   exit 0
 }
 
+deny() {
+  jq -n --arg reason "$1" '{ hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: $reason } }'
+  exit 0
+}
+
 # Extract all command names from the bash AST using shfmt
 COMMANDS=$(shfmt --to-json <<< "$COMMAND" 2>/dev/null | jq -r '
   [
@@ -39,6 +44,24 @@ for cmd in $COMMANDS; do
     fi
   done
 done
+
+# Check for denied subcommands (hard block, even in unrestricted mode)
+DENIED_SUBCMDS="@deniedSubcommands@"
+while IFS= read -r subcmd; do
+  [[ -z "$subcmd" ]] && continue
+  if echo "$COMMAND" | grep -qE "(^|[;&|]\s*)${subcmd}(\s|$|;|&|\|)"; then
+    deny "${subcmd} is not allowed."
+  fi
+done <<< "$DENIED_SUBCMDS"
+
+# Check for blocked subcommands (ask for confirmation)
+BLOCKED_SUBCMDS="@blockedSubcommands@"
+while IFS= read -r subcmd; do
+  [[ -z "$subcmd" ]] && continue
+  if echo "$COMMAND" | grep -qE "(^|[;&|]\s*)${subcmd}(\s|$|;|&|\|)"; then
+    block "${subcmd} detected. Confirm with user before proceeding."
+  fi
+done <<< "$BLOCKED_SUBCMDS"
 
 # Catch piping remote content to a shell/interpreter
 PATTERNS="@blockedPatterns@"

@@ -45,7 +45,7 @@
   commonServers = {
     github = {
       command = "${pkgs.writeShellScript "github-mcp-wrapper" ''
-        export GITHUB_PERSONAL_ACCESS_TOKEN="$(${lib.getExe pkgs.gh} auth token)"
+        export GITHUB_PERSONAL_ACCESS_TOKEN="''${GITHUB_PERSONAL_ACCESS_TOKEN:-$(${lib.getExe pkgs.gh} auth token)}"
         exec ${lib.getExe pkgs.github-mcp-server} stdio
       ''}";
     };

@@ -49,13 +49,24 @@
       "ENABLE_LSP_TOOL"
       "DFT_GRAPH_LIMIT"
       "DFT_BYTE_LIMIT"
+      "GITHUB_PERSONAL_ACCESS_TOKEN"
     ]
     ++ secretEnvNames;
+
+  # GitHub token: read from gh CLI before sandbox (keychain ACL blocks sandboxed access)
+  ghTokenPreload = ''
+    GITHUB_PERSONAL_ACCESS_TOKEN=""
+    if command -v gh >/dev/null 2>&1; then
+      GITHUB_PERSONAL_ACCESS_TOKEN="$(gh auth token 2>/dev/null)" || true
+    fi
+    export GITHUB_PERSONAL_ACCESS_TOKEN
+  '';
 
   # macOS: sandnix with sandbox-exec (native macOS sandbox)
   darwinExtras = {
     preHook = ''
       ${secretPreload}
+      ${ghTokenPreload}
       CLAUDE_SANDBOX=1
       export CLAUDE_SANDBOX
 
@@ -123,6 +134,7 @@
 
       # Pre-load secrets before sandbox (same pattern as darwin preHook)
       ${secretPreload}
+      ${ghTokenPreload}
       CLAUDE_SANDBOX=1
       export CLAUDE_SANDBOX
 

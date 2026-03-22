@@ -1,6 +1,8 @@
 {
   pkgs,
   blockedCommands,
+  blockedSubcommands,
+  deniedSubcommands,
   blockedPatterns,
   notificationSound,
   ntfyServerUrl,
@@ -17,12 +19,16 @@
     sink = builtins.elemAt parts 2;
   in "${source}.*\\|.*${sink}";
 
+  # blockedSubcommands as newline-separated "command subcommand [flags]" entries
+  blockedSubcommandsStr = builtins.concatStringsSep "\n" blockedSubcommands;
+  deniedSubcommandsStr = builtins.concatStringsSep "\n" deniedSubcommands;
+
   blockedPatternsStr = builtins.concatStringsSep "\n" (map patternToRegex blockedPatterns);
 
   checkBashCommandSrc =
     builtins.replaceStrings
-    ["@blockedCommands@" "@blockedPatterns@"]
-    [blockedCommandsStr blockedPatternsStr]
+    ["@blockedCommands@" "@blockedSubcommands@" "@deniedSubcommands@" "@blockedPatterns@"]
+    [blockedCommandsStr blockedSubcommandsStr deniedSubcommandsStr blockedPatternsStr]
     (builtins.readFile ./check-bash-command.sh);
 
   notifySrc =

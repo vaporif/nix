@@ -163,7 +163,9 @@
       bind_ro "$HOME/.config/git"
       bind_ro "$HOME/.config/mcphub"
       bind_ro "$HOME/.config/direnv"
-      bind_ro "$HOME/.ssh"
+      # SSH agent socket handles auth — no need to expose key files
+      bind_ro "$HOME/.ssh/config"
+      bind_ro "$HOME/.ssh/known_hosts"
       bind_ro "$HOME/.envrc"
 
       # SSH agent

@@ -28,7 +28,8 @@
       if [ -r /run/secrets/hf-token-scan-injection ]; then
         HF_TOKEN="$(cat /run/secrets/hf-token-scan-injection)"
       fi
-      export TAVILY_API_KEY QDRANT_API_KEY HF_TOKEN
+      CLAUDE_SANDBOX=1
+      export TAVILY_API_KEY QDRANT_API_KEY HF_TOKEN CLAUDE_SANDBOX
 
       cat >> "$PROFILE_FILE" <<SBPL
       ;; Scoped mach-lookup: only services needed beyond system.sb
@@ -66,9 +67,8 @@
           network = true;
         };
         cli = {
-          rwx = ["."];
+          rwx = ["." "$HOME/.claude"];
           rw = [
-            "$HOME/.claude"
             "$HOME/.config/claude-rules"
             "$HOME/.cache/nix"
           ];
@@ -78,6 +78,7 @@
             "TAVILY_API_KEY"
             "QDRANT_API_KEY"
             "HF_TOKEN"
+            "CLAUDE_SANDBOX"
             "EDITOR"
             "VISUAL"
             "ENABLE_LSP_TOOL"

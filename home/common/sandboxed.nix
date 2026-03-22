@@ -1,8 +1,4 @@
-{
-  pkgs,
-  lib,
-  ...
-}: let
+{lib, ...}: let
   # Shared secret names (read outside sandbox, injected as env vars)
   secretEnvVars = [
     {

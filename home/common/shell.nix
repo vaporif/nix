@@ -170,6 +170,11 @@ in {
         ulimit -Sn 4096
         ulimit -Sl unlimited
 
+        # Only set sensitive vars outside Claude sandbox
+        if [[ -z "''${CLAUDE_SANDBOX:-}" ]]; then
+          export SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/key.txt"
+        fi
+
         bindkey '^F' fzf-file-widget
         bindkey -r '^T'
       '';

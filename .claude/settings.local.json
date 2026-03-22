@@ -4,7 +4,9 @@
       "Bash(nix-store:*)",
       "mcp__qdrant__qdrant-store",
       "Bash(vulnix:*)",
-      "Bash(nix flake:*)"
+      "Bash(nix flake:*)",
+      "mcp__nixos__nix",
+      "Bash(/nix/store/hqvlcvpq2axlj530disvbazbzfzv2pf3-claude/bin/claude --version 2>&1)"
     ],
     "deny": [],
     "ask": []

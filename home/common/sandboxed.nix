@@ -43,6 +43,7 @@
     [
       "HOME"
       "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS"
+      "CLAUDE_SANDBOX"
       "EDITOR"
       "VISUAL"
       "ENABLE_LSP_TOOL"
@@ -55,6 +56,8 @@
   darwinExtras = {
     preHook = ''
       ${secretPreload}
+      CLAUDE_SANDBOX=1
+      export CLAUDE_SANDBOX
 
       cat >> "$PROFILE_FILE" <<SBPL
       ;; Scoped mach-lookup: only services needed beyond system.sb
@@ -92,9 +95,8 @@
           network = true;
         };
         cli = {
-          rwx = ["."];
+          rwx = ["." "$HOME/.claude"];
           rw = [
-            "$HOME/.claude"
             "$HOME/.config/claude-rules"
             "$HOME/.cache/nix"
           ];
@@ -116,6 +118,8 @@
 
       # Pre-load secrets before sandbox (same pattern as darwin preHook)
       ${secretPreload}
+      CLAUDE_SANDBOX=1
+      export CLAUDE_SANDBOX
 
       mkdir -p "$HOME/.claude" "$HOME/.cache/nix" "$HOME/.local/share/gh"
 

@@ -42,7 +42,6 @@ in {
       "$HOME/.cargo/bin"
     ];
     sessionVariables = {
-      SOPS_AGE_KEY_FILE = "$HOME/.config/sops/age/key.txt";
       EDITOR = "nvim";
       VISUAL = "nvim";
       ENABLE_LSP_TOOL = "1";

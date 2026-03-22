@@ -45,6 +45,9 @@
       url = "github:vaporif/mcp-server-youtube";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    sandnix = {
+      url = "github:srid/sandnix";
+    };
     claude-code-plugins = {
       url = "github:anthropics/claude-plugins-official";
       flake = false;

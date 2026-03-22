@@ -1,4 +1,11 @@
-{pkgs, ...}: {
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}: let
+  claudeSandboxed = lib.getExe config.custom.sandboxedPackages.claude;
+in {
   programs = {
     ripgrep.enable = true;
     fd.enable = true;
@@ -144,10 +151,13 @@
       shellAliases = {
         t = "y";
         g = "lazygit";
-        a = "claude";
-        ap = "claude --print";
-        ai = "claude --dangerously-skip-permissions";
-        ar = "claude --resume";
+        a = claudeSandboxed;
+        ap = "${claudeSandboxed} --print";
+        ai = "${claudeSandboxed} --dangerously-skip-permissions";
+        ar = "${claudeSandboxed} --resume";
+        au = "claude";
+        aup = "claude --print";
+        aur = "claude --resume";
         ls = "eza -a";
         cat = "bat";
         e = "nvim";

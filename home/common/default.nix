@@ -2,6 +2,7 @@
   config,
   inputs,
   pkgs,
+  lib,
   ...
 }: let
   cfg = config.custom;
@@ -18,6 +19,7 @@ in {
     ./shell.nix
     ./neovim.nix
     ./librewolf.nix
+    ./sandboxed.nix
   ];
 
   custom.lspPackages = with pkgs; [

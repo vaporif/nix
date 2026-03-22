@@ -76,6 +76,11 @@
       default = [];
       description = "Shared LSP packages for neovim and MCP servers";
     };
+    sandboxedPackages = lib.mkOption {
+      type = lib.types.attrsOf lib.types.package;
+      default = {};
+      description = "Sandboxed package wrappers (populated on darwin only)";
+    };
   };
 
   config.custom.homeDir =

@@ -5,6 +5,6 @@
     system = "aarch64-darwin";
     configPath = "/Users/${config.custom.user}/.config/nix-darwin";
     sshAgent = "secretive";
-    utmHostIp = "192.168.64.6";
+    utmHostIp = "192.168.64.11";
   };
 }

@@ -5,9 +5,11 @@
   ...
 }: let
   cfg = config.custom;
+  secretsPath = ../secrets/secrets.yaml;
+  secretsExist = builtins.pathExists secretsPath;
 in {
-  sops = {
-    defaultSopsFile = ../secrets/secrets.yaml;
+  sops = lib.mkIf secretsExist {
+    defaultSopsFile = secretsPath;
     age = {
       keyFile = "${cfg.homeDir}/.config/sops/age/key.txt";
       sshKeyPaths = [];

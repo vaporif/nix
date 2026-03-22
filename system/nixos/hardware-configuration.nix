@@ -1,6 +1,6 @@
 # Machine-specific hardware config (UUIDs, kernel modules, filesystems).
 # Forkers: regenerate with `nixos-generate-config` and replace this file.
-{_}: {
+{...}: {
   boot = {
     initrd = {
       availableKernelModules = ["xhci_pci" "virtio_pci" "virtio_blk" "virtio_net" "virtio_gpu" "usbhid"];

@@ -11,6 +11,8 @@
     then "/opt/homebrew/bin"
     else "/usr/local/bin";
 in {
+  imports = [./sandboxed.nix];
+
   home = {
     sessionPath = [homebrewPath];
     sessionVariables = lib.optionalAttrs (cfg.sshAgent == "secretive") {

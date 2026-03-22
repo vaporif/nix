@@ -1,3 +1,5 @@
-_: {
+{...}: {
+  imports = [./sandboxed.nix];
+
   # Qdrant runs on macOS host, NixOS connects over UTM network
 }

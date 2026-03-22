@@ -35,6 +35,7 @@ flake.nix                    # Entry point (inputs + module composition)
 ├── scripts/                 # Helper scripts (setup, git-meta, git-bare-clone, keymaps)
 ├── tests/                   # Integration tests (claude-security.nix)
 ├── overlays/                # Custom package overlays
+├── patches/                 # Custom patches for packages
 └── pkgs/                    # Custom package definitions
 ```
 

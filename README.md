@@ -112,9 +112,14 @@ Run `just` to see available commands:
 | Command | Description |
 |---------|-------------|
 | `just switch` | Apply configuration (auto-detects platform) |
-| `just check` | Run all checks (lint + policy) |
-| `just check-policy` | Run policy checks (freshness, pinning) |
-| `just fmt` | Format all files |
+| `just check` | Run all checks (lint + pinning) |
+| `just check-pinned` | Verify all flake inputs are pinned |
+| `just check-typos` | Check for typos |
+| `just check-vulns` | Scan for vulnerabilities (with whitelist) |
+| `just fmt` | Format all files (lua, nix, toml) |
+| `just gc 30d` | Delete old generations and garbage collect |
+| `just keymaps` | Regenerate docs/keymaps.md |
+| `just lazy-update` | Update neovim plugins |
 | `just cache` | Build and push to Cachix |
 | `just setup-hooks` | Enable git hooks |
 
@@ -130,7 +135,7 @@ Skip hooks when needed:
 git commit --no-verify
 git push --no-verify
 ```
-Run locally: `just check-vulns` or `just check-policy`
+Run locally: `just check-vulns` or `just check-pinned`
 
 ### Cachix
 

@@ -8,7 +8,7 @@
   home-manager,
   ...
 }:
-pkgs.nixosTest {
+pkgs.testers.nixosTest {
   name = "claude-security";
 
   nodes.machine = {...}: {

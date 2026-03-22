@@ -26,9 +26,11 @@ jobs:
           - runner: macos-latest
             build-cmd: nix build .#darwinConfigurations.burnedapple.system
             lint: true
+            check: false
           - runner: ubuntu-24.04-arm
             build-cmd: nix build '.#nixosConfigurations.nixos.config.system.build.toplevel'
             lint: false
+            check: true
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v6
@@ -44,7 +46,7 @@ jobs:
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
       - name: Check nix flake
-        if: matrix.lint
+        if: matrix.lint || matrix.check
         run: nix flake check
 
       - name: Check nix formatting

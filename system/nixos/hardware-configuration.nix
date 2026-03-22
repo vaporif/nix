@@ -10,10 +10,14 @@
 }: {
   imports = [];
 
-  boot.initrd.availableKernelModules = ["virtio_pci" "xhci_pci" "usbhid" "usb_storage"];
-  boot.initrd.kernelModules = [];
-  boot.kernelModules = [];
-  boot.extraModulePackages = [];
+  boot = {
+    initrd = {
+      availableKernelModules = ["virtio_pci" "xhci_pci" "usbhid" "usb_storage"];
+      kernelModules = [];
+    };
+    kernelModules = [];
+    extraModulePackages = [];
+  };
 
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/108debbb-76dd-48da-b96c-c016d7e54fb3";

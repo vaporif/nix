@@ -4,7 +4,7 @@
   inputs,
   ...
 }: let
-  isDarwin = pkgs.stdenv.isDarwin;
+  inherit (pkgs.stdenv) isDarwin;
   sandnixLib = import inputs.sandnix.lib {inherit pkgs;};
 
   mkSandboxed = name: modules:

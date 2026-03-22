@@ -15,8 +15,35 @@
   # what sandnix provides by default.
   darwinExtras = {
     preHook = ''
+      # Pre-load secrets before sandbox starts (sandbox denies /run/secrets)
+      TAVILY_API_KEY=""
+      QDRANT_API_KEY=""
+      HF_TOKEN=""
+      if [ -r /run/secrets/tavily-key ]; then
+        TAVILY_API_KEY="$(cat /run/secrets/tavily-key)"
+      fi
+      if [ -r /run/secrets/qdrant-api-key ]; then
+        QDRANT_API_KEY="$(cat /run/secrets/qdrant-api-key)"
+      fi
+      if [ -r /run/secrets/hf-token-scan-injection ]; then
+        HF_TOKEN="$(cat /run/secrets/hf-token-scan-injection)"
+      fi
+      export TAVILY_API_KEY QDRANT_API_KEY HF_TOKEN
+
       cat >> "$PROFILE_FILE" <<SBPL
-      (allow mach-lookup)
+      ;; Scoped mach-lookup: only services needed beyond system.sb
+      ;; system.sb already allows: cfprefsd, trustd, notification_center,
+      ;; opendirectoryd, logd, runningboard, secinitd, etc.
+      ;;
+      ;; gh auth token → keychain access
+      (allow mach-lookup (global-name "com.apple.SecurityServer"))
+      ;; osascript display notification
+      (allow mach-lookup (global-name "com.apple.usernoted"))
+      ;; DNS resolution (mDNSResponder, used by getaddrinfo on macOS)
+      (allow mach-lookup (global-name "com.apple.dnssd.service"))
+      ;; Window server (osascript GUI interactions)
+      (allow mach-lookup (global-name "com.apple.windowserver.active"))
+
       (allow user-preference-read)
       (allow sysctl-read)
       (allow iokit-get-properties)
@@ -26,7 +53,6 @@
       (allow file-read* file-write* (regex #"^$HOME/\\.CFUserTextEncoding"))
       SBPL
     '';
-    cli.rw = ["$HOME/Library/Keychains"];
   };
 
   claudeSandboxed = mkSandboxed "claude" ([
@@ -49,6 +75,14 @@
           env = [
             "HOME"
             "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS"
+            "TAVILY_API_KEY"
+            "QDRANT_API_KEY"
+            "HF_TOKEN"
+            "EDITOR"
+            "VISUAL"
+            "ENABLE_LSP_TOOL"
+            "DFT_GRAPH_LIMIT"
+            "DFT_BYTE_LIMIT"
           ];
         };
       }

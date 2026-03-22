@@ -97,8 +97,10 @@
         cli = {
           rwx = ["." "$HOME/.claude"];
           rw = [
-            "$HOME/.config/claude-rules"
             "$HOME/.cache/nix"
+          ];
+          ro = [
+            "$HOME/.config/claude-rules"
           ];
           env = sharedEnvNames;
         };
@@ -121,7 +123,7 @@
       CLAUDE_SANDBOX=1
       export CLAUDE_SANDBOX
 
-      mkdir -p "$HOME/.claude" "$HOME/.cache/nix" "$HOME/.local/share/gh"
+      mkdir -p "$HOME/.claude" "$HOME/.cache/nix"
 
       args=(
         --unshare-all
@@ -137,8 +139,14 @@
         --ro-bind /nix /nix
         --bind /nix/var/nix/daemon-socket /nix/var/nix/daemon-socket
 
-        # System config (resolv.conf, ssl certs, locale)
-        --ro-bind /etc /etc
+        # System config (selective — avoid exposing all of /etc)
+        --ro-bind /etc/resolv.conf /etc/resolv.conf
+        --ro-bind /etc/ssl /etc/ssl
+        --ro-bind /etc/hosts /etc/hosts
+        --ro-bind /etc/passwd /etc/passwd
+        --ro-bind /etc/group /etc/group
+        --ro-bind /etc/nix /etc/nix
+        --ro-bind /etc/static /etc/static
         --ro-bind /run/current-system /run/current-system
 
         # Home: empty tmpfs base, then selective mounts on top
@@ -151,7 +159,7 @@
       # Read-write home paths
       bind_rw "$HOME/.claude"
       bind_rw "$HOME/.cache/nix"
-      bind_rw "$HOME/.local/share/gh"
+      bind_ro "$HOME/.local/share/gh"
 
       # Claude config in $HOME root
       bind_rw "$HOME/.claude.json"

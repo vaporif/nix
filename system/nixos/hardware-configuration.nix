@@ -1,17 +1,14 @@
 # Machine-specific hardware config (UUIDs, kernel modules, filesystems).
 # Forkers: regenerate with `nixos-generate-config` and replace this file.
-{modulesPath, ...}: {
-  imports = [
-    (modulesPath + "/profiles/qemu-guest.nix")
-  ];
-
+{...}: {
   boot = {
     initrd = {
-      availableKernelModules = ["xhci_pci" "virtio_pci" "usbhid" "usb_storage" "sr_mod"];
+      availableKernelModules = ["xhci_pci" "virtio_pci" "virtio_blk" "virtio_net" "virtio_gpu" "usbhid"];
       kernelModules = [];
     };
     kernelModules = [];
     extraModulePackages = [];
+    kernelParams = ["console=hvc0"];
   };
 
   fileSystems."/" = {

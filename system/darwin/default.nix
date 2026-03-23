@@ -6,7 +6,6 @@
   cfg = config.custom;
 in {
   imports = [
-    ../../modules/options.nix
     ../../modules/nix.nix
     ../../modules/theme.nix
     ./preferences.nix
@@ -17,6 +16,8 @@ in {
   ];
 
   time.timeZone = cfg.timezone;
+
+  users.users.${cfg.user}.home = cfg.homeDir;
 
   environment.systemPackages = with pkgs; [
     age

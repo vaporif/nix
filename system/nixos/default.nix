@@ -7,7 +7,6 @@
   hmCfg = config.home-manager.users.${cfg.user}.custom;
 in {
   imports = [
-    ../../modules/options.nix
     ../../modules/nix.nix
     ../../modules/theme.nix
     ./hardware-configuration.nix
@@ -29,6 +28,9 @@ in {
   ];
 
   users.users.${cfg.user} = {
+    home = cfg.homeDir;
+    isNormalUser = true;
+    extraGroups = ["wheel"];
     shell = pkgs.zsh;
     openssh.authorizedKeys.keys = [
       cfg.git.signingKey

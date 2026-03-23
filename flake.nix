@@ -48,12 +48,25 @@
     sandnix = {
       url = "github:srid/sandnix";
     };
+
     claude-code-plugins = {
       url = "github:anthropics/claude-plugins-official";
       flake = false;
     };
     superpowers = {
       url = "github:obra/superpowers";
+      flake = false;
+    };
+    humanizer = {
+      url = "github:blader/humanizer";
+      flake = false;
+    };
+    napkin = {
+      url = "github:blader/napkin";
+      flake = false;
+    };
+    wshobson-agents = {
+      url = "github:wshobson/agents";
       flake = false;
     };
 
@@ -75,18 +88,6 @@
     };
     visual-explainer = {
       url = "github:nicobailon/visual-explainer";
-      flake = false;
-    };
-    humanizer = {
-      url = "github:blader/humanizer";
-      flake = false;
-    };
-    napkin = {
-      url = "github:blader/napkin";
-      flake = false;
-    };
-    wshobson-agents = {
-      url = "github:wshobson/agents";
       flake = false;
     };
     vim-tidal = {
@@ -134,6 +135,32 @@
         "spacetimedb"
         "claude-code"
       ];
+
+    nixpkgsConfig = {
+      nixpkgs.overlays = [localPackages inputs.earthtone-nvim.overlays.default];
+      nixpkgs.config.allowUnfreePredicate = allowUnfreePredicate;
+    };
+
+    mkHomeManager = {
+      hostModule,
+      platformHome,
+    }: {config, ...}: let
+      cfg = config.custom;
+    in {
+      home-manager = {
+        useGlobalPkgs = true;
+        useUserPackages = true;
+        extraSpecialArgs = {inherit inputs;};
+        users.${cfg.user}.imports = [
+          ./modules/options.nix
+          hostModule
+          ./home/common
+          platformHome
+          parry-guard.homeManagerModules.default
+        ];
+        backupFileExtension = "backup";
+      };
+    };
   in {
     formatter = nixpkgs.lib.genAttrs supportedSystems (
       system: (mkPkgs system).alejandra
@@ -172,34 +199,16 @@
       system = "aarch64-darwin";
       specialArgs = {inherit inputs;};
       modules = [
-        {
-          nixpkgs.overlays = [localPackages inputs.earthtone-nvim.overlays.default];
-          nixpkgs.config.allowUnfreePredicate = allowUnfreePredicate;
-        }
+        nixpkgsConfig
+        ./modules/options.nix
         ./hosts/macbook.nix
         stylix.darwinModules.stylix
         sops-nix.darwinModules.sops
         ./system/darwin
         home-manager.darwinModules.home-manager
-        ({config, ...}: let
-          cfg = config.custom;
-        in {
-          users.users.${cfg.user} = {
-            name = cfg.user;
-            home = "/Users/${cfg.user}";
-          };
-          home-manager = {
-            useGlobalPkgs = true;
-            useUserPackages = true;
-            extraSpecialArgs = {inherit inputs;};
-            users.${cfg.user}.imports = [
-              ./hosts/macbook.nix
-              ./home/common
-              ./home/darwin
-              parry-guard.homeManagerModules.default
-            ];
-            backupFileExtension = "backup";
-          };
+        (mkHomeManager {
+          hostModule = ./hosts/macbook.nix;
+          platformHome = ./home/darwin;
         })
       ];
     };
@@ -208,36 +217,16 @@
       system = "aarch64-linux";
       specialArgs = {inherit inputs;};
       modules = [
-        {
-          nixpkgs.overlays = [localPackages inputs.earthtone-nvim.overlays.default];
-          nixpkgs.config.allowUnfreePredicate = allowUnfreePredicate;
-        }
+        nixpkgsConfig
+        ./modules/options.nix
         ./hosts/nixos.nix
         stylix.nixosModules.stylix
         sops-nix.nixosModules.sops
         ./system/nixos
         home-manager.nixosModules.home-manager
-        ({config, ...}: let
-          cfg = config.custom;
-        in {
-          users.users.${cfg.user} = {
-            name = cfg.user;
-            home = "/home/${cfg.user}";
-            isNormalUser = true;
-            extraGroups = ["wheel"];
-          };
-          home-manager = {
-            useGlobalPkgs = true;
-            useUserPackages = true;
-            extraSpecialArgs = {inherit inputs;};
-            users.${cfg.user}.imports = [
-              ./hosts/nixos.nix
-              ./home/common
-              ./home/linux
-              parry-guard.homeManagerModules.default
-            ];
-            backupFileExtension = "backup";
-          };
+        (mkHomeManager {
+          hostModule = ./hosts/nixos.nix;
+          platformHome = ./home/linux;
         })
       ];
     };

@@ -191,8 +191,8 @@ comment = "VS Code extension CVE, not CLI tool (Haskell build)"
 cve = ["CVE-2021-28794"]
 
 [giflib]
-comment = "Runtime dep: pillow → mcp-server-qdrant; CVE-2024-45993 is DoS via crafted GIF (low risk)"
-cve = ["CVE-2024-45993"]
+comment = "Runtime dep: pillow → mcp-server-qdrant; DoS via crafted GIF (low risk, no untrusted GIF processing)"
+cve = ["CVE-2024-45993", "CVE-2026-26740"]
 
 [openexr]
 comment = "Build dep: libjxl image processing"

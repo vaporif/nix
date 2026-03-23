@@ -7,7 +7,6 @@
   cfg = config.custom;
 in {
   imports = [
-    ../../modules/options.nix
     ./claude
     ./git.nix
     ./ssh.nix

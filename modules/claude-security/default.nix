@@ -142,7 +142,6 @@ in {
           "~/.kube"
           "~/.gnupg"
           "~/.config/sops"
-          "~/.config/nix"
           "~/.config/gh"
           "~/.config/gcloud"
           "~/.config/Bitwarden CLI"

@@ -9,6 +9,19 @@
   claudePluginsBase = ".claude/plugins/marketplaces";
   nixPluginsPath = "${claudePluginsBase}/nix-plugins";
 
+  statuslineScript = let
+    script = pkgs.writeShellScriptBin "claude-statusline" (builtins.readFile ../../scripts/statusline.sh);
+  in
+    pkgs.symlinkJoin {
+      name = "claude-statusline";
+      paths = [script];
+      buildInputs = [pkgs.makeWrapper];
+      postBuild = ''
+        wrapProgram $out/bin/claude-statusline \
+          --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.jq pkgs.git pkgs.curl pkgs.coreutils pkgs.gawk pkgs.gnugrep]}
+      '';
+    };
+
   patchPlugin = src: name:
     pkgs.runCommand "claude-plugin-${name}" {} ''
       cp -r ${src}/plugins/${name} $out
@@ -236,7 +249,7 @@ in {
         inherit enabledPlugins;
         statusLine = {
           type = "command";
-          command = "${homeDir}/.claude/hooks/statusline.sh";
+          command = "${statuslineScript}/bin/claude-statusline";
         };
         env = {
           CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
@@ -277,10 +290,8 @@ in {
           deny = [];
         };
       };
-      ".claude/hooks/statusline.sh" = {
-        source = ../../scripts/statusline.sh;
-        executable = true;
-      };
+      # statusline binary is a wrapped Nix derivation (see statuslineScript let binding above)
+      # It lives in the Nix store and is referenced directly in settings.json — no home.file needed.
     }
     // pluginFiles;
 }

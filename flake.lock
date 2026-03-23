@@ -397,6 +397,22 @@
         "type": "github"
       }
     },
+    "humanizer": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1773967509,
+        "narHash": "sha256-f8X3HgLPDxAtI5bLKF9BJ8ALS0OvNt+Ire1Z2ZgVAAs=",
+        "owner": "blader",
+        "repo": "humanizer",
+        "rev": "12881abf6671c4ab62eceeb56f911b752f9fd6d2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "blader",
+        "repo": "humanizer",
+        "type": "github"
+      }
+    },
     "mcp-nixos": {
       "inputs": {
         "flake-parts": "flake-parts",
@@ -479,6 +495,22 @@
       "original": {
         "owner": "vaporif",
         "repo": "mcp-server-youtube",
+        "type": "github"
+      }
+    },
+    "napkin": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1771635751,
+        "narHash": "sha256-M7+QS8paZAbEHGkweZJUXggskPGlo6GzAAIG283Ft04=",
+        "owner": "blader",
+        "repo": "napkin",
+        "rev": "27fa60a895de4383b26a539136bc983155cb979c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "blader",
+        "repo": "napkin",
         "type": "github"
       }
     },
@@ -625,10 +657,12 @@
         "difftastic-src": "difftastic-src",
         "earthtone-nvim": "earthtone-nvim",
         "home-manager": "home-manager",
+        "humanizer": "humanizer",
         "mcp-nixos": "mcp-nixos",
         "mcp-server-qdrant": "mcp-server-qdrant",
         "mcp-servers-nix": "mcp-servers-nix",
         "mcp-youtube": "mcp-youtube",
+        "napkin": "napkin",
         "nix-darwin": "nix-darwin",
         "nix-devshells": "nix-devshells",
         "nixpkgs": "nixpkgs",

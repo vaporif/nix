@@ -9,19 +9,6 @@
   claudePluginsBase = ".claude/plugins/marketplaces";
   nixPluginsPath = "${claudePluginsBase}/nix-plugins";
 
-  statuslineScript = let
-    script = pkgs.writeShellScriptBin "claude-statusline" (builtins.readFile ../../scripts/statusline.sh);
-  in
-    pkgs.symlinkJoin {
-      name = "claude-statusline";
-      paths = [script];
-      buildInputs = [pkgs.makeWrapper];
-      postBuild = ''
-        wrapProgram $out/bin/claude-statusline \
-          --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.jq pkgs.git pkgs.curl pkgs.coreutils pkgs.gawk pkgs.gnugrep]}
-      '';
-    };
-
   patchPlugin = src: name:
     pkgs.runCommand "claude-plugin-${name}" {} ''
       cp -r ${src}/plugins/${name} $out
@@ -32,13 +19,13 @@
   patchedSuperpowers = pkgs.applyPatches {
     name = "superpowers-patched";
     src = inputs.superpowers;
-    patches = [../../patches/superpowers-customizations.patch];
+    patches = [../../../patches/superpowers-customizations.patch];
   };
 
   patchedWshobsonAgents = pkgs.applyPatches {
     name = "wshobson-agents-patched";
     src = inputs.wshobson-agents;
-    patches = [../../patches/systems-programming-go-only.patch];
+    patches = [../../../patches/systems-programming-go-only.patch];
   };
 
   readPluginVersion = src:
@@ -49,7 +36,6 @@
   patchedWshobsonPlugin = patchPlugin patchedWshobsonAgents;
 
   plugins = [
-    # Anthropic official plugins
     {
       name = "feature-dev";
       description = "Comprehensive feature development workflow";
@@ -86,7 +72,6 @@
     #   source = inputs.visual-explainer;
     #   version = readPluginVersion inputs.visual-explainer;
     # }
-    # wshobson community plugins
     {
       name = "systems-programming";
       description = "Go agent with concurrency patterns";
@@ -183,115 +168,22 @@
       lastUpdated = "2025-01-01T00:00:00.000Z";
     };
   };
-
-  inherit (pkgs.stdenv) isDarwin;
-
-  parryHook = {
-    hooks = [
-      {
-        command = "parry-guard hook";
-        type = "command";
-      }
-    ];
-  };
-
-  sec = config.programs.claude-code.security.settingsFragment;
 in {
-  imports = [../../modules/claude-security];
-
-  programs.claude-code.security = {
-    enable = true;
-    hooks.notification.ntfy = {
-      enable = true;
-      topicFile = "/run/secrets/ntfy-topic";
-    };
+  options.custom.claude.enabledPlugins = lib.mkOption {
+    type = lib.types.attrs;
+    readOnly = true;
+    description = "Map of enabled plugin names for settings.json";
   };
 
-  home.file =
-    {
-      "${nixPluginsPath}/.claude-plugin/marketplace.json".text = nixPluginsMarketplace;
-      ".claude/plugins/installed_plugins.json".text = installedPlugins;
-      ".claude/plugins/known_marketplaces.json".text = knownMarketplaces;
+  config = {
+    custom.claude.enabledPlugins = enabledPlugins;
 
-      # Central rules store — not auto-loaded by Claude Code
-      # Use `use claude_rules` in .envrc to symlink into project
-      ".config/claude-rules/nix.md".source = ../../config/claude-rules/nix.md;
-      ".config/claude-rules/lua.md".source = ../../config/claude-rules/lua.md;
-      ".config/claude-rules/rust.md".source = ../../config/claude-rules/rust.md;
-      ".config/claude-rules/go.md".source = ../../config/claude-rules/go.md;
-      ".config/claude-rules/solidity.md".source = ../../config/claude-rules/solidity.md;
-
-      # Direnv custom function for claude rules
-      ".config/direnv/lib/claude-rules.sh".source = ../../config/direnv/claude-rules.sh;
-
-      ".claude/commands/remember.md".source = ../../config/claude-commands/remember.md;
-      ".claude/commands/recall.md".source = ../../config/claude-commands/recall.md;
-      ".claude/commands/cleanup.md".source = ../../config/claude-commands/cleanup.md;
-      ".claude/commands/commit.md".source = ../../config/claude-commands/commit.md;
-      ".claude/commands/pr.md".source = ../../config/claude-commands/pr.md;
-      ".claude/commands/docs.md".source = ../../config/claude-commands/docs.md;
-      ".claude/commands/vulnix-triage.md".source = ../../config/claude-commands/vulnix-triage.md;
-      ".claude/commands/checkpoint.md".source = ../../config/claude-commands/checkpoint.md;
-
-      # Standalone agents (VoltAgent)
-      ".claude/agents/refactoring-specialist.md".source = ../../config/claude-agents/refactoring-specialist.md;
-      ".claude/agents/performance-engineer.md".source = ../../config/claude-agents/performance-engineer.md;
-      ".claude/agents/mcp-developer.md".source = ../../config/claude-agents/mcp-developer.md;
-      ".claude/agents/cli-developer.md".source = ../../config/claude-agents/cli-developer.md;
-      ".claude/agents/rust-engineer.md".source = ../../config/claude-agents/rust-engineer.md;
-      ".claude/agents/solana-developer.md".source = ../../config/claude-agents/solana-developer.md;
-
-      ".claude/CLAUDE.md".source = ../../config/claude/CLAUDE.md;
-      ".claude/settings.json".text = builtins.toJSON {
-        "$schema" = "https://json.schemastore.org/claude-code-settings.json";
-        alwaysThinkingEnabled = true;
-        teammateMode = "tmux";
-        inherit enabledPlugins;
-        statusLine = {
-          type = "command";
-          command = "${statuslineScript}/bin/claude-statusline";
-        };
-        env = {
-          CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
-        };
-        hooks = {
-          PreToolUse =
-            sec.hooks.PreToolUse
-            ++ lib.optionals isDarwin [
-              (parryHook // {matcher = "Bash|Read|Write|Edit|Glob|Grep|WebFetch|WebSearch|NotebookEdit|Task|mcp__.*";})
-            ];
-          PostToolUse =
-            [
-              {
-                hooks = [
-                  {
-                    command = "claude-formatter";
-                    type = "command";
-                  }
-                ];
-                matcher = "Edit|Write";
-              }
-            ]
-            ++ lib.optionals isDarwin [
-              (parryHook // {matcher = "Read|WebFetch|Bash|mcp__github__get_file_contents|mcp__filesystem__read_file|mcp__filesystem__read_text_file";})
-            ];
-          inherit (sec.hooks) Notification;
-          UserPromptSubmit = lib.optionals isDarwin [
-            (parryHook // {matcher = "";})
-          ];
-        };
-        permissions = {
-          inherit (sec.permissions) allow deny;
-        };
-      };
-      ".claude/settings.local.json".text = builtins.toJSON {
-        permissions = {
-          allow = [];
-          deny = [];
-        };
-      };
-      # statusline binary is a wrapped Nix derivation (see statuslineScript let binding above)
-      # It lives in the Nix store and is referenced directly in settings.json — no home.file needed.
-    }
-    // pluginFiles;
+    home.file =
+      {
+        "${nixPluginsPath}/.claude-plugin/marketplace.json".text = nixPluginsMarketplace;
+        ".claude/plugins/installed_plugins.json".text = installedPlugins;
+        ".claude/plugins/known_marketplaces.json".text = knownMarketplaces;
+      }
+      // pluginFiles;
+  };
 }

@@ -8,7 +8,7 @@
 in {
   imports = [
     ../../modules/options.nix
-    ./claude.nix
+    ./claude
     ./git.nix
     ./ssh.nix
     ./mcp.nix
@@ -66,7 +66,7 @@ in {
     parry-guard = {
       enable = pkgs.stdenv.isDarwin;
       package = inputs.parry-guard.packages.${pkgs.stdenv.hostPlatform.system}.default;
-      hfTokenFile = "/run/secrets/hf-token-scan-injection";
+      hfTokenFile = config.custom.secrets.hf-token-scan-injection;
       ignoreDirs = ["${cfg.homeDir}/Repos/"];
     };
   };

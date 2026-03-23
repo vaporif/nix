@@ -2,6 +2,7 @@
   lib,
   pkgs,
   config,
+  inputs,
   ...
 }: let
   cfg = config.custom;
@@ -20,6 +21,8 @@ in {
     };
     # Claude Desktop reads from ~/Library/, Claude Code from /Library/ (system activation)
     file."Library/Application Support/Claude/claude_desktop_config.json".source = cfg.desktopMcpServersConfig;
+    # Claude Code skills (desktop only)
+    file.".claude/skills/humanizer/SKILL.md".source = "${inputs.humanizer}/SKILL.md";
   };
 
   programs.ssh = {

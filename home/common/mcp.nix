@@ -51,7 +51,7 @@
     };
     tavily = {
       command = "${pkgs.writeShellScript "tavily-mcp-wrapper" ''
-        export TAVILY_API_KEY="''${TAVILY_API_KEY:-$(cat /run/secrets/tavily-key)}"
+        export TAVILY_API_KEY="''${TAVILY_API_KEY:-$(cat ${cfg.secrets.tavily-key})}"
         exec ${inputs.mcp-servers-nix.packages.${pkgs.stdenv.hostPlatform.system}.tavily-mcp}/bin/tavily-mcp
       ''}";
     };
@@ -60,7 +60,7 @@
     };
     qdrant = {
       command = "${pkgs.writeShellScript "qdrant-mcp-wrapper" ''
-        export QDRANT_API_KEY="''${QDRANT_API_KEY:-$(cat /run/secrets/qdrant-api-key)}"
+        export QDRANT_API_KEY="''${QDRANT_API_KEY:-$(cat ${cfg.secrets.qdrant-api-key})}"
         export QDRANT_URL="${
           if pkgs.stdenv.isDarwin
           then "http://localhost:6334"
@@ -99,7 +99,7 @@
   desktopOnlyServers = {
     youtube = {
       command = "${pkgs.writeShellScript "youtube-mcp-wrapper" ''
-        export YOUTUBE_API_KEY="$(cat /run/secrets/youtube-key)"
+        export YOUTUBE_API_KEY="$(cat ${cfg.secrets.youtube-key})"
         exec ${lib.getExe youtube-mcp-package}
       ''}";
     };

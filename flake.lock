@@ -397,6 +397,22 @@
         "type": "github"
       }
     },
+    "humanizer": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1773967509,
+        "narHash": "sha256-f8X3HgLPDxAtI5bLKF9BJ8ALS0OvNt+Ire1Z2ZgVAAs=",
+        "owner": "blader",
+        "repo": "humanizer",
+        "rev": "12881abf6671c4ab62eceeb56f911b752f9fd6d2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "blader",
+        "repo": "humanizer",
+        "type": "github"
+      }
+    },
     "mcp-nixos": {
       "inputs": {
         "flake-parts": "flake-parts",
@@ -625,6 +641,7 @@
         "difftastic-src": "difftastic-src",
         "earthtone-nvim": "earthtone-nvim",
         "home-manager": "home-manager",
+        "humanizer": "humanizer",
         "mcp-nixos": "mcp-nixos",
         "mcp-server-qdrant": "mcp-server-qdrant",
         "mcp-servers-nix": "mcp-servers-nix",

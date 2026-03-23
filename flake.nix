@@ -77,6 +77,10 @@
       url = "github:nicobailon/visual-explainer";
       flake = false;
     };
+    humanizer = {
+      url = "github:blader/humanizer";
+      flake = false;
+    };
     wshobson-agents = {
       url = "github:wshobson/agents";
       flake = false;

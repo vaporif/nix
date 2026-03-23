@@ -81,6 +81,15 @@
       default = {};
       description = "Sandboxed package wrappers (populated on darwin only)";
     };
+    secrets =
+      lib.genAttrs
+      ["openrouter-key" "tavily-key" "youtube-key" "hf-token-scan-injection" "ntfy-topic" "nix-access-tokens" "qdrant-api-key"]
+      (name:
+        lib.mkOption {
+          type = lib.types.str;
+          default = "/run/secrets/${name}";
+          description = "Path to ${name} secret file";
+        });
   };
 
   config.custom.homeDir =

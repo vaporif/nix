@@ -6,7 +6,7 @@
   cfg = config.custom;
 in {
   environment.etc."nix/nix.custom.conf".text = lib.mkAfter ''
-    !include /run/secrets/nix-access-tokens
+    !include ${cfg.secrets.nix-access-tokens}
   '';
   nix.settings = {
     experimental-features = "nix-command flakes";

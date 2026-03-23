@@ -1,17 +1,22 @@
-{lib, ...}: let
+{
+  lib,
+  config,
+  ...
+}: let
+  cfg = config.custom;
   # Shared secret names (read outside sandbox, injected as env vars)
   secretEnvVars = [
     {
       env = "TAVILY_API_KEY";
-      file = "/run/secrets/tavily-key";
+      file = cfg.secrets.tavily-key;
     }
     {
       env = "QDRANT_API_KEY";
-      file = "/run/secrets/qdrant-api-key";
+      file = cfg.secrets.qdrant-api-key;
     }
     {
       env = "HF_TOKEN";
-      file = "/run/secrets/hf-token-scan-injection";
+      file = cfg.secrets.hf-token-scan-injection;
     }
   ];
 

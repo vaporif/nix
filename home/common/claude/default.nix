@@ -4,6 +4,7 @@
     ./plugins.nix
     ./settings.nix
     ./rules.nix
+    ./skills.nix
   ];
 
   programs.claude-code.security = {

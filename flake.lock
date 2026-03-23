@@ -498,6 +498,22 @@
         "type": "github"
       }
     },
+    "napkin": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1771635751,
+        "narHash": "sha256-M7+QS8paZAbEHGkweZJUXggskPGlo6GzAAIG283Ft04=",
+        "owner": "blader",
+        "repo": "napkin",
+        "rev": "27fa60a895de4383b26a539136bc983155cb979c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "blader",
+        "repo": "napkin",
+        "type": "github"
+      }
+    },
     "nix-darwin": {
       "inputs": {
         "nixpkgs": [
@@ -646,6 +662,7 @@
         "mcp-server-qdrant": "mcp-server-qdrant",
         "mcp-servers-nix": "mcp-servers-nix",
         "mcp-youtube": "mcp-youtube",
+        "napkin": "napkin",
         "nix-darwin": "nix-darwin",
         "nix-devshells": "nix-devshells",
         "nixpkgs": "nixpkgs",

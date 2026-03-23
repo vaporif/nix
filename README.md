@@ -1,11 +1,11 @@
 # Nix-darwin + home-manager
 
-Cross-platform personal configuration using [nix-darwin](https://github.com/nix-darwin/nix-darwin), [NixOS](https://nixos.org), and [home-manager](https://github.com/nix-community/home-manager).
+Personal Nix config for macOS and NixOS. Uses [nix-darwin](https://github.com/nix-darwin/nix-darwin), [NixOS](https://nixos.org), and [home-manager](https://github.com/nix-community/home-manager).
 
-- **macOS** — nix-darwin system config + Home Manager
-- **NixOS** — NixOS system config + Home Manager (shell-only VM)
+- **macOS** -- nix-darwin + Home Manager
+- **NixOS** -- NixOS + Home Manager (shell-only VM)
 
-## Forking This Config
+## Forking this config
 
 ### Prerequisites
 
@@ -13,14 +13,12 @@ Cross-platform personal configuration using [nix-darwin](https://github.com/nix-
 2. **macOS only**: Install [Homebrew](https://brew.sh/)
 3. **NixOS**: A working NixOS installation
 
-### Quick Setup
+### Quick setup
 
 ```shell
-# Clone your fork
 git clone https://github.com/YOUR-USERNAME/nix.git ~/.config/nix-darwin
 cd ~/.config/nix-darwin
 
-# Run setup script (works on macOS and Linux)
 # Detects platform, configures host files, generates age key
 ./scripts/setup.sh
 
@@ -40,23 +38,17 @@ sudo ./result/bin/switch-to-configuration switch
 
 # After first build, use: just switch
 
-# Allow direnv for default devshell
 direnv allow ~
 ```
 
-### Manual Setup
-
-If you prefer manual configuration:
+### Manual setup
 
 1. **Edit host config** in `hosts/`:
-   - Copy an existing host file (e.g., `hosts/macbook.nix`) and override:
-   - `hostname` - your machine name
-   - `system` - `"aarch64-darwin"`, `"x86_64-darwin"`, `"aarch64-linux"`, or `"x86_64-linux"`
-   - `configPath` - path to this repo
-   - `sshAgent` - `"secretive"` for macOS Secretive.app, `""` otherwise
+   - Copy an existing host file (e.g., `hosts/macbook.nix`) and set:
+   - `hostname`, `system`, `configPath`, `sshAgent` (`"secretive"` for macOS, `""` otherwise)
    - Edit `hosts/common.nix` for shared values (`user`, `git.*`, `cachix.*`, `timezone`)
 
-2. **Generate age key** for secrets:
+2. **Generate age key**:
    ```shell
    mkdir -p ~/.config/sops/age
    age-keygen -o ~/.config/sops/age/key.txt
@@ -64,99 +56,84 @@ If you prefer manual configuration:
 
 3. **Update `.sops.yaml`** with your public key
 
-4. **Create secrets** from template:
+4. **Create secrets**:
    ```shell
    cp secrets/secrets.yaml.template secrets/secrets.yaml
    sops -e -i secrets/secrets.yaml
    ```
 
-5. **Apply** (first time — `just` isn't installed yet):
-   ```shell
-   # macOS:
-   hostname=$(nix eval --raw -f hosts/macbook.nix hostname)
-   nix build ".#darwinConfigurations.${hostname}.system"
-   sudo ./result/activate
+5. **Build** (same commands as quick setup above, then `just switch` going forward)
 
-   # NixOS:
-   hostname=$(nix eval --raw -f hosts/nixos.nix hostname)
-   nix build ".#nixosConfigurations.${hostname}.config.system.build.toplevel"
-   sudo ./result/bin/switch-to-configuration switch
-   ```
-   After first build, use `just switch` for all subsequent changes.
+## SOPS secrets
 
-## Working with SOPS Secrets
+Secrets are encrypted with [SOPS](https://github.com/getsops/sops) + age. `sops secrets/secrets.yaml` opens your editor with decrypted content, re-encrypts on save.
 
-Secrets are encrypted using [SOPS](https://github.com/getsops/sops) with age encryption.
+To add a secret: put it in `secrets/secrets.yaml`, define it in nix (`sops.secrets.my-secret = { };`), read it at `/run/secrets/my-secret`.
 
-### Editing Secrets
+## AI sandboxing
 
-```shell
-sops secrets/secrets.yaml
-```
+AI coding agents get filesystem and network access by default. That means they can read your dotfiles, tokens, SSH keys, whatever. This config wraps Claude Code in OS-level sandboxes so it can only touch what you allow.
 
-Opens your `$EDITOR` with decrypted content. Changes are re-encrypted on save.
+### Why SOPS matters here
 
-### Adding New Secrets
+Without SOPS, API tokens live in plaintext dotfiles, readable by any process. With SOPS, secrets decrypt at runtime to `/run/secrets/`, get loaded as env vars *before* the sandbox starts, and the sandbox itself never has filesystem access to the secret files.
 
-1. Edit `secrets/secrets.yaml` and add your secret
-2. Define in nix (e.g., `system/security.nix`):
-   ```nix
-   sops.secrets.my-new-secret = { };
-   ```
-3. Access at runtime: `/run/secrets/my-new-secret`
+### macOS: sandnix
+
+[sandnix](https://github.com/srid/sandnix) wraps Claude Code in Apple's `sandbox-exec`. Filesystem is locked to `$PWD`, `~/.claude`, and `~/Repos`. Mach services are scoped down to DNS, keychain, and notifications. Network is open (Claude needs API access).
+
+See `home/darwin/sandboxed.nix`.
+
+### Linux: bubblewrap
+
+[bubblewrap](https://github.com/containers/bubblewrap) on NixOS. Empty `$HOME` with selective bind mounts, read-only Nix store, minimal `/etc`. SSH agent forwarding works, private keys stay outside the sandbox.
+
+See `home/linux/sandboxed.nix`.
+
+### Aliases
+
+The AI aliases (`a`, `ap`, `ar`, `ai`) all go through the sandboxed wrapper. Unwrapped binary isn't on `$PATH`.
 
 ## Development
 
-Run `just` to see available commands:
+Run `just` to list everything. The ones you'll use most:
 
-| Command | Description |
+| Command | What it does |
 |---------|-------------|
-| `just switch` | Apply configuration (auto-detects platform) |
-| `just check` | Run all checks (lint + pinning) |
-| `just check-pinned` | Verify all flake inputs are pinned |
-| `just check-typos` | Check for typos |
-| `just check-vulns` | Scan for vulnerabilities (with whitelist) |
-| `just fmt` | Format all files (lua, nix, toml) |
-| `just gc 30d` | Delete old generations and garbage collect |
-| `just keymaps` | Regenerate docs/keymaps.md |
+| `just switch` | Apply config (auto-detects platform) |
+| `just check` | Lint everything |
+| `just fmt` | Format all files |
+| `just check-vulns` | Scan for vulnerabilities |
+| `just gc 30d` | Clean up old generations |
 | `just lazy-update` | Update neovim plugins |
 | `just cache` | Build and push to Cachix |
-| `just setup-hooks` | Enable git hooks |
 
-### Git Hooks
+### Git hooks
 
-Enable git hooks (auto-format on commit, lint + cache on push):
 ```shell
-just setup-hooks
+just setup-hooks    # auto-format on commit, lint + cache on push
+git commit --no-verify  # skip when needed
 ```
-
-Skip hooks when needed:
-```shell
-git commit --no-verify
-git push --no-verify
-```
-Run locally: `just check-vulns` or `just check-pinned`
 
 ### Cachix
 
-Binary cache for faster builds:
 ```shell
 cachix authtoken <your-token>
 just cache
 ```
 
-## Shell Aliases
+## Shell aliases
 
-| Alias | Command | Description |
+| Alias | Command | What it does |
 |-------|---------|-------------|
-| `a` | `claude` | Claude Code CLI |
-| `ap` | `claude --print` | Claude Code print mode |
-| `ai` | `claude --dangerously-skip-permissions` | Claude Code autonomous |
-| `ar` | `claude --resume` | Claude Code resume session |
+| `a` | `claude` | Claude Code (sandboxed) |
+| `ap` | `claude --print` | Claude print mode |
+| `ai` | `claude --dangerously-skip-permissions` | Claude autonomous mode |
+| `ar` | `claude --resume` | Resume last session |
 | `e` | `nvim` | Neovim |
 | `g` | `lazygit` | Git TUI |
 | `t` | `yy` | Yazi file manager |
-| `ls` | `eza -a` | Modern ls with hidden files |
+| `ls` | `eza -a` | ls with hidden files |
 | `cat` | `bat` | Cat with syntax highlighting |
 | `x` | `exit` | Exit shell |
 | `mcp-scan` | `uv tool run mcp-scan@latest` | MCP server scanner |
@@ -165,8 +142,7 @@ just cache
 
 ## Keybindings
 
-See [docs/keymaps.md](docs/keymaps.md) — auto-generated with `just keymaps` (Neovim, skhd, Karabiner, WezTerm, Yazi).
-
+See [docs/keymaps.md](docs/keymaps.md), auto-generated with `just keymaps` (Neovim, skhd, Karabiner, WezTerm, Yazi).
 
 ## Learning
 

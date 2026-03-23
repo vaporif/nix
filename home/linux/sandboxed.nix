@@ -21,8 +21,10 @@
     mkdir -p "$HOME/.claude" "$HOME/.cache/nix" "$HOME/.cache/huggingface" "$HOME/.serena"
 
     args=(
-      --unshare-all
-      --share-net
+      --unshare-ipc
+      --unshare-pid
+      --unshare-uts
+      --unshare-cgroup
       --die-with-parent
       --clearenv
 
@@ -42,6 +44,7 @@
       --ro-bind /etc/group /etc/group
       --ro-bind /etc/nix /etc/nix
       --ro-bind /etc/static /etc/static
+      --ro-bind /etc/profiles /etc/profiles
       --symlink /etc/static/claude-code /etc/claude-code
       --ro-bind /run/current-system /run/current-system
 
@@ -75,9 +78,14 @@
     bind_ro "$HOME/.config/git"
     bind_ro "$HOME/.config/mcphub"
     bind_ro "$HOME/.config/direnv"
-    # SSH agent socket handles auth — no need to expose key files
-    bind_ro "$HOME/.ssh/config"
-    bind_ro "$HOME/.ssh/known_hosts"
+    # SSH: copy config files so they're owned by current user (nix store files
+    # are root-owned, which appears as nobody in the user namespace — OpenSSH rejects that)
+    ssh_tmp="$(mktemp -d)"
+    [[ -e "$HOME/.ssh/config" ]] && cp "$HOME/.ssh/config" "$ssh_tmp/config" && chmod 600 "$ssh_tmp/config"
+    [[ -e "$HOME/.ssh/known_hosts" ]] && cp "$HOME/.ssh/known_hosts" "$ssh_tmp/known_hosts" && chmod 644 "$ssh_tmp/known_hosts"
+    [[ -d "$HOME/.ssh/agent" ]] && args+=(--bind "$HOME/.ssh/agent" "$HOME/.ssh/agent")
+    [[ -e "$ssh_tmp/config" ]] && args+=(--ro-bind "$ssh_tmp/config" "$HOME/.ssh/config")
+    [[ -e "$ssh_tmp/known_hosts" ]] && args+=(--ro-bind "$ssh_tmp/known_hosts" "$HOME/.ssh/known_hosts")
     bind_ro "$HOME/.envrc"
 
     # SSH agent

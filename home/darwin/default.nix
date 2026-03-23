@@ -15,9 +15,15 @@ in {
 
   home = {
     sessionPath = [homebrewPath];
-    sessionVariables = lib.optionalAttrs (cfg.sshAgent == "secretive") {
-      SSH_AUTH_SOCK = "${homeDir}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";
-    };
+    sessionVariables =
+      lib.optionalAttrs (cfg.sshAgent == "secretive") {
+        SSH_AUTH_SOCK = "${homeDir}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";
+      }
+      // {
+        # macOS APFS Data volume always reports MNT_EXPORTED, causing MDBX to
+        # reject it as a "remote" filesystem. Allow non-readonly access.
+        CFLAGS = "-DMDBX_ENABLE_NON_READONLY_EXPORT=1";
+      };
     # Claude Desktop reads from ~/Library/, Claude Code from /Library/ (system activation)
     file."Library/Application Support/Claude/claude_desktop_config.json".source = cfg.desktopMcpServersConfig;
   };

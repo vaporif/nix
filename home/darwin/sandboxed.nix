@@ -66,6 +66,8 @@
         ];
         ro = [
           "$HOME/.config/claude-rules"
+          "$HOME/.ssh/known_hosts"
+          "$HOME/.ssh/config"
         ];
         env = sandboxShared.sharedEnvNames;
       };

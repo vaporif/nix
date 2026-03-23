@@ -15,11 +15,7 @@ pkgs.testers.nixosTest {
     home-manager = {
       useGlobalPkgs = true;
       useUserPackages = true;
-      users.testuser = {
-        config,
-        lib,
-        ...
-      }: let
+      users.testuser = {config, ...}: let
         sec = config.programs.claude-code.security.settingsFragment;
       in {
         imports = [../modules/claude-security];

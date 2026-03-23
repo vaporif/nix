@@ -48,13 +48,12 @@
     ]
     ++ secretEnvNames;
 
-  # GitHub token: read from sops secret before sandbox
+  # GitHub token: read from sops secret before sandbox (preserve existing value)
   ghTokenPreload = ''
-    GITHUB_PERSONAL_ACCESS_TOKEN=""
-    if [ -r ${cfg.secrets.github-token} ]; then
+    if [ -z "''${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ] && [ -r ${cfg.secrets.github-token} ]; then
       GITHUB_PERSONAL_ACCESS_TOKEN="$(cat ${cfg.secrets.github-token})"
     fi
-    export GITHUB_PERSONAL_ACCESS_TOKEN
+    export GITHUB_PERSONAL_ACCESS_TOKEN="''${GITHUB_PERSONAL_ACCESS_TOKEN:-}"
     export GH_TOKEN="$GITHUB_PERSONAL_ACCESS_TOKEN"
   '';
 in {

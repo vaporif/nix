@@ -29,6 +29,8 @@
       bacon
       cargo-info
       rusty-man
+      clang
+      libclang
 
       yt-dlp
 
@@ -74,5 +76,8 @@
     ]
     ++ lib.optionals pkgs.stdenv.isDarwin [
       gnused
+    ]
+    ++ lib.optionals pkgs.stdenv.isLinux [
+      glibc.dev
     ];
 }

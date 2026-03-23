@@ -46,6 +46,7 @@ in {
       ENABLE_LSP_TOOL = "1";
       DFT_GRAPH_LIMIT = "500000";
       DFT_BYTE_LIMIT = "1000000";
+      LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
     };
     file = {
       ".envrc".text = ''

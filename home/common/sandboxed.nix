@@ -43,6 +43,7 @@
       "ENABLE_LSP_TOOL"
       "DFT_GRAPH_LIMIT"
       "DFT_BYTE_LIMIT"
+      "LIBCLANG_PATH"
       "GITHUB_PERSONAL_ACCESS_TOKEN"
       "GH_TOKEN"
     ]

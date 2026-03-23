@@ -17,6 +17,8 @@
     ${sandboxShared.ghTokenPreload}
     CLAUDE_SANDBOX=1
     export CLAUDE_SANDBOX
+    CARGO_NET_GIT_FETCH_WITH_CLI=true
+    export CARGO_NET_GIT_FETCH_WITH_CLI
 
     mkdir -p "$HOME/.claude" "$HOME/.cache/nix" "$HOME/.cache/huggingface" "$HOME/.serena"
 
@@ -64,6 +66,7 @@
     bind_rw "$HOME/.claude"
     bind_rw "$HOME/.cache/nix"
     bind_rw "$HOME/.cache/huggingface"
+    bind_rw "$HOME/.cargo"
     bind_rw "$HOME/.serena"
     bind_rw "$HOME/Repos"
     bind_ro "$HOME/.local/share/gh"

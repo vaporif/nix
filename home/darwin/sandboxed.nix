@@ -15,6 +15,8 @@
       ${sandboxShared.ghTokenPreload}
       CLAUDE_SANDBOX=1
       export CLAUDE_SANDBOX
+      CARGO_NET_GIT_FETCH_WITH_CLI=true
+      export CARGO_NET_GIT_FETCH_WITH_CLI
 
       cat >> "$PROFILE_FILE" <<SBPL
       ;; Scoped mach-lookup: only services needed beyond system.sb
@@ -63,6 +65,7 @@
           "$HOME/.cache/nix"
           "$HOME/.cache/huggingface"
           "$HOME/.cache/gh"
+          "$HOME/.cargo"
           "$HOME/.serena"
         ];
         ro = [

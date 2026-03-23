@@ -23,7 +23,7 @@ in {
       "$schema" = "https://json.schemastore.org/claude-code-settings.json";
       alwaysThinkingEnabled = true;
       teammateMode = "tmux";
-      enabledPlugins = config.custom.claude.enabledPlugins;
+      inherit (config.custom.claude) enabledPlugins;
       statusLine = {
         type = "command";
         command = "${homeDir}/.claude/hooks/statusline.sh";

@@ -62,6 +62,7 @@
         rw = [
           "$HOME/.cache/nix"
           "$HOME/.cache/huggingface"
+          "$HOME/.cache/gh"
           "$HOME/.serena"
         ];
         ro = [

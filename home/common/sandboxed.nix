@@ -44,16 +44,18 @@
       "DFT_GRAPH_LIMIT"
       "DFT_BYTE_LIMIT"
       "GITHUB_PERSONAL_ACCESS_TOKEN"
+      "GH_TOKEN"
     ]
     ++ secretEnvNames;
 
-  # GitHub token: read from gh CLI before sandbox (keychain ACL blocks sandboxed access)
+  # GitHub token: read from sops secret before sandbox
   ghTokenPreload = ''
     GITHUB_PERSONAL_ACCESS_TOKEN=""
-    if command -v gh >/dev/null 2>&1; then
-      GITHUB_PERSONAL_ACCESS_TOKEN="$(gh auth token 2>/dev/null)" || true
+    if [ -r ${cfg.secrets.github-token} ]; then
+      GITHUB_PERSONAL_ACCESS_TOKEN="$(cat ${cfg.secrets.github-token})"
     fi
     export GITHUB_PERSONAL_ACCESS_TOKEN
+    export GH_TOKEN="$GITHUB_PERSONAL_ACCESS_TOKEN"
   '';
 in {
   _module.args.sandboxShared = {

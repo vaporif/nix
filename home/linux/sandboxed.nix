@@ -42,7 +42,13 @@
       --ro-bind /etc/group /etc/group
       --ro-bind /etc/nix /etc/nix
       --ro-bind /etc/static /etc/static
+      --symlink /etc/static/claude-code /etc/claude-code
       --ro-bind /run/current-system /run/current-system
+
+      # /bin/sh — Claude Code hook runner uses spawn('/bin/sh', ...) internally
+      --symlink ${pkgs.bash}/bin/bash /bin/sh
+      # /usr/bin/env — hook scripts use #!/usr/bin/env bash shebangs
+      --symlink ${pkgs.coreutils}/bin/env /usr/bin/env
 
       # Home: empty tmpfs base, then selective mounts on top
       --tmpfs "$HOME"

@@ -67,6 +67,7 @@
         ];
         ro = [
           "$HOME/.config/claude-rules"
+          "$HOME/.config/nix-darwin"
           "$HOME/.ssh/known_hosts"
           "$HOME/.ssh/config"
         ];

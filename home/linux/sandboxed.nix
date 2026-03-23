@@ -75,6 +75,7 @@
     bind_ro "$HOME/.nix-profile"
     bind_ro "$HOME/.local/state/nix"
     bind_ro "$HOME/.config/claude-rules"
+    bind_ro "$HOME/.config/nix-darwin"
     bind_ro "$HOME/.config/git"
     bind_ro "$HOME/.config/mcphub"
     bind_ro "$HOME/.config/direnv"

@@ -65,12 +65,11 @@
         network = true;
       };
       cli = {
-        rwx = ["." "$HOME/.claude" "$HOME/Repos"];
+        rwx = ["." "$HOME/.claude" "$HOME/Repos" "$HOME/.cargo"];
         rw = [
           "$HOME/.cache/nix"
           "$HOME/.cache/huggingface"
           "$HOME/.cache/gh"
-          "$HOME/.cargo"
           "$HOME/.serena"
         ];
         ro = [

@@ -13,6 +13,8 @@
 in {
   imports = [./sandboxed.nix];
 
+  gtk.gtk4.theme = null;
+
   home = {
     sessionPath = [homebrewPath];
     sessionVariables =

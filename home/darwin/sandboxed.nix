@@ -78,6 +78,7 @@
           "$HOME/.config/nix-darwin"
           "$HOME/.ssh/known_hosts"
           "$HOME/.ssh/config"
+          "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
         ];
         env = sandboxShared.sharedEnvNames;
       };

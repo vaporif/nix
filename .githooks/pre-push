@@ -4,5 +4,3 @@ set -e
 echo "Running lint checks..."
 just check
 
-echo "Building and pushing to cachix..."
-just cache

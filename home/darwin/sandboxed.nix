@@ -63,6 +63,7 @@
         tty = true;
         nix = true;
         network = true;
+        tmp = true;
       };
       cli = {
         rwx = ["." "$HOME/.claude" "$HOME/Repos" "$HOME/.cargo"];

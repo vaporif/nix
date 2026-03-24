@@ -39,11 +39,6 @@ in
     ast-grep = prev.ast-grep.overrideAttrs (_: {
       doCheck = false;
     });
-
-    # Skip nodejs_22 checks (network tests fail in sandbox, not cached on Hydra for aarch64-darwin)
-    nodejs-slim_22 = prev.nodejs-slim_22.overrideAttrs (_: {
-      doCheck = false;
-    });
   }
   // lib.optionalAttrs prev.stdenv.isDarwin {
     # Skip curl-impersonate check (AppleIDN not compiled on macOS 15)
@@ -51,8 +46,8 @@ in
       doCheck = false;
     });
 
-    # Skip deno check (test target typo: integration_tests vs integration_test)
-    deno = prev.deno.overrideAttrs (_: {
-      doCheck = false;
+    # Fix direnv build: -linkmode=external requires cgo but it's disabled upstream
+    direnv = prev.direnv.overrideAttrs (old: {
+      env = (old.env or {}) // {CGO_ENABLED = "1";};
     });
   }

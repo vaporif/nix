@@ -34,6 +34,9 @@
       ;; OAuth token refresh — Node.js may use these for HTTPS credential endpoints
       (allow mach-lookup (global-name "com.apple.trustd.agent"))
       (allow mach-lookup (global-name "com.apple.nsurlsessiond"))
+      ;; TLS certificate chain validation + HTTP auth broker (needed for OAuth refresh)
+      (allow mach-lookup (global-name "com.apple.securityd"))
+      (allow mach-lookup (global-name "com.apple.CFNetwork.AuthBrokerAgent"))
 
       (allow user-preference-read)
       (allow sysctl-read)

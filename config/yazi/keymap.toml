@@ -8,6 +8,16 @@ run = "cd ~/Repos/"
 desc = "Go to [r]epos"
 
 [[mgr.prepend_keymap]]
+on = ["b", "q"]
+run = "cd ~/Repos/quarry"
+desc = "Go to [q]uarry"
+
+[[mgr.prepend_keymap]]
+on = ["b", "v"]
+run = "cd ~/Repos/quarry/quiver"
+desc = "Go to qui[v]er"
+
+[[mgr.prepend_keymap]]
 on = ["b", "m"]
 run = "cd ~/Repos/mercury"
 desc = "Go to [m]ercury"

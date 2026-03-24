@@ -115,7 +115,7 @@
 |-----|------|--------|
 | `<leader>bp` | n | [p]revious |
 | `<leader>bn` | n | [n]ext |
-| `<leader>bd` | n | [d]elete |
+| `<leader>bx` | n | e[x]it |
 | `<leader>bo` | n | [o]nly (close others) |
 
 ### Goto (g)
@@ -161,17 +161,17 @@
 
 | Key | Mode | Action |
 |-----|------|--------|
-| `<C-y>` | i | select_and_accept |
-| `<C-p>` | i | select_prev |
-| `<C-n>` | i | select_next |
-| `<C-space>` | i | show |
-| `<C-e>` | i | hide |
 | `<Tab>` | i | snippet_forward |
 | `<S-Tab>` | i | snippet_backward |
 | `<Up>` | i | select_prev |
 | `<Down>` | i | select_next |
 | `<S-j>` | i | scroll_documentation_up |
 | `<S-k>` | i | scroll_documentation_down |
+| `<C-y>` | i | select_and_accept |
+| `<C-p>` | i | select_prev |
+| `<C-n>` | i | select_next |
+| `<C-space>` | i | show |
+| `<C-e>` | i | hide |
 
 ### Other
 
@@ -183,7 +183,6 @@
 | `l` | n x o | Flash |
 | `k` | n x o | Flash Treesitter |
 | `r` | o | Remote Flash |
-| `R` | o x | Treesitter Search |
 | `'` | n v | Marks |
 | `af` | x o | outer function |
 | `if` | x o | inner function |
@@ -288,11 +287,13 @@
 | Key | Action |
 |-----|--------|
 | `<Enter>` | Open in Neovim |
-| `b r` | Go to Repos |
+| `b r` | Go to [r]epos |
+| `b q` | Go to [q]uarry |
+| `b v` | Go to qui[v]er |
 | `b m` | Go to [m]ercury |
 | `b n` | Go to [n]ix |
 | `b l` | Go to [l]ogos |
-| `b e` | Go to solana-ibc |
+| `b e` | Go to [e]ureka solana-ibc |
 | `u a` | Add bookmark |
 | `u g` | Jump bookmark by key |
 | `u G` | Jump bookmark by fzf |

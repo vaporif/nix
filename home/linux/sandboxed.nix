@@ -19,6 +19,8 @@
     export CLAUDE_SANDBOX
     CARGO_NET_GIT_FETCH_WITH_CLI=true
     export CARGO_NET_GIT_FETCH_WITH_CLI
+    LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
+    export LIBCLANG_PATH
 
     mkdir -p "$HOME/.claude" "$HOME/.cache/nix" "$HOME/.cache/huggingface" "$HOME/.serena"
 

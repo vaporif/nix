@@ -57,6 +57,7 @@
     # Rust
     "RUST_SRC_PATH"
     "CARGO_NET_GIT_FETCH_WITH_CLI"
+    "LIBCLANG_PATH"
     # Nix stdenv / cc-wrapper / bintools-wrapper
     "NIX_CC"
     "NIX_CC_FOR_TARGET"

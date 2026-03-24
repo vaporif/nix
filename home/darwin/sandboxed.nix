@@ -17,6 +17,8 @@
       export CLAUDE_SANDBOX
       CARGO_NET_GIT_FETCH_WITH_CLI=true
       export CARGO_NET_GIT_FETCH_WITH_CLI
+      LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
+      export LIBCLANG_PATH
 
       cat >> "$PROFILE_FILE" <<SBPL
       ;; Scoped mach-lookup: only services needed beyond system.sb

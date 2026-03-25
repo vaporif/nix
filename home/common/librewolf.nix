@@ -1,4 +1,13 @@
 {lib, ...}: let
+  bitwardenId = "{446900e4-71c2-419f-a6a7-df9c091e268b}";
+  vimiumId = "{d7742d87-e61d-4b78-b8a1-b469842139fa}";
+  sideberyId = "{3c078156-979c-498b-8990-85f7987dd929}";
+  returnYtDislikesId = "{762f9885-5a13-4abd-9c77-433dcd38b8fd}";
+  distractionFreeRedditId = "{e14163a1-321a-4c12-a85d-1f25d68fe047}";
+  everforestId = "{39ec6c53-67ca-42cc-9f23-339cca400ef2}";
+  greyscaleId = "{44e65aeb-7d24-440c-8710-918d2111d4f1}";
+  everforestLightId = "{a017b609-a39f-46a9-82c8-27bdf87b8a62}";
+
   extensions = {
     "uBlock0@raymondhill.net" = {
       slug = "ublock-origin";
@@ -6,16 +15,16 @@
     };
     "jid1-MnnxcxisBPnSXQ@jetpack" = {slug = "privacy-badger17";};
     "jid1-KKzOGWgsW3Ao4Q@jetpack" = {slug = "i-dont-care-about-cookies";};
-    "{446900e4-71c2-419f-a6a7-df9c091e268b}" = {slug = "bitwarden-password-manager";};
-    "{d7742d87-e61d-4b78-b8a1-b469842139fa}" = {slug = "vimium-ff";};
-    "{3c078156-979c-498b-8990-85f7987dd929}" = {slug = "sidebery";};
+    ${bitwardenId} = {slug = "bitwarden-password-manager";};
+    ${vimiumId} = {slug = "vimium-ff";};
+    ${sideberyId} = {slug = "sidebery";};
     "sponsorBlocker@ajay.app" = {slug = "sponsorblock";};
-    "{762f9885-5a13-4abd-9c77-433dcd38b8fd}" = {slug = "return-youtube-dislikes";};
+    ${returnYtDislikesId} = {slug = "return-youtube-dislikes";};
     "myallychou@gmail.com" = {slug = "youtube-recommended-videos";};
-    "{e14163a1-321a-4c12-a85d-1f25d68fe047}" = {slug = "distraction-free-reddit";};
-    "{39ec6c53-67ca-42cc-9f23-339cca400ef2}" = {slug = "everforest1";};
-    "{44e65aeb-7d24-440c-8710-918d2111d4f1}" = {slug = "greyscale";};
-    "{a017b609-a39f-46a9-82c8-27bdf87b8a62}" = {slug = "everforest-light-soft";};
+    ${distractionFreeRedditId} = {slug = "distraction-free-reddit";};
+    ${everforestId} = {slug = "everforest1";};
+    ${greyscaleId} = {slug = "greyscale";};
+    ${everforestLightId} = {slug = "everforest-light-soft";};
   };
 
   blockedSearchEngines = [

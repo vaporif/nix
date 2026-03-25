@@ -1,6 +1,7 @@
 {lib, ...}: let
   bitwardenId = "{446900e4-71c2-419f-a6a7-df9c091e268b}";
   vimiumId = "{d7742d87-e61d-4b78-b8a1-b469842139fa}";
+  vimiumNewTabId = "@vimium-new-tab";
   sideberyId = "{3c078156-979c-498b-8990-85f7987dd929}";
   returnYtDislikesId = "{762f9885-5a13-4abd-9c77-433dcd38b8fd}";
   distractionFreeRedditId = "{e14163a1-321a-4c12-a85d-1f25d68fe047}";
@@ -18,6 +19,7 @@
     ${bitwardenId} = {slug = "bitwarden-password-manager";};
     ${vimiumId} = {slug = "vimium-ff";};
     ${sideberyId} = {slug = "sidebery";};
+    ${vimiumNewTabId} = {slug = "vimium-new-tab-page";};
     "sponsorBlocker@ajay.app" = {slug = "sponsorblock";};
     ${returnYtDislikesId} = {slug = "return-youtube-dislikes";};
     "myallychou@gmail.com" = {slug = "youtube-recommended-videos";};

@@ -64,6 +64,8 @@ direnv allow ~
 
 5. **Build** (same commands as quick setup above, then `just switch` going forward)
 
+6. **Vimium-ff**: Paste contents of `config/librewolf/vimium.cfg` into Vimium options → Custom key mappings (not yet supported via policies, see [philc/vimium#4738](https://github.com/philc/vimium/issues/4738))
+
 ## SOPS secrets
 
 Secrets are encrypted with [SOPS](https://github.com/getsops/sops) + age. `sops secrets/secrets.yaml` opens your editor with decrypted content, re-encrypts on save.

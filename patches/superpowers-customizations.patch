@@ -1,19 +1,19 @@
-From b8cbd97dc7fbba342a0bd749686adab121c583df Mon Sep 17 00:00:00 2001
+From effb844254933532f1fbaf75e4a98f7eec99aa58 Mon Sep 17 00:00:00 2001
 From: Dmytro Onypko <vaporif@proton.me>
-Date: Fri, 20 Mar 2026 20:16:18 +0000
+Date: Tue, 24 Mar 2026 23:46:18 +0000
 Subject: [PATCH] customizations: no auto-commit, KISS, subagent routing,
- memory recall, agent-teams + agent type assignments
+ memory recall, agent-teams + agent type assignments, review gates
 
 ---
- skills/brainstorming/SKILL.md                 | 80 +++++++++++++++----
+ skills/brainstorming/SKILL.md                 | 84 +++++++++++++++----
  skills/subagent-driven-development/SKILL.md   | 14 ++++
  .../code-quality-reviewer-prompt.md           |  4 +-
  .../implementer-prompt.md                     |  2 +-
  skills/writing-plans/SKILL.md                 | 13 +--
- 5 files changed, 86 insertions(+), 27 deletions(-)
+ 5 files changed, 90 insertions(+), 27 deletions(-)
 
 diff --git a/skills/brainstorming/SKILL.md b/skills/brainstorming/SKILL.md
-index edbc2b5..e49610d 100644
+index edbc2b5..e489479 100644
 --- a/skills/brainstorming/SKILL.md
 +++ b/skills/brainstorming/SKILL.md
 @@ -22,20 +22,53 @@ Every project goes through this process. A todo list, a single-function utility,
@@ -127,7 +127,7 @@ index edbc2b5..e49610d 100644
  **Spec Review Loop:**
  After writing the spec document:
  
-@@ -126,14 +171,17 @@ After writing the spec document:
+@@ -126,14 +171,21 @@ After writing the spec document:
  **User Review Gate:**
  After the spec review loop passes, ask the user to review the written spec before proceeding:
  
@@ -143,7 +143,11 @@ index edbc2b5..e49610d 100644
 +- Then execute with the user's chosen strategy:
 +  - **Sequential**: invoke executing-plans (single agent works through tasks one by one)
 +  - **Parallel subagents**: invoke subagent-driven-development (spawns independent Agent subprocesses for each task — no communication between them)
-+  - **Agent teams**: use `/team-feature` to spawn a coordinated team (persistent agents in tmux panes with shared task list and inter-agent messaging — best for large features where agents need to coordinate)
++  - **Agent teams**: use `/team-feature` to spawn a coordinated team (persistent agents in tmux panes with shared task list and inter-agent messaging — best for large features where agents need to coordinate). The team-lead MUST enforce two-stage review gates after each implementer completes a task:
++    1. **Spec compliance review**: team-reviewer reads actual code against task requirements — checks for missing requirements, extra/unneeded work, and misunderstandings. Does NOT trust the implementer's report. If issues found, implementer fixes and reviewer re-reviews until approved.
++    2. **Code quality review** (only after spec compliance passes): team-reviewer checks file responsibilities, decomposition, codebase pattern adherence, and standard quality concerns. Critical/Important issues block; Minor issues are noted. Implementer fixes and re-reviews until approved.
++    3. **Final holistic review**: after all tasks pass both stages, team-reviewer performs a cross-stream review checking consistency, integration seams, and cross-cutting concerns that per-task reviews might miss.
++    Never skip reviews. Never start code quality review before spec compliance passes. Never mark a task complete with open review issues.
  
  ## Key Principles
  

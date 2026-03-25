@@ -71,11 +71,11 @@
     "claude-code-plugins": {
       "flake": false,
       "locked": {
-        "lastModified": 1774335212,
-        "narHash": "sha256-AUt2HYuPU8DxlET97H874+TuhkYXbl1E4HpQb1SFkW0=",
+        "lastModified": 1774395822,
+        "narHash": "sha256-xi27VfB/HN/G85WxxYuoX9XpMbPdyBWiLvWO+OZmen4=",
         "owner": "anthropics",
         "repo": "claude-plugins-official",
-        "rev": "79caa0d824acb760fd9c023acb39c6c7da5ee7fc",
+        "rev": "b10b583de281385442474e836644534b938b2678",
         "type": "github"
       },
       "original": {
@@ -384,11 +384,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1774368172,
-        "narHash": "sha256-Vdfo8+2SQhgc7i+TCIkBXzypQCFAvNrWvhUkZQtFGKE=",
+        "lastModified": 1774379316,
+        "narHash": "sha256-0nGNxWDUH2Hzlj/R3Zf4FEK6fsFNB/dvewuboSRZqiI=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "5068d0b03e8b2cfae58441775aa849b7028a3d39",
+        "rev": "1eb0549a1ab3fe3f5acf86668249be15fa0e64f7",
         "type": "github"
       },
       "original": {
@@ -980,11 +980,11 @@
     "wezterm-agent-deck": {
       "flake": false,
       "locked": {
-        "lastModified": 1774359384,
-        "narHash": "sha256-cwLSljF90T0NXYLbMDl/yDfAHzQ8gXPPXLN0v6o3dDA=",
+        "lastModified": 1774447125,
+        "narHash": "sha256-2NIZ9sn/JNc6gu/7J6kBYH0dGmH7B26gtbawho/frkE=",
         "owner": "Eric162",
         "repo": "wezterm-agent-deck",
-        "rev": "315498c24a89711df4f7384f1f4c2f5c27e23b65",
+        "rev": "2a7e327bfe204f4f59048d96abb57327e7a1b9fc",
         "type": "github"
       },
       "original": {
@@ -1000,11 +1000,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1774337247,
-        "narHash": "sha256-835jMfBfjR2nHNcfYJp32fsH/2Kk9bmnz70nzmaR1yQ=",
+        "lastModified": 1774400689,
+        "narHash": "sha256-hHABVYL0rxhVIzc7hZEpvE0eiCKPnevte73Tn6FRolo=",
         "owner": "BirdeeHub",
         "repo": "nix-wrapper-modules",
-        "rev": "50517537c7f4d60cbadbfa8adec74c05518d8718",
+        "rev": "54645978682ff99594a1d1666dde6fac6a8134f2",
         "type": "github"
       },
       "original": {
@@ -1016,15 +1016,16 @@
     "wshobson-agents": {
       "flake": false,
       "locked": {
-        "lastModified": 1773759612,
-        "narHash": "sha256-bWrT+N64nHKaJKtoluhLYGz72H6Oqht4k3HwWGU59Uc=",
-        "owner": "wshobson",
+        "lastModified": 1774391213,
+        "narHash": "sha256-tFnkyFpcWYzq41iLQaP3Eq4/gk9rWmu7UlYTqsVfWAA=",
+        "owner": "vaporif",
         "repo": "agents",
-        "rev": "1ad2f007d5e9ec822a2d79e727ac1dcdf5f66f11",
+        "rev": "adb75be05ea5a61305d646d2ff79a63635706f66",
         "type": "github"
       },
       "original": {
-        "owner": "wshobson",
+        "owner": "vaporif",
+        "ref": "agent-teams-proper-tool-names",
         "repo": "agents",
         "type": "github"
       }

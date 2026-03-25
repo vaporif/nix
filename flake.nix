@@ -66,7 +66,7 @@
       flake = false;
     };
     wshobson-agents = {
-      url = "github:wshobson/agents";
+      url = "github:vaporif/agents/agent-teams-proper-tool-names";
       flake = false;
     };
 

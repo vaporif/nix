@@ -5,7 +5,7 @@
   ...
 }: let
   bwrap = lib.getExe pkgs.bubblewrap;
-  claude = "${pkgs.claude-code}/bin/claude";
+  claude = lib.getExe pkgs.claude-code;
 
   claudeLinux = pkgs.writeShellScriptBin "claude" ''
     bind_ro() { [[ -e "$1" ]] && args+=(--ro-bind "$1" "$1"); }

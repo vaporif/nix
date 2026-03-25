@@ -30,7 +30,7 @@
       description = "System timezone";
     };
     sshAgent = lib.mkOption {
-      type = lib.types.str;
+      type = lib.types.enum ["" "secretive"];
       default = "";
       description = "SSH agent type: 'secretive' for macOS Secretive.app, empty otherwise";
     };
@@ -83,7 +83,7 @@
     };
     secrets =
       lib.genAttrs
-      ["openrouter-key" "tavily-key" "youtube-key" "hf-token-scan-injection" "ntfy-topic" "nix-access-tokens" "qdrant-api-key" "github-token"]
+      (import ./secrets.nix)
       (name:
         lib.mkOption {
           type = lib.types.str;

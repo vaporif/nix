@@ -151,19 +151,18 @@ in {
       shellAliases = {
         t = "y";
         g = "lazygit";
-        a = "${claudeSandboxed} --dangerously-skip-permissions";
-        ac = claudeSandboxed;
-        ap = "${claudeSandboxed} --print --dangerously-skip-permissions";
-        ar = "${claudeSandboxed} --resume --dangerously-skip-permissions";
-        au = "claude --dangerously-skip-permissions";
-        auc = "claude";
-        aup = "claude --print --dangerously-skip-permissions";
-        aur = "claude --resume --dangerously-skip-permissions";
+        a = claudeSandboxed;
+        ap = "${claudeSandboxed} --print";
+        ai = "${claudeSandboxed} --dangerously-skip-permissions";
+        ar = "${claudeSandboxed} --resume";
+        au = "claude";
+        aup = "claude --print";
+        aur = "claude --resume";
         ls = "eza -a";
         cat = "bat";
         e = "nvim";
         x = "exit";
-        mcp-scan = "${pkgs.uv}/bin/uv tool run mcp-scan@latest";
+        mcp-scan = "${lib.getExe pkgs.uv} tool run mcp-scan@latest";
         init-solana = "nix flake init -t github:vaporif/nix-devshells#solana";
         init-rust = "nix flake init -t github:vaporif/nix-devshells#rust";
       };

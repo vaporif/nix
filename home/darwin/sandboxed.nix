@@ -1,4 +1,5 @@
 {
+  lib,
   pkgs,
   inputs,
   sandboxShared,
@@ -58,7 +59,7 @@
     inputs.sandnix.sandnixModules.git
     inputs.sandnix.sandnixModules.gh
     {
-      program = "${pkgs.claude-code}/bin/claude";
+      program = lib.getExe pkgs.claude-code;
       features = {
         tty = true;
         nix = true;

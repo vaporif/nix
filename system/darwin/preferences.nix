@@ -28,7 +28,6 @@ _: {
     };
     NSGlobalDomain = {
       "com.apple.sound.beep.volume" = 0.0;
-      AppleShowAllFiles = true;
       AppleShowScrollBars = "WhenScrolling";
       NSAutomaticWindowAnimationsEnabled = false;
     };
@@ -89,7 +88,6 @@ _: {
 
       # --- Animations ---
       "com.apple.dock" = {
-        expose-animation-duration = 0.1;
         springboard-show-duration = 0.1;
         springboard-hide-duration = 0.1;
       };

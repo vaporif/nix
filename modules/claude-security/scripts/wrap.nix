@@ -1,5 +1,6 @@
 {
   pkgs,
+  lib,
   blockedCommands,
   blockedSubcommands,
   deniedSubcommands,
@@ -42,11 +43,7 @@
         then toString ntfyTopicFile
         else ""
       )
-      (
-        if ntfyEnabled
-        then "true"
-        else "false"
-      )
+      (lib.boolToString ntfyEnabled)
     ]
     (builtins.readFile ./notify.sh);
 in {
@@ -64,7 +61,7 @@ in {
       buildInputs = [pkgs.makeWrapper];
       postBuild = ''
         wrapProgram $out/bin/claude-check-bash-command \
-          --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.shfmt pkgs.jq pkgs.coreutils pkgs.gawk]}
+          --prefix PATH : ${lib.makeBinPath [pkgs.shfmt pkgs.jq pkgs.coreutils pkgs.gawk]}
       '';
     };
 
@@ -77,7 +74,7 @@ in {
       buildInputs = [pkgs.makeWrapper];
       postBuild = ''
         wrapProgram $out/bin/claude-notify \
-          --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.jq pkgs.curl]}
+          --prefix PATH : ${lib.makeBinPath [pkgs.jq pkgs.curl]}
       '';
     };
 }

@@ -23,8 +23,8 @@ in {
 
   programs.zsh.enable = true;
 
-  environment.systemPackages = with pkgs; [
-    age
+  environment.systemPackages = [
+    pkgs.age
   ];
 
   users.users.${cfg.user} = {

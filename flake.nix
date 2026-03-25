@@ -118,7 +118,7 @@
     parry-guard,
     ...
   }: let
-    lib = nixpkgs.lib;
+    inherit (nixpkgs) lib;
     supportedSystems = ["aarch64-darwin" "aarch64-linux"];
 
     localPackages = import ./overlays {

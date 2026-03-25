@@ -9,7 +9,6 @@
     firewall = {
       enable = true;
       allowedTCPPorts = [22];
-      allowedUDPPorts = [];
       logRefusedConnections = true;
     };
   };

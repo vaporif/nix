@@ -20,12 +20,14 @@ in {
     ./sandboxed.nix
   ];
 
-  custom.lspPackages = with pkgs; [
-    lua-language-server
-    typescript-language-server
-    basedpyright
-    nixd
+  custom.lspPackages = [
+    pkgs.lua-language-server
+    pkgs.typescript-language-server
+    pkgs.basedpyright
+    pkgs.nixd
   ];
+
+  gtk.gtk4.theme = null;
 
   manual = {
     manpages.enable = false;

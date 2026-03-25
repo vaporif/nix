@@ -19,9 +19,9 @@ in {
 
   users.users.${cfg.user}.home = cfg.homeDir;
 
-  environment.systemPackages = with pkgs; [
-    age
-    libressl
+  environment.systemPackages = [
+    pkgs.age
+    pkgs.libressl
   ];
 
   nix.enable = false;

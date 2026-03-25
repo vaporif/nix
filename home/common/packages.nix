@@ -4,75 +4,74 @@
   inputs,
   ...
 }: {
-  home.packages = with pkgs;
+  home.packages =
     [
-      nixd
-      alejandra
-      statix
-      deadnix
-      nix-tree
-      nix-diff
-      nix-search
-      nix-output-monitor
-      nvd
+      pkgs.nixd
+      pkgs.alejandra
+      pkgs.statix
+      pkgs.deadnix
+      pkgs.nix-tree
+      pkgs.nix-diff
+      pkgs.nix-search
+      pkgs.nix-output-monitor
+      pkgs.nvd
 
-      dua
-      stylua
-      selene
-      typos
-      taplo
-      shellcheck
-      actionlint
-      cachix
-      vulnix
+      pkgs.dua
+      pkgs.stylua
+      pkgs.selene
+      pkgs.typos
+      pkgs.taplo
+      pkgs.shellcheck
+      pkgs.actionlint
+      pkgs.cachix
+      pkgs.vulnix
 
-      bacon
-      cargo-info
-      rusty-man
+      pkgs.bacon
+      pkgs.cargo-info
+      pkgs.rusty-man
 
-      yt-dlp
+      pkgs.yt-dlp
 
-      python3
+      pkgs.python3
 
-      presenterm
-      tokei
-      just
-      lazydocker
-      btop
-      procs
-      sops
+      pkgs.presenterm
+      pkgs.tokei
+      pkgs.just
+      pkgs.lazydocker
+      pkgs.btop
+      pkgs.procs
+      pkgs.sops
 
-      (haskellPackages.ghcWithPackages (pkgs:
-        with pkgs; [
-          tidal
-          cabal-install
-        ]))
+      (pkgs.haskellPackages.ghcWithPackages (hpkgs: [
+        hpkgs.tidal
+        hpkgs.cabal-install
+      ]))
 
-      tdf
+      pkgs.tdf
 
-      wget
-      rsync
-      delta
-      difftastic
-      ouch
-      hyperfine
+      pkgs.wget
+      pkgs.rsync
+      pkgs.delta
+      pkgs.difftastic
+      pkgs.ouch
+      pkgs.hyperfine
 
-      shfmt
+      pkgs.shfmt
 
-      claude-code
+      pkgs.claude-code
       inputs.mcp-nixos.packages.${pkgs.stdenv.hostPlatform.system}.default
-      qdrant
-      qdrant-web-ui
+      pkgs.qdrant
+      pkgs.qdrant-web-ui
 
-      tidal_script
-      unclog
-      nomicfoundation_solidity_language_server
-      claude_formatter
+      pkgs.tidal_script
+      pkgs.unclog
+      pkgs.nomicfoundation_solidity_language_server
+      pkgs.claude_formatter
 
-      (writeShellScriptBin "git-bare-clone" (builtins.readFile ../../scripts/git-bare-clone.sh))
-      (writeShellScriptBin "git-meta" (builtins.readFile ../../scripts/git-meta.sh))
+      (pkgs.writeShellScriptBin "git-bare-clone" (builtins.readFile ../../scripts/git-bare-clone.sh))
+      (pkgs.writeShellScriptBin "git-meta" (builtins.readFile ../../scripts/git-meta.sh))
     ]
     ++ lib.optionals pkgs.stdenv.isDarwin [
-      gnused
+      pkgs.gnused
     ];
 }

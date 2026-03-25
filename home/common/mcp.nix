@@ -34,10 +34,10 @@
       enableWebDashboard = true;
       extraPackages =
         cfg.lspPackages
-        ++ (with pkgs; [
-          rust-analyzer
-          gopls
-        ]);
+        ++ [
+          pkgs.rust-analyzer
+          pkgs.gopls
+        ];
     };
   };
 
@@ -52,11 +52,11 @@
     tavily = {
       command = "${pkgs.writeShellScript "tavily-mcp-wrapper" ''
         export TAVILY_API_KEY="''${TAVILY_API_KEY:-$(cat ${cfg.secrets.tavily-key})}"
-        exec ${inputs.mcp-servers-nix.packages.${pkgs.stdenv.hostPlatform.system}.tavily-mcp}/bin/tavily-mcp
+        exec ${lib.getExe inputs.mcp-servers-nix.packages.${pkgs.stdenv.hostPlatform.system}.tavily-mcp}
       ''}";
     };
     nixos = {
-      command = "${mcp-nixos-package}/bin/mcp-nixos";
+      command = lib.getExe mcp-nixos-package;
     };
     qdrant = {
       command = "${pkgs.writeShellScript "qdrant-mcp-wrapper" ''

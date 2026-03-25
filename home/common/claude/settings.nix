@@ -17,7 +17,7 @@
       buildInputs = [pkgs.makeWrapper];
       postBuild = ''
         wrapProgram $out/bin/claude-statusline \
-          --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.jq pkgs.git pkgs.curl pkgs.coreutils pkgs.gawk pkgs.gnugrep]}
+          --prefix PATH : ${lib.makeBinPath [pkgs.jq pkgs.git pkgs.curl pkgs.coreutils pkgs.gawk pkgs.gnugrep]}
       '';
     };
 

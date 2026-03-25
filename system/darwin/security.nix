@@ -58,9 +58,10 @@
         ${anchorRules}
         RULES
 
-        if ! grep -q 'anchor "qdrant"' /etc/pf.conf 2>/dev/null; then
-          printf '%s\n' 'anchor "qdrant"' 'load anchor "qdrant" from "/etc/pf.anchors/qdrant"' >> /etc/pf.conf
-        fi
+        # Remove any existing qdrant anchor lines, then re-add (idempotent)
+        sed -i '''' '/anchor "qdrant"/d' /etc/pf.conf 2>/dev/null || true
+        sed -i '''' '/load anchor "qdrant"/d' /etc/pf.conf 2>/dev/null || true
+        printf '%s\n' 'anchor "qdrant"' 'load anchor "qdrant" from "/etc/pf.anchors/qdrant"' >> /etc/pf.conf
 
         pfctl -f /etc/pf.conf 2>/dev/null || true
         pfctl -e 2>/dev/null || true

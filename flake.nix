@@ -118,26 +118,29 @@
     parry-guard,
     ...
   }: let
+    lib = nixpkgs.lib;
     supportedSystems = ["aarch64-darwin" "aarch64-linux"];
 
     localPackages = import ./overlays {
       inherit (inputs) vim-tidal difftastic-src;
     };
 
+    sharedOverlays = [localPackages inputs.earthtone-nvim.overlays.default];
+
     mkPkgs = system:
       import nixpkgs {
         inherit system;
-        overlays = [localPackages inputs.earthtone-nvim.overlays.default];
+        overlays = sharedOverlays;
       };
 
     allowUnfreePredicate = pkg:
-      builtins.elem (nixpkgs.lib.getName pkg) [
+      builtins.elem (lib.getName pkg) [
         "spacetimedb"
         "claude-code"
       ];
 
     nixpkgsConfig = {
-      nixpkgs.overlays = [localPackages inputs.earthtone-nvim.overlays.default];
+      nixpkgs.overlays = sharedOverlays;
       nixpkgs.config.allowUnfreePredicate = allowUnfreePredicate;
     };
 
@@ -162,11 +165,11 @@
       };
     };
   in {
-    formatter = nixpkgs.lib.genAttrs supportedSystems (
+    formatter = lib.genAttrs supportedSystems (
       system: (mkPkgs system).alejandra
     );
 
-    checks = nixpkgs.lib.genAttrs supportedSystems (system: let
+    checks = lib.genAttrs supportedSystems (system: let
       chkPkgs = mkPkgs system;
     in
       {
@@ -174,13 +177,13 @@
           ${chkPkgs.alejandra}/bin/alejandra -c ${./.} && touch $out
         '';
       }
-      // nixpkgs.lib.optionalAttrs chkPkgs.stdenv.isDarwin (
+      // lib.optionalAttrs chkPkgs.stdenv.isDarwin (
         chkPkgs.unclog.passthru.tests
         // chkPkgs.nomicfoundation_solidity_language_server.passthru.tests
         // chkPkgs.claude_formatter.passthru.tests
         // chkPkgs.tidal_script.passthru.tests
       )
-      // nixpkgs.lib.optionalAttrs chkPkgs.stdenv.isLinux {
+      // lib.optionalAttrs chkPkgs.stdenv.isLinux {
         claude-security = import ./tests/claude-security.nix {
           pkgs = chkPkgs;
           inherit home-manager;
@@ -213,7 +216,7 @@
       ];
     };
 
-    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+    nixosConfigurations.nixos = lib.nixosSystem {
       system = "aarch64-linux";
       specialArgs = {inherit inputs;};
       modules = [

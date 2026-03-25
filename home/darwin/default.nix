@@ -6,14 +6,9 @@
 }: let
   cfg = config.custom;
   homeDir = config.home.homeDirectory;
-  homebrewPath =
-    if pkgs.stdenv.hostPlatform.isAarch64
-    then "/opt/homebrew/bin"
-    else "/usr/local/bin";
+  homebrewPath = "/opt/homebrew/bin";
 in {
   imports = [./sandboxed.nix];
-
-  gtk.gtk4.theme = null;
 
   home = {
     sessionPath = [homebrewPath];
@@ -54,7 +49,7 @@ in {
       ProgramArguments = [
         "${pkgs.writeShellScript "qdrant-wrapper" ''
           export QDRANT__SERVICE__API_KEY="$(cat /run/secrets/qdrant-api-key)"
-          exec ${pkgs.qdrant}/bin/qdrant --config-path ${homeDir}/.qdrant/config.yaml
+          exec ${lib.getExe' pkgs.qdrant "qdrant"} --config-path ${homeDir}/.qdrant/config.yaml
         ''}"
       ];
       RunAtLoad = true;

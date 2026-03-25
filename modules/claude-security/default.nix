@@ -3,14 +3,13 @@
   lib,
   pkgs,
   ...
-}:
-with lib; let
+}: let
   cfg = config.programs.claude-code.security;
   homeDir = config.home.homeDirectory;
 
   expandTilde = path:
-    if hasPrefix "~/" path
-    then "${homeDir}/${removePrefix "~/" path}"
+    if lib.hasPrefix "~/" path
+    then "${homeDir}/${lib.removePrefix "~/" path}"
     else path;
 
   mkDenyTriple = path: [
@@ -24,7 +23,7 @@ with lib; let
   mkAbsDeny = mkDenyTriple;
 
   scripts = import ./scripts/wrap.nix {
-    inherit pkgs;
+    inherit pkgs lib;
     inherit (cfg.hooks.bashValidation) blockedCommands blockedSubcommands deniedSubcommands blockedPatterns;
     notificationSound = cfg.hooks.notification.sound;
     ntfyServerUrl = cfg.hooks.notification.ntfy.serverUrl;
@@ -63,69 +62,69 @@ with lib; let
   };
 
   denyList =
-    (concatMap mkDirDeny cfg.permissions.deniedDirectories)
-    ++ (concatMap mkFileDeny cfg.permissions.deniedFiles)
-    ++ (concatMap mkAbsDeny cfg.permissions.deniedAbsolutePaths)
-    ++ (map (cmd: "Bash(${cmd}:*)") cfg.permissions.deniedBashCommands)
+    (lib.concatMap mkDirDeny cfg.permissions.deniedDirectories)
+    ++ (lib.concatMap mkFileDeny cfg.permissions.deniedFiles)
+    ++ (lib.concatMap mkAbsDeny cfg.permissions.deniedAbsolutePaths)
+    ++ (lib.map (cmd: "Bash(${cmd}:*)") cfg.permissions.deniedBashCommands)
     ++ cfg.permissions.deniedGitOperations
     ++ cfg.permissions.extraDenied;
 in {
   options.programs.claude-code.security = {
-    enable = mkEnableOption "Claude Code security hardening";
+    enable = lib.mkEnableOption "Claude Code security hardening";
 
     hooks = {
       bashValidation = {
-        enable = mkOption {
-          type = types.bool;
+        enable = lib.mkOption {
+          type = lib.types.bool;
           default = true;
           description = "Enable bash command validation hook";
         };
-        blockedCommands = mkOption {
-          type = types.listOf types.str;
+        blockedCommands = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
           default = ["sudo" "doas" "eval" "dd" "mkfs" "shred"];
           description = "Commands that trigger confirmation before execution";
         };
-        blockedSubcommands = mkOption {
-          type = types.listOf types.str;
+        blockedSubcommands = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
           default = [];
           description = "Multi-word commands (command + subcommand) that trigger confirmation";
         };
-        deniedSubcommands = mkOption {
-          type = types.listOf types.str;
+        deniedSubcommands = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
           default = ["git push" "git push --force" "git push -f"];
           description = "Multi-word commands that are hard-blocked (denied even in unrestricted mode)";
         };
-        blockedPatterns = mkOption {
-          type = types.listOf types.str;
+        blockedPatterns = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
           default = ["curl|sh" "wget|python"];
           description = "Pipe patterns (source|sink) that trigger confirmation";
         };
       };
 
       notification = {
-        enable = mkOption {
-          type = types.bool;
+        enable = lib.mkOption {
+          type = lib.types.bool;
           default = true;
           description = "Enable notification hook";
         };
-        sound = mkOption {
-          type = types.str;
+        sound = lib.mkOption {
+          type = lib.types.str;
           default = "Glass";
           description = "macOS notification sound name";
         };
         ntfy = {
-          enable = mkOption {
-            type = types.bool;
+          enable = lib.mkOption {
+            type = lib.types.bool;
             default = false;
             description = "Enable phone push notifications via ntfy";
           };
-          serverUrl = mkOption {
-            type = types.str;
+          serverUrl = lib.mkOption {
+            type = lib.types.str;
             default = "ntfy.sh";
             description = "ntfy server URL";
           };
-          topicFile = mkOption {
-            type = types.nullOr types.path;
+          topicFile = lib.mkOption {
+            type = lib.types.nullOr lib.types.path;
             default = null;
             description = "Path to file containing ntfy topic name";
           };
@@ -134,8 +133,8 @@ in {
     };
 
     permissions = {
-      deniedDirectories = mkOption {
-        type = types.listOf types.str;
+      deniedDirectories = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
         default = [
           "~/.ssh"
           "~/.aws"
@@ -176,8 +175,8 @@ in {
         '';
       };
 
-      deniedFiles = mkOption {
-        type = types.listOf types.str;
+      deniedFiles = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
         default = [
           "~/.netrc"
           "~/.npmrc"
@@ -189,32 +188,32 @@ in {
         description = "Individual files denied for Read/Write/Edit. Each generates 3 deny rules (no glob).";
       };
 
-      deniedAbsolutePaths = mkOption {
-        type = types.listOf types.str;
+      deniedAbsolutePaths = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
         default = ["/run/secrets/**"];
         description = "Absolute paths denied for Read/Write/Edit. Used as-is (no tilde expansion).";
       };
 
-      deniedBashCommands = mkOption {
-        type = types.listOf types.str;
+      deniedBashCommands = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
         default = ["git push" "git push *"];
         description = "Bash commands to deny. Each generates a Bash(<cmd>:*) deny rule.";
       };
 
-      deniedGitOperations = mkOption {
-        type = types.listOf types.str;
+      deniedGitOperations = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
         default = ["mcp__git__git_add" "mcp__git__git_commit" "mcp__git__git_reset" "mcp__git__git_checkout"];
         description = "MCP git tool names to deny";
       };
 
-      extraDenied = mkOption {
-        type = types.listOf types.str;
+      extraDenied = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
         default = [];
         description = "Additional raw deny rules merged with generated defaults";
       };
 
-      allowedTools = mkOption {
-        type = types.listOf types.str;
+      allowedTools = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
         default = [
           "Bash(ls:*)"
           "Bash(head:*)"
@@ -462,21 +461,21 @@ in {
         description = "Tools pre-approved for use without confirmation";
       };
 
-      extraAllowed = mkOption {
-        type = types.listOf types.str;
+      extraAllowed = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
         default = [];
         description = "Additional allow rules merged with defaults";
       };
 
-      confirmBeforeWrite = mkOption {
-        type = types.listOf (types.submodule {
+      confirmBeforeWrite = lib.mkOption {
+        type = lib.types.listOf (lib.types.submodule {
           options = {
-            tool = mkOption {
-              type = types.str;
+            tool = lib.mkOption {
+              type = lib.types.str;
               description = "Tool matcher (regex matched against tool name)";
             };
-            reason = mkOption {
-              type = types.str;
+            reason = lib.mkOption {
+              type = lib.types.str;
               description = "Human-readable reason shown in the confirmation prompt";
             };
           };
@@ -507,15 +506,15 @@ in {
       };
     };
 
-    settingsFragment = mkOption {
-      type = types.attrsOf types.anything;
+    settingsFragment = lib.mkOption {
+      type = lib.types.attrsOf lib.types.anything;
       readOnly = true;
       internal = true;
       description = "Generated settings.json fragment (hooks + deny permissions)";
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     assertions = [
       {
         assertion = cfg.hooks.notification.ntfy.enable -> cfg.hooks.notification.ntfy.topicFile != null;
@@ -525,9 +524,9 @@ in {
     programs.claude-code.security.settingsFragment = {
       hooks = {
         PreToolUse =
-          (optional cfg.hooks.bashValidation.enable bashValidationHook)
-          ++ (map mkConfirmHook cfg.permissions.confirmBeforeWrite);
-        Notification = optional cfg.hooks.notification.enable notificationHook;
+          (lib.optional cfg.hooks.bashValidation.enable bashValidationHook)
+          ++ (lib.map mkConfirmHook cfg.permissions.confirmBeforeWrite);
+        Notification = lib.optional cfg.hooks.notification.enable notificationHook;
       };
       permissions = {
         allow = cfg.permissions.allowedTools ++ cfg.permissions.extraAllowed;

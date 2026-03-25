@@ -3,7 +3,7 @@
   custom = {
     hostname = "nixos";
     system = "aarch64-linux";
-    configPath = "/home/${config.custom.user}/.config/nix";
+    configPath = "${config.custom.homeDir}/.config/nix";
     sshAgent = "";
   };
 }

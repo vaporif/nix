@@ -21,6 +21,8 @@
       LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
       export LIBCLANG_PATH
 
+      mkdir -p "$HOME/Library/Application Support/kurtosis"
+
       cat >> "$PROFILE_FILE" <<SBPL
       ;; Scoped mach-lookup: only services needed beyond system.sb
       ;; system.sb already allows: cfprefsd, trustd, notification_center,
@@ -73,12 +75,15 @@
           "$HOME/.cache/huggingface"
           "$HOME/.cache/gh"
           "$HOME/.serena"
+          "$HOME/Library/Application Support/kurtosis"
+          "$HOME/.orbstack/run"
         ];
         ro = [
           "$HOME/.config/claude-rules"
           "$HOME/.config/nix-darwin"
           "$HOME/.ssh/known_hosts"
           "$HOME/.ssh/config"
+          "$HOME/.docker/config.json"
           "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
         ];
         env = sandboxShared.sharedEnvNames;

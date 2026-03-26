@@ -151,10 +151,9 @@ in {
       shellAliases = {
         t = "y";
         g = "lazygit";
-        a = claudeSandboxed;
-        ap = "${claudeSandboxed} --print";
-        ai = "${claudeSandboxed} --dangerously-skip-permissions";
-        ar = "${claudeSandboxed} --resume";
+        a = "${claudeSandboxed} --dangerously-skip-permissions";
+        ap = "${claudeSandboxed} --dangerously-skip-permissions --print";
+        ar = "${claudeSandboxed} --dangerously-skip-permissions --resume";
         au = "claude";
         aup = "claude --print";
         aur = "claude --resume";

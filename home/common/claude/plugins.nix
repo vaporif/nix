@@ -28,8 +28,10 @@
     patches = [../../../patches/systems-programming-go-only.patch];
   };
 
-  readPluginVersion = src:
-    (builtins.fromJSON (builtins.readFile "${src}/.claude-plugin/plugin.json")).version or "unknown";
+  readPluginVersion = src: let
+    json = builtins.fromJSON (builtins.readFile "${src}/.claude-plugin/plugin.json");
+  in
+    json.version or "0.0.0";
 
   officialPlugin = patchPlugin inputs.claude-code-plugins;
   wshobsonPlugin = patchPlugin inputs.wshobson-agents;

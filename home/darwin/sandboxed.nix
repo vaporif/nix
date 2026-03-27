@@ -42,6 +42,8 @@
       ;; TLS certificate chain validation + HTTP auth broker (needed for OAuth refresh)
       (allow mach-lookup (global-name "com.apple.securityd"))
       (allow mach-lookup (global-name "com.apple.CFNetwork.AuthBrokerAgent"))
+      ;; Docker/OrbStack needs SCDynamicStore for network configuration
+      (allow mach-lookup (global-name "com.apple.SystemConfiguration.configd"))
 
       (allow user-preference-read)
       (allow sysctl-read)
@@ -77,6 +79,9 @@
           "$HOME/.serena"
           "$HOME/Library/Application Support/kurtosis"
           "$HOME/.orbstack/run"
+        ];
+        rox = [
+          "/Applications/OrbStack.app/Contents/MacOS/xbin"
         ];
         ro = [
           "$HOME/.config/claude-rules"

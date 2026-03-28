@@ -28,7 +28,9 @@
 
       pkgs.bacon
       pkgs.cargo-info
+      pkgs.cargo-depgraph
       pkgs.rusty-man
+      pkgs.graphviz
 
       pkgs.yt-dlp
 

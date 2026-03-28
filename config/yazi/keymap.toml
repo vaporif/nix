@@ -8,9 +8,9 @@ run = "cd ~/Repos/"
 desc = "Go to [r]epos"
 
 [[mgr.prepend_keymap]]
-on = ["b", "q"]
-run = "cd ~/Repos/quarry"
-desc = "Go to [q]uarry"
+on = ["b", "g"]
+run = "cd ~/Repos/glint"
+desc = "Go to [g]lint"
 
 [[mgr.prepend_keymap]]
 on = ["b", "v"]

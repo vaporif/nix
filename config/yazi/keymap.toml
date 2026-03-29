@@ -13,6 +13,11 @@ run = "cd ~/Repos/quarry/glint"
 desc = "Go to [g]lint"
 
 [[mgr.prepend_keymap]]
+on = ["b", "g"]
+run = "cd ~/Repos/parry"
+desc = "Go to [p]arry"
+
+[[mgr.prepend_keymap]]
 on = ["b", "m"]
 run = "cd ~/Repos/mercury"
 desc = "Go to [m]ercury"

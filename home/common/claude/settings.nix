@@ -34,6 +34,7 @@ in {
     ".claude/settings.json".text = builtins.toJSON {
       "$schema" = "https://json.schemastore.org/claude-code-settings.json";
       alwaysThinkingEnabled = true;
+      skipDangerousModePermissionPrompt = true;
       teammateMode = "tmux";
       inherit (config.custom.claude) enabledPlugins;
       statusLine = {

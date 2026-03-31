@@ -1,6 +1,6 @@
 diff -ruN a/skills/brainstorming/SKILL.md b/skills/brainstorming/SKILL.md
---- a/skills/brainstorming/SKILL.md	2026-03-26 15:08:55
-+++ b/skills/brainstorming/SKILL.md	2026-03-26 15:10:16
+--- a/skills/brainstorming/SKILL.md	2026-03-31 01:58:40
++++ b/skills/brainstorming/SKILL.md	2026-03-31 02:46:37
 @@ -22,20 +22,53 @@
  You MUST create a task for each of these items and complete them in order:
  
@@ -114,7 +114,23 @@ diff -ruN a/skills/brainstorming/SKILL.md b/skills/brainstorming/SKILL.md
  
  ## The Process
  
-@@ -111,29 +161,35 @@
+@@ -82,6 +132,7 @@
+ - Propose 2-3 different approaches with trade-offs
+ - Present options conversationally with your recommendation and reasoning
+ - Lead with your recommended option and explain why
++- For each approach, list concrete pros and cons (see "Document Pros and Cons" section below)
+ 
+ **Presenting the design:**
+ 
+@@ -90,6 +141,7 @@
+ - Ask after each section whether it looks right so far
+ - Cover: architecture, components, data flow, error handling, testing
+ - Be ready to go back and clarify if something doesn't make sense
++- Where the design makes a choice between alternatives, include the pros and cons that led to that choice
+ 
+ **Design for isolation and clarity:**
+ 
+@@ -111,29 +163,85 @@
  - Write the validated design (spec) to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
    - (User preferences for spec location override this default)
  - Use elements-of-style:writing-clearly-and-concisely skill if available
@@ -131,11 +147,12 @@ diff -ruN a/skills/brainstorming/SKILL.md b/skills/brainstorming/SKILL.md
 -4. **Ambiguity check:** Could any requirement be interpreted two different ways? If so, pick one and make it explicit.
 +1. Dispatch `spec-document-reviewer` subagent using the template at `skills/brainstorming/spec-document-reviewer-prompt.md`
 +2. Provide the subagent with the spec file path and precise review context — never your session history
-+3. If issues are found, fix them and re-dispatch the reviewer (max 3 iterations)
-+4. If still failing after 3 iterations, surface the remaining issues to the user
++3. If issues are found, fix them and re-dispatch the reviewer
++4. Keep looping until 0 critical or medium issues remain
++5. If after 10 iterations there are still critical issues or a pattern of recurring medium issues, stop and ask the user for direction
  
 -Fix any issues inline. No need to re-review — just fix and move on.
-+Only proceed once the reviewer approves.
++Only proceed once the reviewer approves with zero critical/medium issues.
  
  **User Review Gate:**
  After the spec review loop passes, ask the user to review the written spec before proceeding:
@@ -157,13 +174,105 @@ diff -ruN a/skills/brainstorming/SKILL.md b/skills/brainstorming/SKILL.md
 +    2. **Code quality review** (only after spec compliance passes): team-reviewer checks file responsibilities, decomposition, codebase pattern adherence, and standard quality concerns. Critical/Important issues block; Minor issues are noted. Implementer fixes and re-reviews until approved.
 +    3. **Final holistic review**: after all tasks pass both stages, team-reviewer performs a cross-stream review checking consistency, integration seams, and cross-cutting concerns that per-task reviews might miss.
 +    Never skip reviews. Never start code quality review before spec compliance passes. Never mark a task complete with open review issues.
++
++## Humanize All Non-Code Prose
++
++Apply the `humanizer` skill to ALL non-code text output throughout the entire brainstorming workflow. This includes:
++
++- **Design presentations** (approach proposals, design section walkthroughs)
++- **Spec documents** (the written design doc saved to disk)
++- **Plan prose** (goal descriptions, architecture summaries, task descriptions in plans)
++- **Questions and explanations** (clarifying questions, approach reasoning)
++
++**Does NOT apply to:** code blocks, file paths, commands, configuration snippets, or structured data (tables, checklists).
++
++**How to apply:** Before presenting any non-code prose to the user or writing it to a file, mentally run it through the humanizer patterns. Strip AI-isms inline as you write - don't produce slop then clean it up. Specifically watch for:
++- Significance inflation ("pivotal", "crucial", "vital role", "testament")
++- Promotional language ("vibrant", "groundbreaking", "seamless")
++- Copula avoidance ("serves as", "stands as" instead of "is")
++- Superficial -ing phrases ("highlighting", "underscoring", "fostering")
++- Rule-of-three lists, negative parallelisms ("not just X, but Y")
++- Filler ("in order to", "it is important to note")
++- Sycophantic openers ("Great question!", "Absolutely!")
++- Generic positive conclusions ("the future looks bright")
++- Em dash overuse, excessive boldface, emoji decoration
++- Inline-header vertical lists (prefer flowing prose)
++
++Write like a person talking to another person. Vary sentence rhythm. Have opinions. Be specific.
++
++## Document Pros and Cons for Every Decision
++
++Every design decision, architecture choice, library selection, or approach recommendation must include explicit pros and cons. This applies throughout the entire workflow:
++
++**During brainstorming:**
++- Each of the 2-3 proposed approaches needs a pros/cons list
++- When recommending one approach, explain which cons you're accepting and why
++
++**In spec documents:**
++- Architecture decisions get a "Pros / Cons / Why we chose this" block
++- Library or tool selections get the same treatment
++- If a decision has no meaningful cons, you probably haven't thought hard enough about it
++
++**In implementation plans:**
++- Task-level design choices (data structure selection, API shape, error handling strategy) include brief pros/cons
++- Keep it proportional: a minor choice gets a one-liner each, a major choice gets a full list
++
++**Format:** Keep it simple. No elaborate tables needed. Just:
++- Pros: what you gain
++- Cons: what you give up or risk
++- (Optional) Why: the tiebreaker reasoning if not obvious
++
++**The point is not ceremony.** It's making trade-offs visible so the user (and future readers of the spec/plan) can see what was considered and why.
  
  ## Key Principles
  
+diff -ruN a/skills/executing-plans/SKILL.md b/skills/executing-plans/SKILL.md
+--- a/skills/executing-plans/SKILL.md	2026-03-31 01:58:40
++++ b/skills/executing-plans/SKILL.md	2026-03-31 02:38:58
+@@ -27,7 +27,12 @@
+ 1. Mark as in_progress
+ 2. Follow each step exactly (plan has bite-sized steps)
+ 3. Run verifications as specified
+-4. Mark as completed
++4. After verifications pass, do a prose cleanup pass on changed files:
++   - Strip comments that restate what the code does
++   - Strip AI-obvious comments ("Ensures proper...", "Leverages...", "Facilitates...")
++   - Humanize remaining comments, docstrings, and error messages — direct and specific, no filler
++   - Keep comments that explain *why*, remove those that just say *what*
++5. Mark as completed
+ 
+ ### Step 3: Complete Development
+ 
 diff -ruN a/skills/subagent-driven-development/SKILL.md b/skills/subagent-driven-development/SKILL.md
---- a/skills/subagent-driven-development/SKILL.md	2026-03-26 15:08:55
-+++ b/skills/subagent-driven-development/SKILL.md	2026-03-26 15:10:32
-@@ -99,6 +99,20 @@
+--- a/skills/subagent-driven-development/SKILL.md	2026-03-31 01:58:40
++++ b/skills/subagent-driven-development/SKILL.md	2026-03-31 02:46:42
+@@ -53,8 +53,9 @@
+         "Spec reviewer subagent confirms code matches spec?" [shape=diamond];
+         "Implementer subagent fixes spec gaps" [shape=box];
+         "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [shape=box];
+-        "Code quality reviewer subagent approves?" [shape=diamond];
++        "0 critical/medium issues?" [shape=diamond];
+         "Implementer subagent fixes quality issues" [shape=box];
++        "Prose cleanup pass\n(humanize comments, strip AI slop)" [shape=box];
+         "Mark task complete in TodoWrite" [shape=box];
+     }
+ 
+@@ -73,10 +74,11 @@
+     "Spec reviewer subagent confirms code matches spec?" -> "Implementer subagent fixes spec gaps" [label="no"];
+     "Implementer subagent fixes spec gaps" -> "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)" [label="re-review"];
+     "Spec reviewer subagent confirms code matches spec?" -> "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [label="yes"];
+-    "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" -> "Code quality reviewer subagent approves?";
+-    "Code quality reviewer subagent approves?" -> "Implementer subagent fixes quality issues" [label="no"];
++    "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" -> "0 critical/medium issues?";
++    "0 critical/medium issues?" -> "Implementer subagent fixes quality issues" [label="no"];
+     "Implementer subagent fixes quality issues" -> "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [label="re-review"];
+-    "Code quality reviewer subagent approves?" -> "Mark task complete in TodoWrite" [label="yes"];
++    "0 critical/medium issues?" -> "Prose cleanup pass\n(humanize comments, strip AI slop)" [label="yes"];
++    "Prose cleanup pass\n(humanize comments, strip AI slop)" -> "Mark task complete in TodoWrite";
+     "Mark task complete in TodoWrite" -> "More tasks remain?";
+     "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
+     "More tasks remain?" -> "Dispatch final code reviewer subagent for entire implementation" [label="no"];
+@@ -99,6 +101,20 @@
  - Touches multiple files with integration concerns → standard model
  - Requires design judgment or broad codebase understanding → most capable model
  
@@ -184,9 +293,44 @@ diff -ruN a/skills/subagent-driven-development/SKILL.md b/skills/subagent-driven
  ## Handling Implementer Status
  
  Implementer subagents report one of four statuses. Handle each appropriately:
+@@ -255,12 +271,33 @@
+ **If reviewer finds issues:**
+ - Implementer (same subagent) fixes them
+ - Reviewer reviews again
+-- Repeat until approved
++- Keep looping until 0 critical and 0 medium/important issues
++- If after 10 iterations there are still critical issues or recurring medium/important issues, stop and ask the user for direction
++- Minor issues are noted but don't block
+ - Don't skip the re-review
+ 
+ **If subagent fails task:**
+ - Dispatch fix subagent with specific instructions
+ - Don't try to fix manually (context pollution)
++
++## Prose Cleanup Pass
++
++After code quality review passes (0 critical/medium), run a prose cleanup pass on the task's changed files before marking it complete. This is a quick scan, not a full review.
++
++**What to fix:**
++- Strip comments that just restate what the code does ("// increment counter", "// return result")
++- Strip comments that smell like AI generated them ("// Ensures proper handling of...", "// Leverages the X pattern to facilitate...")
++- Rewrite remaining comments to sound human — direct, specific, no filler
++- Humanize docstrings: no "This function serves as...", no "facilitates", no "ensures". Just say what it does.
++- Humanize error messages: no "Failed to successfully...", no "Unable to properly..."
++- Humanize commit messages if they haven't been committed yet
++
++**What NOT to touch:**
++- Code logic, structure, tests
++- Comments that explain *why* (keep those, they're valuable)
++- License headers, generated code markers
++
++**How to dispatch:** Send the implementer subagent a focused cleanup prompt with the list of changed files. Keep it short — this is a 2-minute pass, not a rewrite.
+ 
+ ## Integration
+ 
 diff -ruN a/skills/subagent-driven-development/code-quality-reviewer-prompt.md b/skills/subagent-driven-development/code-quality-reviewer-prompt.md
---- a/skills/subagent-driven-development/code-quality-reviewer-prompt.md	2026-03-26 15:08:55
-+++ b/skills/subagent-driven-development/code-quality-reviewer-prompt.md	2026-03-26 15:10:43
+--- a/skills/subagent-driven-development/code-quality-reviewer-prompt.md	2026-03-31 01:58:40
++++ b/skills/subagent-driven-development/code-quality-reviewer-prompt.md	2026-03-31 02:46:56
 @@ -6,8 +6,10 @@
  
  **Only dispatch after spec compliance review passes.**
@@ -199,9 +343,17 @@ diff -ruN a/skills/subagent-driven-development/code-quality-reviewer-prompt.md b
    Use template at requesting-code-review/code-reviewer.md
  
    WHAT_WAS_IMPLEMENTED: [from implementer's report]
+@@ -24,3 +26,7 @@
+ - Did this implementation create new files that are already large, or significantly grow existing files? (Don't flag pre-existing file sizes — focus on what this change contributed.)
+ 
+ **Code reviewer returns:** Strengths, Issues (Critical/Important/Minor), Assessment
++
++**Review loop rules:** Keep reviewing and fixing until 0 Critical and 0 Important issues remain. Minor issues are noted but don't block approval. If after 10 iterations critical or recurring important issues persist, halt and ask the user for direction.
++
++**After approval:** dispatch a prose cleanup pass (see Prose Cleanup Pass in SKILL.md) to humanize comments, docstrings, and error messages, and strip AI-obvious comments before marking the task complete.
 diff -ruN a/skills/subagent-driven-development/implementer-prompt.md b/skills/subagent-driven-development/implementer-prompt.md
---- a/skills/subagent-driven-development/implementer-prompt.md	2026-03-26 15:08:55
-+++ b/skills/subagent-driven-development/implementer-prompt.md	2026-03-26 15:10:56
+--- a/skills/subagent-driven-development/implementer-prompt.md	2026-03-31 01:58:40
++++ b/skills/subagent-driven-development/implementer-prompt.md	2026-03-31 01:59:45
 @@ -3,7 +3,7 @@
  Use this template when dispatching an implementer subagent.
  
@@ -211,9 +363,31 @@ diff -ruN a/skills/subagent-driven-development/implementer-prompt.md b/skills/su
    description: "Implement Task N: [task name]"
    prompt: |
      You are implementing Task N: [task name]
+@@ -70,6 +70,21 @@
+     specifically what you're stuck on, what you've tried, and what kind of help you need.
+     The controller can provide more context, re-dispatch with a more capable model,
+     or break the task into smaller pieces.
++
++    ## Prose Quality
++
++    Any non-code text you write (comments, docstrings, error messages, documentation,
++    commit messages) must sound like a person wrote it. Avoid AI-isms: no "serves as",
++    "leverages", "ensures", "facilitates", no significance inflation ("crucial",
++    "pivotal"), no filler ("in order to", "it is important to note"), no sycophantic
++    tone. Be direct and specific.
++
++    ## Document Decision Trade-offs
++
++    When you make a choice not explicitly specified in the plan (picking between two
++    valid approaches, choosing a data structure, deciding on an error handling pattern),
++    note the pros and cons briefly in your report. If the decision is significant enough
++    to affect the design, flag it as DONE_WITH_CONCERNS so the controller can review it.
+ 
+     ## Before Reporting Back: Self-Review
+ 
 diff -ruN a/skills/writing-plans/SKILL.md b/skills/writing-plans/SKILL.md
---- a/skills/writing-plans/SKILL.md	2026-03-26 15:08:55
-+++ b/skills/writing-plans/SKILL.md	2026-03-26 15:11:35
+--- a/skills/writing-plans/SKILL.md	2026-03-31 01:58:40
++++ b/skills/writing-plans/SKILL.md	2026-03-31 01:59:31
 @@ -7,7 +7,7 @@
  
  ## Overview
@@ -244,8 +418,24 @@ diff -ruN a/skills/writing-plans/SKILL.md b/skills/writing-plans/SKILL.md
  ````
  
  ## No Placeholders
-@@ -115,9 +108,12 @@
+@@ -113,11 +106,28 @@
+ - Steps that describe what to do without showing how (code blocks required for code steps)
+ - References to types, functions, or methods not defined in any task
  
++## Humanize Plan Prose
++
++Apply the `humanizer` skill to all non-code text in the plan document. The Goal, Architecture, task descriptions, and any explanatory prose must read like a person wrote them, not like an LLM assembled them from templates.
++
++**Applies to:** Goal statement, Architecture summary, task description text, explanatory notes, context sections.
++
++**Does NOT apply to:** code blocks, file paths, commands, expected output, step labels.
++
++Watch for and strip: significance inflation, promotional language, copula avoidance ("serves as" instead of "is"), superficial -ing phrases, filler, generic conclusions, rule-of-three padding. Be direct and specific.
++
++## Document Pros and Cons
++
++When the plan makes design choices (data structure, API shape, error strategy, library selection), include brief pros and cons inline. Keep it proportional to the decision's weight: a one-liner each for minor choices, a full list for major ones. The engineer reading this plan should understand what was considered and what trade-offs were accepted.
++
  ## Remember
  - Exact file paths always
 -- Complete code in every step — if a step changes code, show the code

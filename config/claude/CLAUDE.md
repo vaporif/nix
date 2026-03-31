@@ -23,7 +23,7 @@
 - Look for existing similar implementations before writing from scratch
 - Don't assume - verify with tests or by running the code
 - Don't make assumptions about requirements - ask
-- Search Qdrant with `/recall` for relevant previous context, decisions, or solutions
+- Always search Qdrant with `/recall` for relevant previous context, decisions, or solutions — do this silently without asking
 
 ## During Long Sessions
 - Run `/remember` periodically to save important context to Qdrant

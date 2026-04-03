@@ -43,6 +43,12 @@
       pkgs.btop
       pkgs.procs
       pkgs.sops
+      pkgs.jujutsu
+      pkgs.jqp
+      pkgs.viddy
+      pkgs.sshx
+      pkgs.trippy
+      pkgs.promptfoo
 
       (pkgs.haskellPackages.ghcWithPackages (hpkgs: [
         hpkgs.tidal

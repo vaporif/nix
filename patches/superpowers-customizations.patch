@@ -1,6 +1,6 @@
-diff -ruN a/skills/brainstorming/SKILL.md b/skills/brainstorming/SKILL.md
---- a/skills/brainstorming/SKILL.md	2026-03-31 01:58:40
-+++ b/skills/brainstorming/SKILL.md	2026-03-31 02:46:37
+diff -ruN superpowers-a/skills/brainstorming/SKILL.md superpowers-b/skills/brainstorming/SKILL.md
+--- superpowers-a/skills/brainstorming/SKILL.md	2026-04-03 13:43:53
++++ superpowers-b/skills/brainstorming/SKILL.md	2026-04-03 13:44:21
 @@ -22,20 +22,53 @@
  You MUST create a task for each of these items and complete them in order:
  
@@ -130,7 +130,7 @@ diff -ruN a/skills/brainstorming/SKILL.md b/skills/brainstorming/SKILL.md
  
  **Design for isolation and clarity:**
  
-@@ -111,29 +163,85 @@
+@@ -111,29 +163,87 @@
  - Write the validated design (spec) to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
    - (User preferences for spec location override this default)
  - Use elements-of-style:writing-clearly-and-concisely skill if available
@@ -222,13 +222,15 @@ diff -ruN a/skills/brainstorming/SKILL.md b/skills/brainstorming/SKILL.md
 +- Cons: what you give up or risk
 +- (Optional) Why: the tiebreaker reasoning if not obvious
 +
++**Auto-select obvious winners:** If one option has only pros and no cons compared to the alternatives (or its cons are strictly a subset of every other option's cons), auto-select it. Still show all options with their pros/cons so the reasoning is visible, but announce: "Auto-selected option N — it has no downsides compared to the alternatives. Let me know if you'd prefer a different choice." If the user doesn't object, proceed with it.
++
 +**The point is not ceremony.** It's making trade-offs visible so the user (and future readers of the spec/plan) can see what was considered and why.
  
  ## Key Principles
  
-diff -ruN a/skills/executing-plans/SKILL.md b/skills/executing-plans/SKILL.md
---- a/skills/executing-plans/SKILL.md	2026-03-31 01:58:40
-+++ b/skills/executing-plans/SKILL.md	2026-03-31 02:38:58
+diff -ruN superpowers-a/skills/executing-plans/SKILL.md superpowers-b/skills/executing-plans/SKILL.md
+--- superpowers-a/skills/executing-plans/SKILL.md	2026-04-03 13:43:53
++++ superpowers-b/skills/executing-plans/SKILL.md	2026-04-03 13:44:01
 @@ -27,7 +27,12 @@
  1. Mark as in_progress
  2. Follow each step exactly (plan has bite-sized steps)
@@ -243,9 +245,9 @@ diff -ruN a/skills/executing-plans/SKILL.md b/skills/executing-plans/SKILL.md
  
  ### Step 3: Complete Development
  
-diff -ruN a/skills/subagent-driven-development/SKILL.md b/skills/subagent-driven-development/SKILL.md
---- a/skills/subagent-driven-development/SKILL.md	2026-03-31 01:58:40
-+++ b/skills/subagent-driven-development/SKILL.md	2026-03-31 02:46:42
+diff -ruN superpowers-a/skills/subagent-driven-development/SKILL.md superpowers-b/skills/subagent-driven-development/SKILL.md
+--- superpowers-a/skills/subagent-driven-development/SKILL.md	2026-04-03 13:43:53
++++ superpowers-b/skills/subagent-driven-development/SKILL.md	2026-04-03 13:44:01
 @@ -53,8 +53,9 @@
          "Spec reviewer subagent confirms code matches spec?" [shape=diamond];
          "Implementer subagent fixes spec gaps" [shape=box];
@@ -328,9 +330,9 @@ diff -ruN a/skills/subagent-driven-development/SKILL.md b/skills/subagent-driven
  
  ## Integration
  
-diff -ruN a/skills/subagent-driven-development/code-quality-reviewer-prompt.md b/skills/subagent-driven-development/code-quality-reviewer-prompt.md
---- a/skills/subagent-driven-development/code-quality-reviewer-prompt.md	2026-03-31 01:58:40
-+++ b/skills/subagent-driven-development/code-quality-reviewer-prompt.md	2026-03-31 02:46:56
+diff -ruN superpowers-a/skills/subagent-driven-development/code-quality-reviewer-prompt.md superpowers-b/skills/subagent-driven-development/code-quality-reviewer-prompt.md
+--- superpowers-a/skills/subagent-driven-development/code-quality-reviewer-prompt.md	2026-04-03 13:43:53
++++ superpowers-b/skills/subagent-driven-development/code-quality-reviewer-prompt.md	2026-04-03 13:44:01
 @@ -6,8 +6,10 @@
  
  **Only dispatch after spec compliance review passes.**
@@ -351,9 +353,9 @@ diff -ruN a/skills/subagent-driven-development/code-quality-reviewer-prompt.md b
 +**Review loop rules:** Keep reviewing and fixing until 0 Critical and 0 Important issues remain. Minor issues are noted but don't block approval. If after 10 iterations critical or recurring important issues persist, halt and ask the user for direction.
 +
 +**After approval:** dispatch a prose cleanup pass (see Prose Cleanup Pass in SKILL.md) to humanize comments, docstrings, and error messages, and strip AI-obvious comments before marking the task complete.
-diff -ruN a/skills/subagent-driven-development/implementer-prompt.md b/skills/subagent-driven-development/implementer-prompt.md
---- a/skills/subagent-driven-development/implementer-prompt.md	2026-03-31 01:58:40
-+++ b/skills/subagent-driven-development/implementer-prompt.md	2026-03-31 01:59:45
+diff -ruN superpowers-a/skills/subagent-driven-development/implementer-prompt.md superpowers-b/skills/subagent-driven-development/implementer-prompt.md
+--- superpowers-a/skills/subagent-driven-development/implementer-prompt.md	2026-04-03 13:43:53
++++ superpowers-b/skills/subagent-driven-development/implementer-prompt.md	2026-04-03 13:44:01
 @@ -3,7 +3,7 @@
  Use this template when dispatching an implementer subagent.
  
@@ -385,9 +387,9 @@ diff -ruN a/skills/subagent-driven-development/implementer-prompt.md b/skills/su
  
      ## Before Reporting Back: Self-Review
  
-diff -ruN a/skills/writing-plans/SKILL.md b/skills/writing-plans/SKILL.md
---- a/skills/writing-plans/SKILL.md	2026-03-31 01:58:40
-+++ b/skills/writing-plans/SKILL.md	2026-03-31 01:59:31
+diff -ruN superpowers-a/skills/writing-plans/SKILL.md superpowers-b/skills/writing-plans/SKILL.md
+--- superpowers-a/skills/writing-plans/SKILL.md	2026-04-03 13:43:53
++++ superpowers-b/skills/writing-plans/SKILL.md	2026-04-03 13:44:28
 @@ -7,7 +7,7 @@
  
  ## Overview
@@ -434,7 +436,7 @@ diff -ruN a/skills/writing-plans/SKILL.md b/skills/writing-plans/SKILL.md
 +
 +## Document Pros and Cons
 +
-+When the plan makes design choices (data structure, API shape, error strategy, library selection), include brief pros and cons inline. Keep it proportional to the decision's weight: a one-liner each for minor choices, a full list for major ones. The engineer reading this plan should understand what was considered and what trade-offs were accepted.
++When the plan makes design choices (data structure, API shape, error strategy, library selection), include brief pros and cons inline. Keep it proportional to the decision's weight: a one-liner each for minor choices, a full list for major ones. The engineer reading this plan should understand what was considered and what trade-offs were accepted. If one option is strictly better (all pros, no cons vs alternatives), auto-select it and note: "Auto-selected — no downsides compared to alternatives. Let me know if you disagree."
 +
  ## Remember
  - Exact file paths always

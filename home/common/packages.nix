@@ -43,7 +43,6 @@
       pkgs.btop
       pkgs.procs
       pkgs.sops
-      pkgs.jujutsu
       pkgs.jqp
       pkgs.viddy
       pkgs.sshx

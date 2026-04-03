@@ -14,7 +14,7 @@ desc = "Go to [g]lint"
 
 [[mgr.prepend_keymap]]
 on = ["b", "h"]
-run = "cd ~/Repos/quarry/nephila"
+run = "cd ~/Repos/nephila"
 desc = "Go to ne[p]hila"
 
 [[mgr.prepend_keymap]]

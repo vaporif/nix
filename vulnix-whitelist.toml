@@ -6,7 +6,7 @@
 comment = "Haskell async library, not npm async"
 
 [curl]
-comment = "Haskell curl bindings, not curl CLI"
+comment = "Haskell curl bindings (0.4.x) + real curl CLI (8.18.0): SMB use-after-free, Negotiate auth reuse, OAuth2 token leak; all fixed in 8.19.0, awaiting upstream"
 
 [Diff]
 comment = "Haskell Diff library"
@@ -254,7 +254,7 @@ cve = ["CVE-2026-22693"]
 
 [libssh]
 comment = "CVE-2026-3731: SFTP OOB read (5.3 CVSS), fixed in 0.11.4; runtime via ffmpeg-headless, low exposure (no untrusted SFTP); awaiting upstream nixpkgs bump"
-cve = ["CVE-2026-3731"]
+cve = ["CVE-2026-3731", "CVE-2026-0968", "CVE-2026-0967", "CVE-2026-0965"]
 
 [libxml2]
 comment = "Build-time XML parser, transitive dep"
@@ -282,3 +282,11 @@ comment = "HTTP/2 library, transitive dep of older curl in build closure"
 
 [unixODBC]
 comment = "Build-time ODBC driver, transitive dep"
+
+[openssh]
+comment = "CVE-2026-35414: authorized_keys principals comma injection; uncommon scenario requiring cert-based auth with comma-in-principal names, not applicable to standard SSH usage"
+cve = ["CVE-2026-35414"]
+
+# False positives - name collisions (Rust crates)
+[yoke]
+comment = "Rust crate (unicode yoke), not Kubernetes Yoke IaC tool"

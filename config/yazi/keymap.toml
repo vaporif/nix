@@ -1,6 +1,32 @@
 [[mgr.prepend_keymap]]
 on = ["<Enter>"]
-run = '''shell 'nvim "$1"' --block'''
+run = "plugin augment-command -- enter"
+desc = "Smart enter (open file or enter dir)"
+
+[[mgr.prepend_keymap]]
+on = ["o"]
+run = "plugin augment-command -- open"
+desc = "Smart open"
+
+[[mgr.prepend_keymap]]
+on = ["l"]
+run = "plugin augment-command -- enter"
+desc = "Smart enter (arrow right)"
+
+[[mgr.prepend_keymap]]
+on = ["h"]
+run = "plugin augment-command -- leave"
+desc = "Smart leave (arrow left)"
+
+[[mgr.prepend_keymap]]
+on = ["F"]
+run = "plugin yafg"
+desc = "Fuzzy find and grep (fzf+rg)"
+
+[[mgr.prepend_keymap]]
+on = ["/"]
+run = "filter --smart"
+desc = "Filter files (smart-case)"
 
 [[mgr.prepend_keymap]]
 on = ["b", "r"]

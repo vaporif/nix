@@ -1,3 +1,17 @@
+require('yafg'):setup {
+  editor = 'nvim',
+}
+
+require('augment-command'):setup {
+  smart_enter = true,
+  smart_paste = false,
+  smart_tab_create = false,
+  smart_tab_switch = false,
+  skip_single_subdirectory_on_enter = true,
+  skip_single_subdirectory_on_leave = true,
+  wraparound_file_navigation = true,
+}
+
 local bookmarks = {}
 
 local path_sep = package.config:sub(1, 1)

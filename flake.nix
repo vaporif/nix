@@ -98,9 +98,21 @@
       url = "github:vaporif/vim-tidal-lua";
       flake = false;
     };
+    go-mod-nvim = {
+      url = "github:syz51/go-mod.nvim";
+      flake = false;
+    };
 
     yamb-yazi = {
       url = "github:h-hg/yamb.yazi";
+      flake = false;
+    };
+    yafg-yazi = {
+      url = "github:XYenon/yafg.yazi";
+      flake = false;
+    };
+    augment-command-yazi = {
+      url = "github:hankertrix/augment-command.yazi";
       flake = false;
     };
     wezterm-agent-deck = {

@@ -79,6 +79,8 @@
           "$HOME/.serena"
           "$HOME/Library/Application Support/kurtosis"
           "$HOME/.orbstack/run"
+          "$HOME/Library/Caches/go-build"
+          "$HOME/go/pkg/mod"
         ];
         rox = [
           "/Applications/OrbStack.app/Contents/MacOS/xbin"

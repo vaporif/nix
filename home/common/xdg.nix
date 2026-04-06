@@ -19,6 +19,14 @@ in {
       source = inputs.yamb-yazi;
       recursive = true;
     };
+    "yazi/plugins/yafg.yazi" = {
+      source = inputs.yafg-yazi;
+      recursive = true;
+    };
+    "yazi/plugins/augment-command.yazi" = {
+      source = inputs.augment-command-yazi;
+      recursive = true;
+    };
     "tidal/Tidal.ghci".source = ../../config/tidal/Tidal.ghci;
     "procs/config.toml".source = ../../config/procs/config.toml;
     "wezterm/colors/earthtone-light.toml".source = "${inputs.earthtone-nvim}/extras/wezterm_light.toml";

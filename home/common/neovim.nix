@@ -196,6 +196,9 @@ in {
             todo-comments-nvim
             nvim-early-retirement
             crates-nvim
+            ((mkPlugin "go-mod.nvim" inputs.go-mod-nvim).overrideAttrs {
+              dependencies = [pkgs.vimPlugins.plenary-nvim];
+            })
             baleia-nvim
             yanky-nvim
             substitute-nvim

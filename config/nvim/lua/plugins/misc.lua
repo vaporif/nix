@@ -58,6 +58,13 @@ require('lze').load {
     end,
   },
   {
+    'go-mod.nvim',
+    ft = 'gomod',
+    after = function()
+      require('go-mod').setup {}
+    end,
+  },
+  {
     'lazydev.nvim',
     ft = 'lua',
     after = function()

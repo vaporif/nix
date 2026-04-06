@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "augment-command-yazi": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1772102720,
+        "narHash": "sha256-ct0ieBbTmQb3LlSWP+txuzmKuugyDRVprFGCvhLOzYQ=",
+        "owner": "hankertrix",
+        "repo": "augment-command.yazi",
+        "rev": "681158d8a088b30ee947c97b864ce300346d9965",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hankertrix",
+        "repo": "augment-command.yazi",
+        "type": "github"
+      }
+    },
     "base16": {
       "inputs": {
         "fromYaml": "fromYaml"
@@ -375,6 +391,22 @@
         "type": "github"
       }
     },
+    "go-mod-nvim": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1743642915,
+        "narHash": "sha256-+USgjGhbqBnZwhgg/83Sb/SvbB91Q44fcwPLj8zoBh4=",
+        "owner": "syz51",
+        "repo": "go-mod.nvim",
+        "rev": "945a52b148b1025fa5e2820aa34ed83f6e90d3ed",
+        "type": "github"
+      },
+      "original": {
+        "owner": "syz51",
+        "repo": "go-mod.nvim",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -650,10 +682,12 @@
     },
     "root": {
       "inputs": {
+        "augment-command-yazi": "augment-command-yazi",
         "claude-code-plugins": "claude-code-plugins",
         "difftastic-nvim": "difftastic-nvim",
         "difftastic-src": "difftastic-src",
         "earthtone-nvim": "earthtone-nvim",
+        "go-mod-nvim": "go-mod-nvim",
         "home-manager": "home-manager",
         "humanizer": "humanizer",
         "mcp-nixos": "mcp-nixos",
@@ -675,6 +709,7 @@
         "wezterm-agent-deck": "wezterm-agent-deck",
         "wrappers": "wrappers",
         "wshobson-agents": "wshobson-agents",
+        "yafg-yazi": "yafg-yazi",
         "yamb-yazi": "yamb-yazi"
       }
     },
@@ -1007,6 +1042,22 @@
         "owner": "vaporif",
         "ref": "agent-teams-proper-tool-names",
         "repo": "agents",
+        "type": "github"
+      }
+    },
+    "yafg-yazi": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1768037934,
+        "narHash": "sha256-xTZ+6KRr85A4QpPWAE9QN1AnUVnCw/tvRvsWOmmayao=",
+        "owner": "XYenon",
+        "repo": "yafg.yazi",
+        "rev": "dd03b133d6cd1ff92368360558da193517169f9e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "XYenon",
+        "repo": "yafg.yazi",
         "type": "github"
       }
     },

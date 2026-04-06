@@ -222,6 +222,7 @@ fetch_usage_limits() {
         token=$(echo "${creds}" | jq -r '.claudeAiOauth.accessToken // empty' 2>/dev/null)
       fi
       ;;
+    *) ;;
   esac
   if [[ -z "${token}" ]] && [[ -f "${creds_file}" ]]; then
     token=$(jq -r '.claudeAiOauth.accessToken // empty' "${creds_file}" 2>/dev/null)

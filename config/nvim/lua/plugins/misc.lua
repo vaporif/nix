@@ -62,6 +62,9 @@ require('lze').load {
     ft = 'gomod',
     after = function()
       require('go-mod').setup {}
+      vim.schedule(function()
+        vim.cmd 'GoModCheck'
+      end)
     end,
   },
   {

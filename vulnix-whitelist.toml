@@ -156,9 +156,6 @@ cve = ["CVE-2022-36073"]
 [yarn]
 comment = "Build dep for typescript-language-server"
 
-[thrift]
-comment = "Build-time only (not runtime): arrow-cpp → pyarrow → mcp-server-qdrant"
-
 # False positives - name collisions
 [git]
 comment = "CVEs are for Jenkins Git plugin, not git itself"
@@ -190,10 +187,6 @@ cve = ["CVE-2021-28794"]
 comment = "VS Code extension CVE, not CLI tool (Haskell build)"
 cve = ["CVE-2021-28794"]
 
-[giflib]
-comment = "Runtime dep: pillow → mcp-server-qdrant; DoS via crafted GIF (low risk, no untrusted GIF processing)"
-cve = ["CVE-2024-45993", "CVE-2026-26740"]
-
 [openexr]
 comment = "Build dep: libjxl image processing"
 
@@ -215,35 +208,16 @@ comment = "System OpenSSL from nixpkgs, awaiting upstream fix"
 [vim]
 comment = "Build-time only: vim-gen-doc-hook generates :helptags for neovim plugins"
 
-[cryptography]
-comment = "CVE-2026-26007: SECT curve subgroup attack, fixed in 46.0.5; build-time only (pikepdf → mcp-server-qdrant); awaiting upstream nixpkgs bump"
-cve = ["CVE-2026-26007"]
-
 [valkey]
 comment = "CVE-2026-27623: DoS via assertion on empty request (7.5 CVSS), fixed in 9.0.3; local-only service, awaiting upstream nixpkgs bump"
 cve = ["CVE-2026-27623"]
 
 # Build-time transitive deps (not in runtime closure)
-[lapack]
-comment = "Build-time only (not runtime): numpy → scipy → mcp-server-qdrant"
-
-[libmemcached]
-comment = "Build-time only (not runtime): pylibmc → moto → mcp-server-qdrant"
-
-[memcached]
-comment = "Build-time only (not runtime): python-memcached → moto → mcp-server-qdrant"
-
 [libsndfile]
 comment = "Build dep: libjack2/ffmpeg (Tidal audio stack)"
 
 [fontforge]
 comment = "Build dep: dejavu-fonts → fontconfig (system fonts)"
-
-[jbig2dec]
-comment = "Build-time only (not runtime): mupdf → pikepdf → mcp-server-qdrant"
-
-[mupdf]
-comment = "Build-time only (not runtime): mupdf → pikepdf → mcp-server-qdrant"
 
 [pnpm]
 comment = "Node package manager, build-time dep"
@@ -273,9 +247,6 @@ comment = "Build-time text rendering, transitive dep"
 
 [sqlite]
 comment = "Build-time database, transitive dep"
-
-[postgresql]
-comment = "Build-time only: psycopg2 → mcp-server-qdrant"
 
 [nghttp2]
 comment = "HTTP/2 library, transitive dep of older curl in build closure"

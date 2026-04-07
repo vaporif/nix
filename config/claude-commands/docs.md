@@ -24,10 +24,11 @@ Review recent changes and update all relevant documentation.
 - Patterns that worked or failed
 - Project-specific conventions
 
-**Qdrant** (via `mcp__qdrant__qdrant-store`):
-- Key decisions made and rationale
-- Error resolutions worth remembering
-- Architecture choices
+**Ferrex** (via `mcp__ferrex__store`):
+- Key decisions made and rationale (as semantic triples)
+- Error resolutions worth remembering (as episodic)
+- Architecture choices (as semantic triples)
+- Workflow knowledge (as procedural)
 
 3. Present a summary of what needs updating
 4. Apply updates after user approval

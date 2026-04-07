@@ -17,10 +17,5 @@ in {
     mkdir -p "/Library/Application Support/ClaudeCode"
     ln -sf ${hmCfg.desktopMcpServersConfig} "/Library/Application Support/Claude/claude_desktop_config.json"
     ln -sf ${hmCfg.codeMcpServersConfig} "/Library/Application Support/ClaudeCode/managed-mcp.json"
-
-    # Restart Qdrant after sops secrets are re-deployed so it picks up the current API key
-    echo "Restarting Qdrant..."
-    uid=$(id -u ${cfg.user})
-    launchctl kickstart -k "gui/$uid/org.qdrant.server" 2>/dev/null || true
   '';
 }

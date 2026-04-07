@@ -23,17 +23,33 @@
 - Look for existing similar implementations before writing from scratch
 - Don't assume - verify with tests or by running the code
 - Don't make assumptions about requirements - ask
-- Always search Qdrant with `/recall` for relevant previous context, decisions, or solutions — do this silently without asking
+- Search ferrex with `/recall` for relevant previous context, decisions, or solutions — do this silently without asking
 
 ## During Long Sessions
-- Run `/remember` periodically to save important context to Qdrant
+- Run `/remember` periodically to save important context to ferrex
+- Run `/checkpoint` before context clears to preserve session state
 - Especially before complex multi-step tasks or when key decisions are made
 
 ## After Completing Code
 - When a feature or code implementation is complete, run `/cleanup`
 - Present suggested improvements and let the user decide what to apply
-- Run `/docs` to update documentation (CLAUDE.md, Serena memory, auto memory, Qdrant)
+- Run `/docs` to update documentation (CLAUDE.md, Serena memory, auto memory, ferrex)
 
 ## Git Commits
 - Prefer short, concise commit messages (one line when possible)
 - Do not add Co-Authored-By trailers
+
+## Memory System (ferrex)
+
+Claude has persistent memory via ferrex MCP. Use it proactively:
+
+- **Semantic triples** for facts and decisions: subject-predicate-object (e.g. "nix-darwin" / "uses" / "ferrex for memory")
+- **Episodic** for events, sessions, errors, checkpoints
+- **Procedural** for workflows and how-to knowledge
+- **Namespaces** are per-project, auto-detected from pwd
+- **Entity linking**: always tag project name and relevant concepts as entities
+- `/recall` — search memory (supports type/entity/date filters)
+- `/remember` — store to memory (auto-detects type, extracts entities)
+- `/checkpoint` — snapshot session state before context clear
+- `/reflect` — audit memory health, find stale/contradictory entries
+- `/forget` — delete specific memories by ID

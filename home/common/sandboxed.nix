@@ -11,10 +11,6 @@
       file = cfg.secrets.tavily-key;
     }
     {
-      env = "QDRANT_API_KEY";
-      file = cfg.secrets.qdrant-api-key;
-    }
-    {
       env = "HF_TOKEN";
       file = cfg.secrets.hf-token-scan-injection;
     }

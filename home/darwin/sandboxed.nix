@@ -77,6 +77,7 @@
           "$HOME/.cache/huggingface"
           "$HOME/.cache/gh"
           "$HOME/.serena"
+          "$HOME/.ferrex"
           "$HOME/Library/Application Support/kurtosis"
           "$HOME/.orbstack/run"
           "$HOME/Library/Caches/go-build"

@@ -4,3 +4,4 @@
 .claude/rules/
 !CLAUDE.md
 result
+.fastembed_cache

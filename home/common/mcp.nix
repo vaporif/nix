@@ -60,7 +60,9 @@
     };
     ferrex = {
       command = "${pkgs.writeShellScript "ferrex-mcp-wrapper" ''
-        exec ${lib.getExe ferrex-package} \
+        export FERREX_LOG=debug
+        export FERREX_LOG_FILE="${homeDir}/.ferrex/ferrex.log"
+        exec ${lib.getExe' ferrex-package "ferrex"} \
           --qdrant-url "${
           if pkgs.stdenv.isDarwin
           then "http://localhost:6334"

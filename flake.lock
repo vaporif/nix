@@ -294,11 +294,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1775613072,
-        "narHash": "sha256-GChbcbt8Zc9oxLCcnyq0Tepz6+c0ZdRAQd+KInVojbE=",
+        "lastModified": 1775651634,
+        "narHash": "sha256-47Rq38eSlb3CGxQChlBlzMW6ORMZealNuzxTkyNeMqQ=",
         "owner": "vaporif",
         "repo": "ferrex",
-        "rev": "cba19d15d5ae57804ea285f65a875986c3f2800f",
+        "rev": "a7d7365e9f71f285fe64833d0beaba2b9325d0eb",
         "type": "github"
       },
       "original": {

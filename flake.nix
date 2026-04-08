@@ -33,8 +33,8 @@
       url = "github:natsukium/mcp-servers-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    mcp-server-qdrant = {
-      url = "github:vaporif/mcp-server-qdrant";
+    ferrex = {
+      url = "github:vaporif/ferrex";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     mcp-nixos = {

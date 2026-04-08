@@ -455,8 +455,11 @@ in {
           "mcp__time__get_current_time"
           "mcp__time__convert_time"
           "mcp__sequential-thinking__sequentialthinking"
-          "mcp__qdrant__qdrant-store"
-          "mcp__qdrant__qdrant-find"
+          "mcp__ferrex__store"
+          "mcp__ferrex__recall"
+          "mcp__ferrex__forget"
+          "mcp__ferrex__reflect"
+          "mcp__ferrex__stats"
         ];
         description = "Tools pre-approved for use without confirmation";
       };
@@ -486,8 +489,12 @@ in {
             reason = "This will delete a file. Confirm this is intended before proceeding.";
           }
           {
-            tool = "mcp__qdrant__qdrant-store";
-            reason = "Storing to Qdrant memory. This persists across sessions and auto-injects into future prompts.";
+            tool = "mcp__ferrex__store";
+            reason = "Storing to ferrex memory. This persists across sessions.";
+          }
+          {
+            tool = "mcp__ferrex__forget";
+            reason = "Deleting from ferrex memory. This is irreversible.";
           }
           {
             tool = "mcp__serena__write_memory";

@@ -20,7 +20,7 @@
 
   mcp-nixos-package = inputs.mcp-nixos.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
-  mcp-qdrant-package = inputs.mcp-server-qdrant.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  ferrex-package = inputs.ferrex.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   youtube-mcp-package = inputs.mcp-youtube.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
@@ -58,17 +58,17 @@
     nixos = {
       command = lib.getExe mcp-nixos-package;
     };
-    qdrant = {
-      command = "${pkgs.writeShellScript "qdrant-mcp-wrapper" ''
-        export QDRANT_API_KEY="''${QDRANT_API_KEY:-$(cat ${cfg.secrets.qdrant-api-key})}"
-        export QDRANT_URL="${
+    ferrex = {
+      command = "${pkgs.writeShellScript "ferrex-mcp-wrapper" ''
+        export FERREX_LOG=debug
+        export FERREX_LOG_FILE="${homeDir}/.ferrex/ferrex.log"
+        exec ${lib.getExe' ferrex-package "ferrex"} \
+          --qdrant-url "${
           if pkgs.stdenv.isDarwin
           then "http://localhost:6334"
           else "http://${cfg.utmGatewayIp}:6334"
-        }"
-        export COLLECTION_NAME="claude-memory"
-        export QDRANT_ALLOW_ARBITRARY_FILTER="true"
-        exec ${lib.getExe mcp-qdrant-package}
+        }" \
+          --db-path "${homeDir}/.ferrex/ferrex.db"
       ''}";
     };
     serena.args = lib.mkAfter ["--project-from-cwd"];

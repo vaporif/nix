@@ -48,7 +48,6 @@ in {
       Label = "org.qdrant.server";
       ProgramArguments = [
         "${pkgs.writeShellScript "qdrant-wrapper" ''
-          export QDRANT__SERVICE__API_KEY="$(cat /run/secrets/qdrant-api-key)"
           exec ${lib.getExe' pkgs.qdrant "qdrant"} --config-path ${homeDir}/.qdrant/config.yaml
         ''}"
       ];

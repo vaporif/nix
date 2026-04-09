@@ -2,13 +2,17 @@
   lib,
   pkgs,
   config,
+  inputs,
   ...
 }: let
   cfg = config.custom;
   homeDir = config.home.homeDirectory;
   homebrewPath = "/opt/homebrew/bin";
 in {
-  imports = [./sandboxed.nix];
+  imports = [
+    ./sandboxed.nix
+    inputs.mac-app-util.homeManagerModules.default
+  ];
 
   home = {
     sessionPath = [homebrewPath];

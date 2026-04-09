@@ -24,10 +24,6 @@ _: {
       "element"
       "claude"
       "brave-browser"
-      {
-        name = "wezterm@nightly";
-        greedy = true;
-      }
       "karabiner-elements"
       "tor-browser"
       "stolendata-mpv"

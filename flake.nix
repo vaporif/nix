@@ -119,8 +119,11 @@
       url = "github:Eric162/wezterm-agent-deck";
       flake = false;
     };
+    flake-utils.url = "github:numtide/flake-utils";
     mac-app-util = {
       url = "github:hraban/mac-app-util";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "flake-utils";
     };
   };
 

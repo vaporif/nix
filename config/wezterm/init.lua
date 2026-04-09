@@ -33,6 +33,8 @@ local config = {
   color_scheme = 'earthtone-light',
   line_height = 1.0,
   front_end = wezterm.target_triple:find 'linux' and 'OpenGL' or 'WebGpu',
+  freetype_load_flags = 'NO_HINTING',
+  freetype_load_target = 'Light',
   max_fps = 120,
   animation_fps = 120,
 

@@ -52,8 +52,10 @@
         value = {installation_mode = "blocked";};
       })
       blockedSearchEngines);
+in {
+  programs.librewolf = {
+    enable = true;
 
-  policies = {
     policies = {
       AppUpdateURL = "https://localhost";
       DisableAppUpdate = true;
@@ -77,9 +79,7 @@
         Title = "LibreWolf Issue Tracker";
         URL = "https://codeberg.org/librewolf/issues";
       };
-
       ExtensionSettings = extensionSettings;
-
       SearchEngines = {
         Default = "DuckDuckGo";
         Remove = ["Google" "Bing" "Amazon.com" "eBay" "Twitter" "Perplexity"];
@@ -129,86 +129,81 @@
         ];
       };
     };
-  };
 
-  overridesCfg = ''
-    // === Privacy & Fingerprinting ===
-    defaultPref("privacy.resistFingerprinting.letterboxing", true);
-    defaultPref("privacy.fingerprintingProtection", true);
-    defaultPref("privacy.trackingprotection.enabled", true);
-    defaultPref("privacy.trackingprotection.socialtracking.enabled", true);
-    defaultPref("privacy.trackingprotection.emailtracking.enabled", true);
-    defaultPref("privacy.annotate_channels.strict_list.enabled", true);
-    defaultPref("privacy.query_stripping.enabled", true);
-    defaultPref("privacy.query_stripping.enabled.pbmode", true);
-    defaultPref("privacy.bounceTrackingProtection.mode", 1);
-    defaultPref("privacy.globalprivacycontrol.was_ever_enabled", true);
-    defaultPref("privacy.history.custom", true);
-    defaultPref("privacy.sanitize.timeSpan", 4);
+    profiles.default = {
+      isDefault = true;
+      settings = {
+        # Privacy & Fingerprinting
+        "privacy.resistFingerprinting.letterboxing" = true;
+        "privacy.fingerprintingProtection" = true;
+        "privacy.trackingprotection.enabled" = true;
+        "privacy.trackingprotection.socialtracking.enabled" = true;
+        "privacy.trackingprotection.emailtracking.enabled" = true;
+        "privacy.annotate_channels.strict_list.enabled" = true;
+        "privacy.query_stripping.enabled" = true;
+        "privacy.query_stripping.enabled.pbmode" = true;
+        "privacy.bounceTrackingProtection.mode" = 1;
+        "privacy.globalprivacycontrol.was_ever_enabled" = true;
+        "privacy.history.custom" = true;
+        "privacy.sanitize.timeSpan" = 4;
 
-    // === DNS over HTTPS (Quad9) ===
-    defaultPref("network.trr.mode", 3);
-    defaultPref("network.trr.uri", "https://dns.quad9.net/dns-query");
+        # DNS over HTTPS (Quad9)
+        "network.trr.mode" = 3;
+        "network.trr.uri" = "https://dns.quad9.net/dns-query";
 
-    // === Network ===
-    defaultPref("network.http.referer.XOriginPolicy", 2);
-    defaultPref("network.http.referer.XOriginTrimmingPolicy", 2);
-    defaultPref("network.http.speculative-parallel-limit", 0);
-    defaultPref("network.prefetch-next", false);
-    defaultPref("network.predictor.enabled", false);
-    defaultPref("network.captive-portal-service.enabled", false);
-    defaultPref("network.connectivity-service.enabled", false);
-    defaultPref("network.early-hints.preconnect.max_connections", 0);
+        # Network
+        "network.http.referer.XOriginPolicy" = 2;
+        "network.http.referer.XOriginTrimmingPolicy" = 2;
+        "network.http.speculative-parallel-limit" = 0;
+        "network.prefetch-next" = false;
+        "network.predictor.enabled" = false;
+        "network.captive-portal-service.enabled" = false;
+        "network.connectivity-service.enabled" = false;
+        "network.early-hints.preconnect.max_connections" = 0;
 
-    // === Content blocking ===
-    defaultPref("browser.contentblocking.category", "strict");
+        # Content blocking
+        "browser.contentblocking.category" = "strict";
 
-    // === UI ===
-    defaultPref("sidebar.verticalTabs", true);
-    defaultPref("sidebar.revamp", true);
-    defaultPref("browser.toolbars.bookmarks.visibility", "never");
-    defaultPref("browser.ctrlTab.sortByRecentlyUsed", true);
-    defaultPref("browser.startup.page", 3);
-    defaultPref("browser.urlbar.speculativeConnect.enabled", false);
+        # UI
+        "sidebar.verticalTabs" = true;
+        "sidebar.revamp" = true;
+        "browser.toolbars.bookmarks.visibility" = "never";
+        "browser.ctrlTab.sortByRecentlyUsed" = true;
+        "browser.startup.page" = 3;
+        "browser.urlbar.speculativeConnect.enabled" = false;
 
-    // === Font ===
-    defaultPref("font.name.serif.x-western", "3270Medium Nerd Font Mono");
+        # Security
+        "dom.security.https_only_mode_ever_enabled" = true;
+        "security.tls.enable_0rtt_data" = false;
+        "permissions.delegation.enabled" = false;
 
-    // === Security ===
-    defaultPref("dom.security.https_only_mode_ever_enabled", true);
-    defaultPref("security.tls.enable_0rtt_data", false);
-    defaultPref("permissions.delegation.enabled", false);
+        # Performance
+        "gfx.webrender.all" = true;
+        "layers.acceleration.force-enabled" = true;
+        "general.smoothScroll" = true;
 
-    // === Performance ===
-    defaultPref("gfx.webrender.all", true);
-    defaultPref("layers.acceleration.force-enabled", true);
-    defaultPref("general.smoothScroll", true);
+        # Fullscreen
+        "full-screen-api.transition-duration.enter" = "0 0";
+        "full-screen-api.transition-duration.leave" = "0 0";
 
-    // === Fullscreen ===
-    defaultPref("full-screen-api.transition-duration.enter", "0 0");
-    defaultPref("full-screen-api.transition-duration.leave", "0 0");
+        # DRM (streaming)
+        "media.eme.enabled" = true;
 
-    // === DRM (streaming) ===
-    defaultPref("media.eme.enabled", true);
+        # Safe browsing
+        "browser.safebrowsing.blockedURIs.enabled" = true;
+        "browser.safebrowsing.malware.enabled" = true;
+        "browser.safebrowsing.phishing.enabled" = true;
+        "browser.safebrowsing.downloads.enabled" = true;
 
-    // === Safe browsing ===
-    defaultPref("browser.safebrowsing.blockedURIs.enabled", true);
-    defaultPref("browser.safebrowsing.malware.enabled", true);
-    defaultPref("browser.safebrowsing.phishing.enabled", true);
-    defaultPref("browser.safebrowsing.downloads.enabled", true);
+        # Search
+        "browser.search.suggest.enabled" = false;
+        "browser.urlbar.suggest.searches" = false;
 
-    // === Search ===
-    defaultPref("browser.search.suggest.enabled", false);
-    defaultPref("browser.urlbar.suggest.searches", false);
-
-    // === Misc ===
-    defaultPref("extensions.pocket.enabled", false);
-    defaultPref("webgl.disabled", false);
-    defaultPref("browser.translations.neverTranslateLanguages", "ru");
-  '';
-in {
-  home.file = {
-    ".librewolf/policies.json".text = builtins.toJSON policies;
-    ".librewolf/librewolf.overrides.cfg".text = overridesCfg;
+        # Misc
+        "extensions.pocket.enabled" = false;
+        "webgl.disabled" = false;
+        "browser.translations.neverTranslateLanguages" = "ru";
+      };
+    };
   };
 }

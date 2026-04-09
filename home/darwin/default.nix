@@ -29,6 +29,8 @@ in {
     file."Library/Application Support/Claude/claude_desktop_config.json".source = cfg.desktopMcpServersConfig;
   };
 
+  stylix.targets.librewolf.profileNames = ["default"];
+
   programs.ssh = {
     extraOptionOverrides = lib.optionalAttrs (cfg.sshAgent == "secretive") {
       IdentityAgent = "${homeDir}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";

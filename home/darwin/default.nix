@@ -15,6 +15,12 @@ in {
   ];
 
   home = {
+    packages = with pkgs; [
+      element-desktop
+      signal-desktop
+      qbittorrent
+      mpv
+    ];
     sessionPath = [homebrewPath];
     sessionVariables =
       lib.optionalAttrs (cfg.sshAgent == "secretive") {

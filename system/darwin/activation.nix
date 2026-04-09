@@ -1,8 +1,4 @@
-{
-  pkgs,
-  config,
-  ...
-}: let
+{config, ...}: let
   cfg = config.custom;
   hmCfg = config.home-manager.users.${cfg.user}.custom;
 in {

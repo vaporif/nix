@@ -61,6 +61,36 @@
     matcher = "";
   };
 
+  readGateHook = {
+    hooks = [
+      {
+        command = "${scripts.read-gate}/bin/claude-read-gate";
+        type = "command";
+      }
+    ];
+    matcher = "Read";
+  };
+
+  editTrackHook = {
+    hooks = [
+      {
+        command = "${scripts.edit-track}/bin/claude-edit-track";
+        type = "command";
+      }
+    ];
+    matcher = "Edit|Write";
+  };
+
+  readOnceCleanupHook = {
+    hooks = [
+      {
+        command = "${scripts.read-once-cleanup}/bin/claude-read-once-cleanup";
+        type = "command";
+      }
+    ];
+    matcher = "";
+  };
+
   denyList =
     (lib.concatMap mkDirDeny cfg.permissions.deniedDirectories)
     ++ (lib.concatMap mkFileDeny cfg.permissions.deniedFiles)
@@ -98,6 +128,14 @@ in {
           type = lib.types.listOf lib.types.str;
           default = ["curl|sh" "wget|python"];
           description = "Pipe patterns (source|sink) that trigger confirmation";
+        };
+      };
+
+      readOnce = {
+        enable = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = "Enable read-once hook: deny redundant file reads using sha256 content hashing";
         };
       };
 
@@ -532,7 +570,10 @@ in {
       hooks = {
         PreToolUse =
           (lib.optional cfg.hooks.bashValidation.enable bashValidationHook)
+          ++ (lib.optional cfg.hooks.readOnce.enable readGateHook)
           ++ (lib.map mkConfirmHook cfg.permissions.confirmBeforeWrite);
+        PostToolUse = lib.optional cfg.hooks.readOnce.enable editTrackHook;
+        SessionStart = lib.optional cfg.hooks.readOnce.enable readOnceCleanupHook;
         Notification = lib.optional cfg.hooks.notification.enable notificationHook;
       };
       permissions = {

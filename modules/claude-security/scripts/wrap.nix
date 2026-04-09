@@ -77,4 +77,43 @@ in {
           --prefix PATH : ${lib.makeBinPath [pkgs.jq pkgs.curl]}
       '';
     };
+
+  read-gate = let
+    script = pkgs.writeShellScriptBin "claude-read-gate" (builtins.readFile ./read-gate.sh);
+  in
+    pkgs.symlinkJoin {
+      name = "claude-read-gate";
+      paths = [script];
+      buildInputs = [pkgs.makeWrapper];
+      postBuild = ''
+        wrapProgram $out/bin/claude-read-gate \
+          --prefix PATH : ${lib.makeBinPath [pkgs.jq pkgs.coreutils]}
+      '';
+    };
+
+  edit-track = let
+    script = pkgs.writeShellScriptBin "claude-edit-track" (builtins.readFile ./edit-track.sh);
+  in
+    pkgs.symlinkJoin {
+      name = "claude-edit-track";
+      paths = [script];
+      buildInputs = [pkgs.makeWrapper];
+      postBuild = ''
+        wrapProgram $out/bin/claude-edit-track \
+          --prefix PATH : ${lib.makeBinPath [pkgs.jq pkgs.coreutils]}
+      '';
+    };
+
+  read-once-cleanup = let
+    script = pkgs.writeShellScriptBin "claude-read-once-cleanup" (builtins.readFile ./read-once-cleanup.sh);
+  in
+    pkgs.symlinkJoin {
+      name = "claude-read-once-cleanup";
+      paths = [script];
+      buildInputs = [pkgs.makeWrapper];
+      postBuild = ''
+        wrapProgram $out/bin/claude-read-once-cleanup \
+          --prefix PATH : ${lib.makeBinPath [pkgs.findutils pkgs.coreutils]}
+      '';
+    };
 }

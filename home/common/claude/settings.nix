@@ -51,7 +51,8 @@ in {
             (parryHook // {matcher = "Bash|Read|Write|Edit|Glob|Grep|WebFetch|WebSearch|NotebookEdit|Task|mcp__.*";})
           ];
         PostToolUse =
-          [
+          sec.hooks.PostToolUse
+          ++ [
             {
               hooks = [
                 {
@@ -65,7 +66,8 @@ in {
           ++ lib.optionals isDarwin [
             (parryHook // {matcher = "Read|WebFetch|Bash|mcp__github__get_file_contents|mcp__filesystem__read_file|mcp__filesystem__read_text_file";})
           ];
-        inherit (sec.hooks) Notification;
+
+        inherit (sec.hooks) Notification SessionStart;
         UserPromptSubmit = lib.optionals isDarwin [
           (parryHook // {matcher = "";})
         ];

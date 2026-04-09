@@ -85,7 +85,7 @@ vim.lsp.config.nixd = {
     client.config.settings = vim.tbl_deep_extend('force', client.config.settings, {
       nixd = { nixpkgs = { expr = nixpkgs_expr } },
     })
-    client.notify('workspace/didChangeConfiguration', { settings = client.config.settings })
+    client:notify('workspace/didChangeConfiguration', { settings = client.config.settings })
   end,
 }
 

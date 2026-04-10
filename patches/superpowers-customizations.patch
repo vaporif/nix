@@ -1,7 +1,7 @@
 diff -ruN superpowers-a/skills/brainstorming/SKILL.md superpowers-b/skills/brainstorming/SKILL.md
---- superpowers-a/skills/brainstorming/SKILL.md	2026-04-07 22:54:28
-+++ superpowers-b/skills/brainstorming/SKILL.md	2026-04-07 22:55:19
-@@ -22,20 +22,61 @@
+--- superpowers-a/skills/brainstorming/SKILL.md	2026-04-10 12:32:47
++++ superpowers-b/skills/brainstorming/SKILL.md	2026-04-10 12:36:03
+@@ -22,32 +22,86 @@
  You MUST create a task for each of these items and complete them in order:
  
  1. **Explore project context** — check files, docs, recent commits
@@ -21,28 +21,20 @@ diff -ruN superpowers-a/skills/brainstorming/SKILL.md superpowers-b/skills/brain
 +4. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
 +5. **Propose 2-3 approaches** — with trade-offs and your recommendation
 +6. **Present design** — in sections scaled to their complexity, get user approval after each section
-+7. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
-+7b. **Update memory** — after the user approves the design:
-+   - `/remember` key design decisions as semantic triples (e.g. "nix-darwin" / "uses" / "ferrex for memory")
-+   - `/remember` architectural choices as semantic triples
-+   - If any recalled memories from step 2 are now invalidated by this design, `/forget` them
-+   - If existing semantic facts contradict the new design, store updated facts with `supersedes` pointing to the old memory ID
-+8. **Spec review loop** — dispatch spec-document-reviewer subagent with precisely crafted review context (never your session history); fix issues and re-dispatch until approved (max 3 iterations, then surface to human)
-+9. **User reviews written spec** — ask user to review the spec file before proceeding
-+10. **Choose execution strategy** — ask the user which implementation approach to use:
-+    - **Sequential** (default): invoke writing-plans → executing-plans (single agent, step by step)
-+    - **Parallel subagents**: invoke writing-plans → subagent-driven-development (independent tasks in parallel, no inter-agent communication)
-+    - **Agent teams**: invoke writing-plans, then spawn a coordinated team via `/team-feature` (persistent agents with tmux panes, shared task list, inter-agent messaging — best for large features with cross-cutting concerns)
-+11. **Agent type assignments** (skip for sequential) — present an agent assignment table for each planned task. Analyze the design to suggest the best agent type per task based on language/domain. Present as a multi-select table for the user to review and override:
++7. **Select execution strategy (heuristic, no ask)** — once the design is approved, apply the Strategy Selection Heuristics (see section below) to the task list implied by the design. Pick ONE strategy. Do NOT ask the user to confirm. Announce it plainly:
  
++   > "Selected execution strategy: **<strategy>**. Reason: <one line grounded in the heuristics>."
++
++   Strategies (only two — there is no sequential mode):
++   - **Parallel subagents** → writing-plans → subagent-driven-development (fresh subagent per task, independent, no inter-agent communication). Default.
++   - **Agent teams** → writing-plans → `/team-feature` (persistent agents with tmux panes, shared task list, inter-agent messaging). For large features with cross-cutting coordination.
++8. **Assign agent types (heuristic, no ask)** — walk the planned tasks. For each, pick an agent type from the selection guide based on its primary language/domain. Do NOT present a table for approval. Announce assignments as a single block:
++
 +    ```
-+    Task                          | Suggested Agent                          | Override?
-+    ------------------------------|------------------------------------------|----------
-+    Implement auth middleware      | systems-programming:rust-pro             | [ ]
-+    Add API endpoints              | systems-programming:golang-pro           | [ ]
-+    Write Solidity contracts       | blockchain-web3:blockchain-developer     | [ ]
-+    Update Nix config              | general-purpose                          | [ ]
-+    ...                            | ...                                      | [ ]
++    Agent assignments (auto-selected):
++      Task 1: Implement auth middleware → systems-programming:rust-pro    (Rust)
++      Task 2: Add API endpoints         → systems-programming:golang-pro  (Go)
++      Task 3: Update Nix config         → general-purpose                 (Nix)
 +    ```
 +
 +    **Agent type selection guide:**
@@ -58,8 +50,18 @@ diff -ruN superpowers-a/skills/brainstorming/SKILL.md superpowers-b/skills/brain
 +    | Code review            | git-pr-workflows:code-reviewer           |
 +    | General / other        | general-purpose (default)                |
 +
-+    Ask the user: "Here are my suggested agent assignments. Change any you'd like, or approve to continue." The user can override any row. Save the final assignments into the spec under an `## Agent Assignments` section so writing-plans and execution skills can reference them.
-+12. **Transition to implementation** — invoke writing-plans skill to create the plan (include agent assignments), then execute with the chosen strategy
++9. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`. The spec MUST include these sections, filled from steps 7–8:
++   - `## Execution Strategy` — the selected strategy name (Parallel subagents or Agent teams) and a one-paragraph reason grounded in the heuristics
++   - `## Agent Assignments` — task → agent type → language/domain
++   These sections are authoritative. Writing-plans and the execution skills read from them.
++10. **Update memory** — after writing the spec:
++    - `/remember` key design decisions as semantic triples (e.g. "nix-darwin" / "uses" / "ferrex for memory")
++    - `/remember` architectural choices as semantic triples
++    - If any recalled memories from step 2 are now invalidated by this design, `/forget` them
++    - If existing semantic facts contradict the new design, store updated facts with `supersedes` pointing to the old memory ID
++11. **Spec review loop** — dispatch spec-document-reviewer subagent with precisely crafted review context (never your session history); fix issues and re-dispatch until approved (max 3 iterations, then surface to human)
++12. **User reviews written spec** — ask user to review the spec file before proceeding
++13. **Transition to implementation** — invoke writing-plans. Writing-plans MUST copy `## Execution Strategy` and `## Agent Assignments` from the spec into the plan verbatim. Then execute with the strategy recorded in the plan — no further confirmation.
 +
  ## Process Flow
  
@@ -68,28 +70,29 @@ diff -ruN superpowers-a/skills/brainstorming/SKILL.md superpowers-b/skills/brain
      "Explore project context" [shape=box];
 +    "Check memory?" [shape=diamond];
 +    "Run /recall with topic" [shape=box];
++    "Run /reflect" [shape=box];
      "Visual questions ahead?" [shape=diamond];
      "Offer Visual Companion\n(own message, no other content)" [shape=box];
      "Ask clarifying questions" [shape=box];
-@@ -43,11 +84,22 @@
+     "Propose 2-3 approaches" [shape=box];
      "Present design sections" [shape=box];
      "User approves design?" [shape=diamond];
-     "Write design doc" [shape=box];
+-    "Write design doc" [shape=box];
 -    "Spec self-review\n(fix inline)" [shape=box];
++    "Select strategy (heuristic)" [shape=box];
++    "Assign agent types (heuristic)" [shape=box];
++    "Write design doc\n(w/ Strategy + Agents sections)" [shape=box];
++    "Update memory" [shape=box];
 +    "Spec review loop" [shape=box];
 +    "Spec review passed?" [shape=diamond];
      "User reviews spec?" [shape=diamond];
 -    "Invoke writing-plans skill" [shape=doublecircle];
-+    "Choose execution strategy" [shape=diamond];
-+    "Agent type assignments\n(multi-select table)" [shape=box];
-+    "Sequential\n(executing-plans)" [shape=doublecircle];
++    "Invoke writing-plans skill" [shape=box];
 +    "Parallel subagents\n(subagent-driven-dev)" [shape=doublecircle];
 +    "Agent teams\n(/team-feature)" [shape=doublecircle];
-+    "Invoke writing-plans skill" [shape=box];
  
 -    "Explore project context" -> "Visual questions ahead?";
 +    "Explore project context" -> "Check memory?";
-+    "Run /reflect" [shape=box];
 +    "Check memory?" -> "Run /recall with topic" [label="user says yes"];
 +    "Run /recall with topic" -> "Run /reflect";
 +    "Run /reflect" -> "Visual questions ahead?";
@@ -97,38 +100,35 @@ diff -ruN superpowers-a/skills/brainstorming/SKILL.md superpowers-b/skills/brain
      "Visual questions ahead?" -> "Offer Visual Companion\n(own message, no other content)" [label="yes"];
      "Visual questions ahead?" -> "Ask clarifying questions" [label="no"];
      "Offer Visual Companion\n(own message, no other content)" -> "Ask clarifying questions";
-@@ -55,15 +107,25 @@
+@@ -55,15 +109,22 @@
      "Propose 2-3 approaches" -> "Present design sections";
      "Present design sections" -> "User approves design?";
      "User approves design?" -> "Present design sections" [label="no, revise"];
 -    "User approves design?" -> "Write design doc" [label="yes"];
 -    "Write design doc" -> "Spec self-review\n(fix inline)";
 -    "Spec self-review\n(fix inline)" -> "User reviews spec?";
-+    "Update memory\n(/remember decisions,\n/forget outdated)" [shape=box];
-+    "User approves design?" -> "Update memory\n(/remember decisions,\n/forget outdated)" [label="yes"];
-+    "Update memory\n(/remember decisions,\n/forget outdated)" -> "Write design doc";
-+    "Write design doc" -> "Spec review loop";
+-    "User reviews spec?" -> "Write design doc" [label="changes requested"];
++    "User approves design?" -> "Select strategy (heuristic)" [label="yes"];
++    "Select strategy (heuristic)" -> "Assign agent types (heuristic)";
++    "Assign agent types (heuristic)" -> "Write design doc\n(w/ Strategy + Agents sections)";
++    "Write design doc\n(w/ Strategy + Agents sections)" -> "Update memory";
++    "Update memory" -> "Spec review loop";
 +    "Spec review loop" -> "Spec review passed?";
 +    "Spec review passed?" -> "Spec review loop" [label="issues found,\nfix and re-dispatch"];
 +    "Spec review passed?" -> "User reviews spec?" [label="approved"];
-     "User reviews spec?" -> "Write design doc" [label="changes requested"];
--    "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
-+    "User reviews spec?" -> "Choose execution strategy" [label="approved"];
-+    "Choose execution strategy" -> "Invoke writing-plans skill" [label="sequential"];
-+    "Choose execution strategy" -> "Agent type assignments\n(multi-select table)" [label="parallel or teams"];
-+    "Agent type assignments\n(multi-select table)" -> "Invoke writing-plans skill";
-+    "Invoke writing-plans skill" -> "Sequential\n(executing-plans)" [label="sequential"];
-+    "Invoke writing-plans skill" -> "Parallel subagents\n(subagent-driven-dev)" [label="parallel"];
-+    "Invoke writing-plans skill" -> "Agent teams\n(/team-feature)" [label="teams"];
++    "User reviews spec?" -> "Write design doc\n(w/ Strategy + Agents sections)" [label="changes requested"];
+     "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
++    "Invoke writing-plans skill" -> "Parallel subagents\n(subagent-driven-dev)" [label="strategy=parallel"];
++    "Invoke writing-plans skill" -> "Agent teams\n(/team-feature)" [label="strategy=teams"];
  }
  ```
  
 -**The terminal state is invoking writing-plans.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.
-+**The terminal state is writing-plans followed by execution.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. Always invoke writing-plans first, then execute with the user's chosen strategy.
++**Terminal state:** writing-plans → execute with the strategy recorded in the plan's header (Parallel subagents or Agent teams). There is no sequential mode. Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. Do NOT ask the user to pick a strategy — the heuristic selection happened in step 7 and is now fixed in the spec and plan.
  
  ## The Process
  
-@@ -82,6 +144,7 @@
+@@ -82,6 +143,7 @@
  - Propose 2-3 different approaches with trade-offs
  - Present options conversationally with your recommendation and reasoning
  - Lead with your recommended option and explain why
@@ -136,7 +136,7 @@ diff -ruN superpowers-a/skills/brainstorming/SKILL.md superpowers-b/skills/brain
  
  **Presenting the design:**
  
-@@ -90,6 +153,7 @@
+@@ -90,6 +152,7 @@
  - Ask after each section whether it looks right so far
  - Cover: architecture, components, data flow, error handling, testing
  - Be ready to go back and clarify if something doesn't make sense
@@ -144,7 +144,7 @@ diff -ruN superpowers-a/skills/brainstorming/SKILL.md superpowers-b/skills/brain
  
  **Design for isolation and clarity:**
  
-@@ -111,29 +175,87 @@
+@@ -111,29 +174,110 @@
  - Write the validated design (spec) to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
    - (User preferences for spec location override this default)
  - Use elements-of-style:writing-clearly-and-concisely skill if available
@@ -180,14 +180,37 @@ diff -ruN superpowers-a/skills/brainstorming/SKILL.md superpowers-b/skills/brain
  
  - Invoke the writing-plans skill to create a detailed implementation plan
 -- Do NOT invoke any other skill. writing-plans is the next step.
-+- Then execute with the user's chosen strategy:
-+  - **Sequential**: invoke executing-plans (single agent works through tasks one by one)
-+  - **Parallel subagents**: invoke subagent-driven-development (spawns independent Agent subprocesses for each task — no communication between them)
-+  - **Agent teams**: use `/team-feature` to spawn a coordinated team (persistent agents in tmux panes with shared task list and inter-agent messaging — best for large features where agents need to coordinate). The team-lead MUST enforce two-stage review gates after each implementer completes a task:
++- Writing-plans copies `## Execution Strategy` and `## Agent Assignments` from the spec into the plan header verbatim
++- Then execute with the strategy recorded in the plan — do NOT ask the user again:
++  - **Parallel subagents**: invoke subagent-driven-development (spawns independent Agent subprocesses for each task — no communication between them). This is the default for most work.
++  - **Agent teams**: use `/team-feature` to spawn a coordinated team (persistent agents in tmux panes with shared task list and inter-agent messaging — for large features where agents need to coordinate). The team-lead MUST enforce two-stage review gates after each implementer completes a task:
 +    1. **Spec compliance review**: team-reviewer reads actual code against task requirements — checks for missing requirements, extra/unneeded work, and misunderstandings. Does NOT trust the implementer's report. If issues found, implementer fixes and reviewer re-reviews until approved.
 +    2. **Code quality review** (only after spec compliance passes): team-reviewer checks file responsibilities, decomposition, codebase pattern adherence, and standard quality concerns. Critical/Important issues block; Minor issues are noted. Implementer fixes and re-reviews until approved.
 +    3. **Final holistic review**: after all tasks pass both stages, team-reviewer performs a cross-stream review checking consistency, integration seams, and cross-cutting concerns that per-task reviews might miss.
 +    Never skip reviews. Never start code quality review before spec compliance passes. Never mark a task complete with open review issues.
++
++## Strategy Selection Heuristics
++
++Apply these rules in order. Take the first match. Record the match and reason in the spec's `## Execution Strategy` section. There are only two strategies — no sequential mode.
++
++1. **Agent teams** when ALL of:
++   - ≥4 independent tasks.
++   - Cross-cutting coordination is required (shared integration points, negotiated contracts, coordinated schema/API changes across streams).
++   - Reviews need to look at work holistically across streams, not just per-task.
++   - The feature is large enough that a persistent team with messaging pays off (new subsystem, multi-service feature).
++
++2. **Parallel subagents** — the default in every other case. Use this when:
++   - 1–3 tasks, OR
++   - ≥4 tasks that can be worked on independently with clear file ownership and no inter-task communication, OR
++   - Any work where per-task review is sufficient (no cross-stream concerns beyond a final integration check).
++
++   A single-task job still uses parallel subagents — you just dispatch one subagent and run the two-stage review.
++
++**Tiebreakers:**
++- If torn between parallel and teams, choose parallel — it is simpler and has lower coordination overhead. Escalate to teams only if the coordination need is obvious from the design (not just "big feature").
++- Multi-language designs (e.g., Rust backend + Nix config) are NOT a reason to escalate to teams — parallel subagents with different agent types handles it.
++
++**Do NOT ask the user to confirm the selection.** Announce it in the chat ("Selected execution strategy: **parallel subagents**. Reason: …") and write it into the spec. The user can countermand it explicitly; otherwise proceed.
 +
 +## Humanize All Non-Code Prose
 +
@@ -243,8 +266,8 @@ diff -ruN superpowers-a/skills/brainstorming/SKILL.md superpowers-b/skills/brain
  ## Key Principles
  
 diff -ruN superpowers-a/skills/executing-plans/SKILL.md superpowers-b/skills/executing-plans/SKILL.md
---- superpowers-a/skills/executing-plans/SKILL.md	2026-04-07 22:54:28
-+++ superpowers-b/skills/executing-plans/SKILL.md	2026-04-07 22:54:50
+--- superpowers-a/skills/executing-plans/SKILL.md	2026-04-10 12:32:47
++++ superpowers-b/skills/executing-plans/SKILL.md	2026-04-10 12:32:58
 @@ -27,7 +27,12 @@
  1. Mark as in_progress
  2. Follow each step exactly (plan has bite-sized steps)
@@ -260,8 +283,8 @@ diff -ruN superpowers-a/skills/executing-plans/SKILL.md superpowers-b/skills/exe
  ### Step 3: Complete Development
  
 diff -ruN superpowers-a/skills/subagent-driven-development/SKILL.md superpowers-b/skills/subagent-driven-development/SKILL.md
---- superpowers-a/skills/subagent-driven-development/SKILL.md	2026-04-07 22:54:28
-+++ superpowers-b/skills/subagent-driven-development/SKILL.md	2026-04-07 22:54:50
+--- superpowers-a/skills/subagent-driven-development/SKILL.md	2026-04-10 12:32:47
++++ superpowers-b/skills/subagent-driven-development/SKILL.md	2026-04-10 12:36:45
 @@ -53,8 +53,9 @@
          "Spec reviewer subagent confirms code matches spec?" [shape=diamond];
          "Implementer subagent fixes spec gaps" [shape=box];
@@ -288,19 +311,21 @@ diff -ruN superpowers-a/skills/subagent-driven-development/SKILL.md superpowers-
      "Mark task complete in TodoWrite" -> "More tasks remain?";
      "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
      "More tasks remain?" -> "Dispatch final code reviewer subagent for entire implementation" [label="no"];
-@@ -99,6 +101,20 @@
+@@ -99,6 +101,22 @@
  - Touches multiple files with integration concerns → standard model
  - Requires design judgment or broad codebase understanding → most capable model
  
 +
 +## Subagent Type Selection
 +
-+Choose the appropriate `subagent_type` for implementer agents based on the task's primary language or domain:
++The `subagent_type` for each implementer comes from the plan's `## Agent Assignments` section (copied from the spec). Do NOT re-decide during execution. If the plan lacks an assignment for a task, fall back to the table below based on the task's primary language/domain:
 +
 +| Domain / Language      | subagent_type                        |
 +|------------------------|--------------------------------------|
 +| Rust                   | systems-programming:rust-pro         |
 +| Go                     | systems-programming:golang-pro       |
++| C                      | systems-programming:c-pro            |
++| C++                    | systems-programming:cpp-pro          |
 +| Solidity / Web3 / DeFi | blockchain-web3:blockchain-developer |
 +| General / other        | general-purpose (default)            |
 +
@@ -309,7 +334,7 @@ diff -ruN superpowers-a/skills/subagent-driven-development/SKILL.md superpowers-
  ## Handling Implementer Status
  
  Implementer subagents report one of four statuses. Handle each appropriately:
-@@ -255,12 +271,33 @@
+@@ -255,12 +273,33 @@
  **If reviewer finds issues:**
  - Implementer (same subagent) fixes them
  - Reviewer reviews again
@@ -345,8 +370,8 @@ diff -ruN superpowers-a/skills/subagent-driven-development/SKILL.md superpowers-
  ## Integration
  
 diff -ruN superpowers-a/skills/subagent-driven-development/code-quality-reviewer-prompt.md superpowers-b/skills/subagent-driven-development/code-quality-reviewer-prompt.md
---- superpowers-a/skills/subagent-driven-development/code-quality-reviewer-prompt.md	2026-04-07 22:54:28
-+++ superpowers-b/skills/subagent-driven-development/code-quality-reviewer-prompt.md	2026-04-07 22:54:50
+--- superpowers-a/skills/subagent-driven-development/code-quality-reviewer-prompt.md	2026-04-10 12:32:47
++++ superpowers-b/skills/subagent-driven-development/code-quality-reviewer-prompt.md	2026-04-10 12:32:58
 @@ -6,8 +6,10 @@
  
  **Only dispatch after spec compliance review passes.**
@@ -368,14 +393,14 @@ diff -ruN superpowers-a/skills/subagent-driven-development/code-quality-reviewer
 +
 +**After approval:** dispatch a prose cleanup pass (see Prose Cleanup Pass in SKILL.md) to humanize comments, docstrings, and error messages, and strip AI-obvious comments before marking the task complete.
 diff -ruN superpowers-a/skills/subagent-driven-development/implementer-prompt.md superpowers-b/skills/subagent-driven-development/implementer-prompt.md
---- superpowers-a/skills/subagent-driven-development/implementer-prompt.md	2026-04-07 22:54:28
-+++ superpowers-b/skills/subagent-driven-development/implementer-prompt.md	2026-04-07 22:54:50
+--- superpowers-a/skills/subagent-driven-development/implementer-prompt.md	2026-04-10 12:32:47
++++ superpowers-b/skills/subagent-driven-development/implementer-prompt.md	2026-04-10 12:36:52
 @@ -3,7 +3,7 @@
  Use this template when dispatching an implementer subagent.
  
  ```
 -Task tool (general-purpose):
-+Task tool ({subagent_type from Subagent Type Selection table}):
++Task tool ({subagent_type from plan's ## Agent Assignments section, or Subagent Type Selection table as fallback}):
    description: "Implement Task N: [task name]"
    prompt: |
      You are implementing Task N: [task name]
@@ -402,8 +427,8 @@ diff -ruN superpowers-a/skills/subagent-driven-development/implementer-prompt.md
      ## Before Reporting Back: Self-Review
  
 diff -ruN superpowers-a/skills/writing-plans/SKILL.md superpowers-b/skills/writing-plans/SKILL.md
---- superpowers-a/skills/writing-plans/SKILL.md	2026-04-07 22:54:28
-+++ superpowers-b/skills/writing-plans/SKILL.md	2026-04-07 22:54:50
+--- superpowers-a/skills/writing-plans/SKILL.md	2026-04-10 12:32:47
++++ superpowers-b/skills/writing-plans/SKILL.md	2026-04-10 12:36:29
 @@ -7,7 +7,7 @@
  
  ## Overview
@@ -421,7 +446,36 @@ diff -ruN superpowers-a/skills/writing-plans/SKILL.md superpowers-b/skills/writi
  
  ## Plan Document Header
  
-@@ -95,12 +94,6 @@
+@@ -49,7 +48,7 @@
+ ```markdown
+ # [Feature Name] Implementation Plan
+ 
+-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
++> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or `/team-feature` to implement this plan task-by-task, per the Execution Strategy below. Steps use checkbox (`- [ ]`) syntax for tracking.
+ 
+ **Goal:** [One sentence describing what this builds]
+ 
+@@ -57,6 +56,19 @@
+ 
+ **Tech Stack:** [Key technologies/libraries]
+ 
++## Execution Strategy
++
++[Copy verbatim from the spec's `## Execution Strategy` section. Must name exactly one of: **Parallel subagents**, **Agent teams**. Include the one-paragraph reason. Do NOT add a Sequential option — it does not exist. This is authoritative — subagent-driven-development and `/team-feature` read from here. Do NOT ask the user to change it.]
++
++## Agent Assignments
++
++[Copy verbatim from the spec's `## Agent Assignments` section. Format:
++
++- Task 1: <task name> → <agent type> (<language/domain>)
++- Task 2: <task name> → <agent type> (<language/domain>)
++
++This table is authoritative for subagent-driven-development and `/team-feature`. Do NOT re-pick agents during execution.]
++
+ ---
+ ```
+ 
+@@ -95,12 +107,6 @@
  Run: `pytest tests/path/test.py::test_name -v`
  Expected: PASS
  
@@ -434,7 +488,7 @@ diff -ruN superpowers-a/skills/writing-plans/SKILL.md superpowers-b/skills/writi
  ````
  
  ## No Placeholders
-@@ -113,11 +106,28 @@
+@@ -113,11 +119,28 @@
  - Steps that describe what to do without showing how (code blocks required for code steps)
  - References to types, functions, or methods not defined in any task
  
@@ -465,3 +519,32 @@ diff -ruN superpowers-a/skills/writing-plans/SKILL.md superpowers-b/skills/writi
  
  ## Self-Review
  
+@@ -133,20 +156,17 @@
+ 
+ ## Execution Handoff
+ 
+-After saving the plan, offer execution choice:
++The plan's `## Execution Strategy` section is authoritative. Do NOT re-ask the user. After saving the plan, announce:
+ 
+-**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Two execution options:**
++> "Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Strategy from spec: **<strategy>**. Proceeding with <sub-skill>."
+ 
+-**1. Subagent-Driven (recommended)** - I dispatch a fresh subagent per task, review between tasks, fast iteration
++Then transition directly based on the strategy:
+ 
+-**2. Inline Execution** - Execute tasks in this session using executing-plans, batch execution with checkpoints
+-
+-**Which approach?"**
+-
+-**If Subagent-Driven chosen:**
++**Parallel subagents:**
+ - **REQUIRED SUB-SKILL:** Use superpowers:subagent-driven-development
+ - Fresh subagent per task + two-stage review
++- Use the agent types listed in `## Agent Assignments`
+ 
+-**If Inline Execution chosen:**
+-- **REQUIRED SUB-SKILL:** Use superpowers:executing-plans
+-- Batch execution with checkpoints for review
++**Agent teams:**
++- Spawn via `/team-feature`
++- The team-lead reads `## Agent Assignments` for implementer roles and enforces the two-stage review gates documented in brainstorming's Implementation section

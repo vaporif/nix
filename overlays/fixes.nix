@@ -44,4 +44,9 @@ in
     direnv = prev.direnv.overrideAttrs (old: {
       env = (old.env or {}) // {CGO_ENABLED = "1";};
     });
+
+    # Skip duckdb tests (Trace/BPT trap crash on CI macOS runners)
+    duckdb = prev.duckdb.overrideAttrs (_: {
+      doInstallCheck = false;
+    });
   }

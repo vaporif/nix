@@ -158,7 +158,7 @@ comment = "Build dep for typescript-language-server"
 
 # False positives - name collisions
 [git]
-comment = "CVEs are for Jenkins Git plugin, not git itself"
+comment = "Jenkins Git plugin false positives + git 2.47.0 CVEs (fixed in 2.48+, awaiting upstream nixpkgs bump)"
 cve = [
   "CVE-2022-36882",
   "CVE-2022-30947",
@@ -166,6 +166,10 @@ cve = [
   "CVE-2022-38663",
   "CVE-2021-21684",
   "CVE-2022-36884",
+  "CVE-2024-52005",
+  "CVE-2024-52006",
+  "CVE-2024-50349",
+  "CVE-2025-48384",
 ]
 
 [mercurial]
@@ -261,3 +265,78 @@ cve = ["CVE-2026-35414"]
 # False positives - name collisions (Rust crates)
 [yoke]
 comment = "Rust crate (unicode yoke), not Kubernetes Yoke IaC tool"
+
+# New findings (2026-04-15)
+
+[Security]
+comment = "Apple Security framework (macOS SDK), CVEs are for Trend Micro Security (false positive name collision)"
+
+[clang]
+comment = "Build-time LLVM/Clang compilers (15.x, 16.x), low-severity CVE-2024-7883 (3.7 CVSS)"
+
+[cryptography]
+comment = "Python cryptography vendored deps, CVE-2026-34073 (5.3 CVSS); transitive build dep, awaiting upstream"
+cve = ["CVE-2026-34073"]
+
+[cups]
+comment = "macOS print system, CVE-2022-26691 requires local auth; transitive dep"
+cve = ["CVE-2022-26691"]
+
+[ffmpeg]
+comment = "Media processing transitive dep (Tidal audio stack); disputed/old CVEs, awaiting upstream nixpkgs bump"
+
+[gcc]
+comment = "Build-time compiler (GCC 13.x), not in runtime closure"
+
+[giflib]
+comment = "GIF image library, transitive dep of image processing stack"
+
+[grpc]
+comment = "gRPC transitive build dep, CVE-2026-33186 awaiting upstream fix"
+cve = ["CVE-2026-33186"]
+
+[imagemagick]
+comment = "Image processing transitive dep, low-severity CVEs (5.1/4.0 CVSS)"
+
+[jbig2dec]
+comment = "JBIG2 image decoder, transitive dep of ghostscript/image stack"
+
+[jitsi-meet]
+comment = "Jitsi Meet electron app, false positive name collision with server-side CVEs"
+
+[jq]
+comment = "JSON processor CLI tool, CVEs require crafted input; awaiting upstream nixpkgs bump"
+
+[lapack]
+comment = "Linear algebra library, build-time dep"
+
+[libarchive]
+comment = "Archive library, transitive dep; CVEs awaiting upstream nixpkgs bump"
+
+[libde265]
+comment = "HEVC decoder, transitive dep of libheif/image stack"
+
+[libmemcached]
+comment = "Memcached client library, transitive build dep"
+
+[memcached]
+comment = "Cache server, transitive build dep"
+
+[onnx]
+comment = "ML model format library, transitive dep of Python ML stack"
+
+[perl]
+comment = "Build-time dep, not in runtime closure"
+
+[rsync]
+comment = "File sync tool, build-time dep; CVE-2024-12084 etc. fixed in 3.4.0, awaiting upstream"
+
+[sassc]
+comment = "Sass compiler, build-time dep for stylesheets"
+
+[swift]
+comment = "Apple Swift compiler, build-time dep; CVE-2023-26154 is for swift-corelibs-foundation"
+
+[thrift]
+comment = "Apache Thrift serialization, build-time dep; CVE-2021-24028 is for Facebook fbthrift (false positive)"
+cve = ["CVE-2021-24028"]

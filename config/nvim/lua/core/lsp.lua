@@ -2,6 +2,7 @@ vim.diagnostic.config {
   virtual_text = false,
   virtual_lines = false,
   underline = true,
+  severity_sort = true,
   float = {
     source = true,
   },

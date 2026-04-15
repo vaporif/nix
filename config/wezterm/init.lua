@@ -30,6 +30,7 @@ end)
 local agent_deck = dofile '@agentDeckPath@'
 
 local config = {
+  term = 'wezterm',
   color_scheme = 'earthtone-light',
   line_height = 1.0,
   front_end = wezterm.target_triple:find 'linux' and 'OpenGL' or 'WebGpu',

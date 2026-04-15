@@ -38,6 +38,14 @@ jobs:
 
       - uses: DeterminateSystems/magic-nix-cache-action@v13
 
+      - name: Free disk space (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          sudo rm -rf /Applications/Xcode*.app
+          sudo rm -rf /Users/runner/Library/Android
+          sudo rm -rf /opt/hostedtoolcache
+          df -h /
+
       - name: Check nix flake
         if: matrix.lint || matrix.check
         run: nix flake check

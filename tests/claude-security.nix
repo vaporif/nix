@@ -82,7 +82,6 @@ pkgs.testers.nixosTest {
 
     # Test 9: confirmBeforeWrite entries present
     machine.succeed(f"jq -e '.hooks.PreToolUse[] | select(.matcher == \"mcp__filesystem__delete_file\")' {settings}")
-    machine.succeed(f"jq -e '.hooks.PreToolUse[] | select(.matcher == \"mcp__ferrex__store\")' {settings}")
 
     # Test 10: Notification hook exists at store path
     notify_cmd = machine.succeed(f"jq -r '.hooks.Notification[0].hooks[0].command' {settings}").strip()

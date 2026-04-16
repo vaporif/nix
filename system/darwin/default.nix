@@ -26,6 +26,14 @@ in {
 
   nix.enable = false;
 
+  launchd.daemons.maxfiles = {
+    command = "/bin/launchctl limit maxfiles 65536 524288";
+    serviceConfig = {
+      Label = "limit.maxfiles";
+      RunAtLoad = true;
+    };
+  };
+
   system = {
     configurationRevision = null;
     stateVersion = 6;

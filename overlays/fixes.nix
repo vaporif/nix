@@ -2,14 +2,23 @@ _: prev: let
   inherit (prev) lib;
 in
   {
-    # Skip jeepney checks (dbus + trio/outcome unavailable on macOS)
     pythonPackagesExtensions =
       prev.pythonPackagesExtensions
+      # Skip jeepney checks (dbus + trio/outcome unavailable on macOS)
       ++ lib.optionals prev.stdenv.isDarwin [
         (_: python-prev: {
           jeepney = python-prev.jeepney.overrideAttrs (_: {
             doInstallCheck = false;
             pythonImportsCheck = [];
+          });
+        })
+      ]
+      # lupa 2.7 bundles x86_64 libluajit.a — linker fails on aarch64-linux
+      ++ lib.optionals (prev.stdenv.isLinux && prev.stdenv.isAarch64) [
+        (_: python-prev: {
+          lupa = python-prev.lupa.overridePythonAttrs (old: {
+            disabledTests = (old.disabledTests or []) ++ ["luajit"];
+            env = (old.env or {}) // {LUPA_NO_LUAJIT = "true";};
           });
         })
       ];

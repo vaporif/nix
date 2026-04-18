@@ -54,6 +54,11 @@ run = "cd ~/Repos/mercury"
 desc = "Go to [m]ercury"
 
 [[mgr.prepend_keymap]]
+on = ["b", "c"]
+run = "cd ~/Repos/monorepo"
+desc = "Go to [c]ommonware"
+
+[[mgr.prepend_keymap]]
 on = ["b", "n"]
 run = "cd @configPath@" # substituted at build time by builtins.replaceStrings
 desc = "Go to [n]ix"

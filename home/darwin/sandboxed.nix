@@ -52,6 +52,10 @@
       (allow file-read* (subpath "/Library/Preferences"))
       (allow file-read* file-write* (regex #"^$HOME/\\.claude\\.json"))
       (allow file-read* file-write* (regex #"^$HOME/\\.CFUserTextEncoding"))
+      ;; Keychain database access (token storage/refresh)
+      (allow file-read* file-write* (subpath "$HOME/Library/Keychains"))
+      ;; Security framework MDS shared memory
+      (allow file-read* (subpath "/private/var/db/mds"))
 
       ;; Plugin hooks need process-exec (shebang → /usr/bin/env)
       (allow process-exec (subpath "$HOME/.claude/plugins/cache"))

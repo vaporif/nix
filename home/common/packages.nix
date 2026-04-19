@@ -35,6 +35,7 @@
       pkgs.yt-dlp
 
       pkgs.python3
+      pkgs.python3Packages.huggingface-hub
 
       pkgs.presenterm
       pkgs.tokei

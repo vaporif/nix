@@ -38,6 +38,12 @@ in
       ];
     };
   }
+  # deno: drop stale patch (fd331552) that's already applied upstream — breaks aarch64-linux build
+  // lib.optionalAttrs (prev.stdenv.isLinux && prev.stdenv.isAarch64) {
+    deno = prev.deno.overrideAttrs (old: {
+      patches = lib.filter (p: !(lib.hasSuffix "fd331552de39501d47c43dc4b0c637b969402ab1.patch" (toString p))) (old.patches or []);
+    });
+  }
   // lib.optionalAttrs prev.stdenv.isDarwin {
     # Skip ast-grep check (test_scan_invalid_rule_id fails with illegal byte sequence in sandbox)
     ast-grep = prev.ast-grep.overrideAttrs (_: {

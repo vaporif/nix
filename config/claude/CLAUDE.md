@@ -11,10 +11,6 @@
 ## Tools
 - Prefer Tavily MCP (`tavily-search`, `tavily-extract`, `tavily-crawl`) over native WebSearch/WebFetch for web lookups
 
-## Read-Once Hook
-- A PreToolUse hook denies re-reads of unchanged files (sha256 content hash). This is normal — you already have the content in context.
-- After `/clear`, run `rm -rf ~/.claude/read-once/` to reset the cache (context was wiped but cache still has entries).
-
 ## Code Quality
 - Keep functions focused and reasonably sized
 - Comment only when the "why" isn't obvious from the code itself

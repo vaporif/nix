@@ -9,6 +9,7 @@
 
   programs.claude-code.security = {
     enable = true;
+    hooks.readOnce.enable = false;
     hooks.notification.ntfy = {
       enable = true;
       topicFile = config.custom.secrets.ntfy-topic;

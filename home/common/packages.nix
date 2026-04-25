@@ -67,7 +67,7 @@
       pkgs.shfmt
 
       pkgs.claude-code
-      inputs.mcp-nixos.packages.${pkgs.stdenv.hostPlatform.system}.default
+      pkgs.mcp-nixos
       pkgs.qdrant
       pkgs.qdrant-web-ui
 

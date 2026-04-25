@@ -4,6 +4,15 @@ in
   {
     pythonPackagesExtensions =
       prev.pythonPackagesExtensions
+      # Skip aioboto3 tests (moto mock server sends duplicate Server header, rejected by newer aiohttp)
+      ++ [
+        (_: python-prev: {
+          aioboto3 = python-prev.aioboto3.overridePythonAttrs (_: {
+            doCheck = false;
+            doInstallCheck = false;
+          });
+        })
+      ]
       # Skip jeepney checks (dbus + trio/outcome unavailable on macOS)
       ++ lib.optionals prev.stdenv.isDarwin [
         (_: python-prev: {
@@ -55,8 +64,9 @@ in
       doCheck = false;
     });
 
-    # Fix direnv build: -linkmode=external requires cgo but it's disabled upstream
+    # Fix direnv build: -linkmode=external requires cgo but it's disabled upstream; tests hang in sandbox
     direnv = prev.direnv.overrideAttrs (old: {
+      doCheck = false;
       env = (old.env or {}) // {CGO_ENABLED = "1";};
     });
 

@@ -18,7 +18,7 @@
     };
   });
 
-  mcp-nixos-package = inputs.mcp-nixos.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  mcp-nixos-package = pkgs.mcp-nixos;
 
   ferrex-package = inputs.ferrex.packages.${pkgs.stdenv.hostPlatform.system}.default;
 

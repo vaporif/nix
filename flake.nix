@@ -142,7 +142,7 @@
       inherit (inputs) vim-tidal difftastic-src;
     };
 
-    sharedOverlays = [localPackages inputs.earthtone-nvim.overlays.default];
+    sharedOverlays = [localPackages inputs.earthtone-nvim.overlays.default inputs.mcp-nixos.overlays.default];
 
     mkPkgs = system:
       import nixpkgs {

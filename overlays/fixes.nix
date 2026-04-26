@@ -32,6 +32,11 @@ in
         })
       ];
 
+    # Skip flaky mcp-nixos test (test_read_text_file matches "Error" in store file content)
+    mcp-nixos = prev.mcp-nixos.overrideAttrs (_: {
+      doInstallCheck = false;
+    });
+
     # Disable ffmpeg due to CVEs (video previews disabled in yazi.toml anyway)
     yazi = prev.yazi.override {
       optionalDeps = with prev; [

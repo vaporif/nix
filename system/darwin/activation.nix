@@ -3,8 +3,6 @@
   hmCfg = config.home-manager.users.${cfg.user}.custom;
 in {
   system.activationScripts.postActivation.text = ''
-    echo "Installing/updating LibreWolf..."
-
     # Claude apps read from /Library/ (system level), not ~/Library/
     # Symlink instead of cp to keep store paths as GC roots
     echo "Setting up MCP configs..."

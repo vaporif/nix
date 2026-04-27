@@ -25,7 +25,10 @@
   patchedWshobsonAgents = pkgs.applyPatches {
     name = "wshobson-agents-patched";
     src = inputs.wshobson-agents;
-    patches = [../../../patches/systems-programming-go-only.patch];
+    patches = [
+      ../../../patches/systems-programming-go-only.patch
+      ../../../patches/python-pro-pydantic-v2.patch
+    ];
   };
 
   readPluginVersion = src: let
@@ -36,6 +39,13 @@
   officialPlugin = patchPlugin inputs.claude-code-plugins;
   wshobsonPlugin = patchPlugin inputs.wshobson-agents;
   patchedWshobsonPlugin = patchPlugin patchedWshobsonAgents;
+
+  pythonProOnlyPlugin = pkgs.runCommand "claude-plugin-python-development" {} ''
+    cp -r ${patchedWshobsonAgents}/plugins/python-development $out
+    chmod -R u+w $out
+    rm -f $out/agents/django-pro.md $out/agents/fastapi-pro.md
+    rm -rf $out/skills $out/commands
+  '';
 
   plugins = [
     {
@@ -79,6 +89,12 @@
       description = "Go agent with concurrency patterns";
       source = patchedWshobsonPlugin "systems-programming";
       version = readPluginVersion "${inputs.wshobson-agents}/plugins/systems-programming";
+    }
+    {
+      name = "python-development";
+      description = "python-pro agent (Python 3.12+ with Pydantic v2 modern syntax)";
+      source = pythonProOnlyPlugin;
+      version = readPluginVersion "${inputs.wshobson-agents}/plugins/python-development";
     }
     {
       name = "security-scanning";

@@ -25,10 +25,7 @@
   patchedWshobsonAgents = pkgs.applyPatches {
     name = "wshobson-agents-patched";
     src = inputs.wshobson-agents;
-    patches = [
-      ../../../patches/systems-programming-go-only.patch
-      ../../../patches/python-pro-pydantic-v2.patch
-    ];
+    patches = [../../../patches/wshobson-customizations.patch];
   };
 
   readPluginVersion = src: let

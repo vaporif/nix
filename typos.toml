@@ -1,6 +1,10 @@
 [files]
 extend-exclude = ["*.lock", "lazy-lock.json", "secrets/*"]
 
+[default.extend-identifiers]
+# Ruff lint rule codes
+CPY001 = "CPY001"
+
 [default.extend-words]
 # Allow these "typos" (technical terms, usernames, etc.)
 ba = "ba"

@@ -1,6 +1,6 @@
 diff -ruN superpowers-orig/skills/brainstorming/SKILL.md superpowers-mod/skills/brainstorming/SKILL.md
---- superpowers-orig/skills/brainstorming/SKILL.md	2026-04-27 17:38:57
-+++ superpowers-mod/skills/brainstorming/SKILL.md	2026-04-27 17:47:53
+--- superpowers-orig/skills/brainstorming/SKILL.md	2026-04-29 00:57:46
++++ superpowers-mod/skills/brainstorming/SKILL.md	2026-04-29 00:57:46
 @@ -22,32 +22,87 @@
  You MUST create a task for each of these items and complete them in order:
  
@@ -271,8 +271,8 @@ diff -ruN superpowers-orig/skills/brainstorming/SKILL.md superpowers-mod/skills/
  ## Key Principles
  
 diff -ruN superpowers-orig/skills/brainstorming/spec-document-reviewer-prompt.md superpowers-mod/skills/brainstorming/spec-document-reviewer-prompt.md
---- superpowers-orig/skills/brainstorming/spec-document-reviewer-prompt.md	2026-04-27 17:38:57
-+++ superpowers-mod/skills/brainstorming/spec-document-reviewer-prompt.md	2026-04-27 17:47:53
+--- superpowers-orig/skills/brainstorming/spec-document-reviewer-prompt.md	2026-04-29 00:57:46
++++ superpowers-mod/skills/brainstorming/spec-document-reviewer-prompt.md	2026-04-29 00:57:46
 @@ -4,7 +4,7 @@
  
  **Purpose:** Verify the spec is complete, consistent, and ready for implementation planning.
@@ -283,25 +283,58 @@ diff -ruN superpowers-orig/skills/brainstorming/spec-document-reviewer-prompt.md
  ```
  Task tool (general-purpose):
 diff -ruN superpowers-orig/skills/executing-plans/SKILL.md superpowers-mod/skills/executing-plans/SKILL.md
---- superpowers-orig/skills/executing-plans/SKILL.md	2026-04-27 17:38:57
-+++ superpowers-mod/skills/executing-plans/SKILL.md	2026-04-27 17:39:03
-@@ -27,7 +27,12 @@
- 1. Mark as in_progress
- 2. Follow each step exactly (plan has bite-sized steps)
- 3. Run verifications as specified
+--- superpowers-orig/skills/executing-plans/SKILL.md	2026-04-29 00:57:46
++++ superpowers-mod/skills/executing-plans/SKILL.md	2026-04-29 00:58:46
+@@ -18,17 +18,31 @@
+ ### Step 1: Load and Review Plan
+ 1. Read plan file
+ 2. Review critically - identify any questions or concerns about the plan
+-3. If concerns: Raise them with your human partner before starting
+-4. If no concerns: Create TodoWrite and proceed
++3. **Scan checkbox state**: every `- [x]` in the plan is a step that has already been verified by a previous session. Do NOT redo it. Treat it as completed and skip past it. Every `- [ ]` is pending. If a whole task is `- [x]` across all its steps, the task is done; move to the next pending task. If checkbox state looks wrong (e.g. later steps `- [x]` but earlier ones `- [ ]`, or `- [x]` next to obviously-broken code), pause and ask the partner before resuming.
++4. If concerns: Raise them with your human partner before starting
++5. If no concerns: Create TodoWrite seeded only with the **pending** (`- [ ]`) steps, and proceed
+ 
+ ### Step 2: Execute Tasks
+ 
+ For each task:
+-1. Mark as in_progress
+-2. Follow each step exactly (plan has bite-sized steps)
+-3. Run verifications as specified
 -4. Mark as completed
-+4. After verifications pass, do a prose cleanup pass on changed files:
++1. Mark as in_progress (TodoWrite)
++2. For each step inside the task:
++   1. Skip if its line already reads `- [x]` (re-verify quickly that the side effect is in place; if not, restore the `- [ ]` and execute it)
++   2. Otherwise, follow the step exactly (plan has bite-sized steps) and run verifications as specified
++   3. **Once the step's verification passes, immediately edit the plan file**: change that step's leading `- [ ]` to `- [x]` (use Edit on the exact line). Do this BEFORE moving to the next step — this is the durable progress log that lets a later session resume cleanly. Do not batch the flips at the end; one flip per verified step.
++3. After all steps pass, do a prose cleanup pass on changed files:
 +   - Strip comments that restate what the code does
 +   - Strip AI-obvious comments ("Ensures proper...", "Leverages...", "Facilitates...")
 +   - Humanize remaining comments, docstrings, and error messages — direct and specific, no filler
 +   - Keep comments that explain *why*, remove those that just say *what*
-+5. Mark as completed
++4. Mark as completed (TodoWrite). At this point every step under the task should already be `- [x]` in the plan file.
  
++**Checkbox-flip rules:**
++- Edit only the literal `- [ ]` → `- [x]` on the step line. Do not reformat surrounding lines, do not re-indent, do not restructure the plan.
++- If a step is partly done (e.g. tests written but failing), leave it `- [ ]`. Half-done is not done.
++- If a verification fails after you flipped the box (regression discovered later), flip it back to `- [ ]` and treat the step as pending.
++- Commit the plan-file edits along with the implementation commit for that step (or as their own commit if the implementation hadn't changed any other files yet) so the resume point survives across sessions.
++
  ### Step 3: Complete Development
  
+ After all tasks complete and verified:
+@@ -56,6 +70,8 @@
+ 
+ ## Remember
+ - Review plan critically first
++- Read existing `- [x]` marks before doing anything — they are skip-this signals from prior sessions
++- Flip `- [ ]` → `- [x]` in the plan file the moment a step's verification passes, one at a time
+ - Follow plan steps exactly
+ - Don't skip verifications
+ - Reference skills when plan says to
 diff -ruN superpowers-orig/skills/requesting-code-review/SKILL.md superpowers-mod/skills/requesting-code-review/SKILL.md
---- superpowers-orig/skills/requesting-code-review/SKILL.md	2026-04-27 17:38:57
-+++ superpowers-mod/skills/requesting-code-review/SKILL.md	2026-04-27 17:47:53
+--- superpowers-orig/skills/requesting-code-review/SKILL.md	2026-04-29 00:57:46
++++ superpowers-mod/skills/requesting-code-review/SKILL.md	2026-04-29 00:57:46
 @@ -58,7 +58,7 @@
  
  [Dispatch superpowers:code-reviewer subagent]
@@ -312,9 +345,9 @@ diff -ruN superpowers-orig/skills/requesting-code-review/SKILL.md superpowers-mo
    HEAD_SHA: 3df7661
    DESCRIPTION: Added verifyIndex() and repairIndex() with 4 issue types
 diff -ruN superpowers-orig/skills/subagent-driven-development/SKILL.md superpowers-mod/skills/subagent-driven-development/SKILL.md
---- superpowers-orig/skills/subagent-driven-development/SKILL.md	2026-04-27 17:38:57
-+++ superpowers-mod/skills/subagent-driven-development/SKILL.md	2026-04-27 17:47:53
-@@ -53,8 +53,9 @@
+--- superpowers-orig/skills/subagent-driven-development/SKILL.md	2026-04-29 00:57:46
++++ superpowers-mod/skills/subagent-driven-development/SKILL.md	2026-04-29 00:59:33
+@@ -53,17 +53,19 @@
          "Spec reviewer subagent confirms code matches spec?" [shape=diamond];
          "Implementer subagent fixes spec gaps" [shape=box];
          "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [shape=box];
@@ -322,10 +355,22 @@ diff -ruN superpowers-orig/skills/subagent-driven-development/SKILL.md superpowe
 +        "0 critical/medium issues?" [shape=diamond];
          "Implementer subagent fixes quality issues" [shape=box];
 +        "Prose cleanup pass\n(humanize comments, strip AI slop)" [shape=box];
++        "Flip every step in plan file from `- [ ]` to `- [x]` and commit" [shape=box];
          "Mark task complete in TodoWrite" [shape=box];
      }
  
-@@ -73,10 +74,11 @@
+-    "Read plan, extract all tasks with full text, note context, create TodoWrite" [shape=box];
++    "Read plan, scan checkbox state, skip tasks fully `- [x]`, extract pending tasks, note context, create TodoWrite" [shape=box];
+     "More tasks remain?" [shape=diamond];
+     "Dispatch final code reviewer subagent for entire implementation" [shape=box];
+     "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
+ 
+-    "Read plan, extract all tasks with full text, note context, create TodoWrite" -> "Dispatch implementer subagent (./implementer-prompt.md)";
++    "Read plan, scan checkbox state, skip tasks fully `- [x]`, extract pending tasks, note context, create TodoWrite" -> "Dispatch implementer subagent (./implementer-prompt.md)";
+     "Dispatch implementer subagent (./implementer-prompt.md)" -> "Implementer subagent asks questions?";
+     "Implementer subagent asks questions?" -> "Answer questions, provide context" [label="yes"];
+     "Answer questions, provide context" -> "Dispatch implementer subagent (./implementer-prompt.md)";
+@@ -73,10 +75,12 @@
      "Spec reviewer subagent confirms code matches spec?" -> "Implementer subagent fixes spec gaps" [label="no"];
      "Implementer subagent fixes spec gaps" -> "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)" [label="re-review"];
      "Spec reviewer subagent confirms code matches spec?" -> "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [label="yes"];
@@ -336,11 +381,12 @@ diff -ruN superpowers-orig/skills/subagent-driven-development/SKILL.md superpowe
      "Implementer subagent fixes quality issues" -> "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [label="re-review"];
 -    "Code quality reviewer subagent approves?" -> "Mark task complete in TodoWrite" [label="yes"];
 +    "0 critical/medium issues?" -> "Prose cleanup pass\n(humanize comments, strip AI slop)" [label="yes"];
-+    "Prose cleanup pass\n(humanize comments, strip AI slop)" -> "Mark task complete in TodoWrite";
++    "Prose cleanup pass\n(humanize comments, strip AI slop)" -> "Flip every step in plan file from `- [ ]` to `- [x]` and commit";
++    "Flip every step in plan file from `- [ ]` to `- [x]` and commit" -> "Mark task complete in TodoWrite";
      "Mark task complete in TodoWrite" -> "More tasks remain?";
      "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
      "More tasks remain?" -> "Dispatch final code reviewer subagent for entire implementation" [label="no"];
-@@ -99,6 +101,22 @@
+@@ -99,6 +103,47 @@
  - Touches multiple files with integration concerns → standard model
  - Requires design judgment or broad codebase understanding → most capable model
  
@@ -360,10 +406,35 @@ diff -ruN superpowers-orig/skills/subagent-driven-development/SKILL.md superpowe
 +
 +For code quality reviews of Web3/Solidity code, use `git-pr-workflows:code-reviewer` and additionally dispatch `security-scanning:security-auditor` for a parallel security review.
 +
++## Plan Checkbox State (resume-safe progress log)
++
++The plan file's `- [ ]` / `- [x]` checkboxes are the durable, cross-session record of what's done. The controller (you) is responsible for keeping them accurate.
++
++**At plan load (before dispatching anything):**
++1. `grep -nE '^- \[(x| )\]' <plan-file>` to enumerate every step and its state.
++2. For every step already `- [x]`: mark its TodoWrite todo as completed and never include that step in any implementer prompt. The implementer must not see done steps in its task description.
++3. If every step in a task is `- [x]`, that task is done — skip it entirely. Move to the next task with pending steps.
++4. If checkbox state is internally inconsistent (later steps `- [x]` while earlier steps in the same task are `- [ ]`, or `- [x]` next to obviously missing artifacts on disk), pause and surface this to the human partner before starting. Do NOT silently re-run or "trust the checkboxes".
++5. Pending steps (`- [ ]`) seed the TodoWrite list and the implementer prompts.
++
++**After a task passes spec review + code quality review + prose cleanup (and BEFORE marking the TodoWrite todo complete):**
++1. Edit the plan file: flip every `- [ ]` belonging to that task's steps to `- [x]`. Use Edit on the literal `- [ ]` prefix per step line. Do not reformat surrounding lines.
++2. Commit the plan file edit (alongside any final cleanup commits, or as its own commit). The commit message can be terse: `plan: mark Task N complete`.
++3. Then mark the TodoWrite todo complete and proceed to the next task.
++
++**If the implementer reported flipping individual step boxes during execution (it should — see implementer-prompt.md):**
++- Verify the boxes match what was actually implemented before you start review. A `- [x]` next to unverified work is a bug; flip it back and re-run.
++- Do NOT double-flip steps the implementer already flipped. Only flip ones still `- [ ]`.
++
++**Never:**
++- Author or accept new pre-checked `- [x]` boxes (those are skip-this signals; manufacturing them skips real work).
++- Batch all flips at the end of the whole plan — the resume point is lost.
++- Touch unrelated checkboxes in the plan file.
++
  ## Handling Implementer Status
  
  Implementer subagents report one of four statuses. Handle each appropriately:
-@@ -128,7 +146,7 @@
+@@ -128,7 +173,7 @@
  ```
  You: I'm using Subagent-Driven Development to execute this plan.
  
@@ -372,7 +443,17 @@ diff -ruN superpowers-orig/skills/subagent-driven-development/SKILL.md superpowe
  [Extract all 5 tasks with full text and context]
  [Create TodoWrite with all tasks]
  
-@@ -255,12 +273,33 @@
+@@ -246,6 +291,9 @@
+ - Let implementer self-review replace actual review (both are needed)
+ - **Start code quality review before spec compliance is ✅** (wrong order)
+ - Move to next task while either review has open issues
++- Re-execute steps already marked `- [x]` in the plan file (those are completed work from a prior session — read them, do not redo them)
++- Mark a TodoWrite todo complete without first flipping the matching `- [ ]` to `- [x]` in the plan file
++- Batch all checkbox flips at the end (defeats the cross-session resume point)
+ 
+ **If subagent asks questions:**
+ - Answer clearly and completely
+@@ -255,12 +303,33 @@
  **If reviewer finds issues:**
  - Implementer (same subagent) fixes them
  - Reviewer reviews again
@@ -408,8 +489,8 @@ diff -ruN superpowers-orig/skills/subagent-driven-development/SKILL.md superpowe
  ## Integration
  
 diff -ruN superpowers-orig/skills/subagent-driven-development/code-quality-reviewer-prompt.md superpowers-mod/skills/subagent-driven-development/code-quality-reviewer-prompt.md
---- superpowers-orig/skills/subagent-driven-development/code-quality-reviewer-prompt.md	2026-04-27 17:38:57
-+++ superpowers-mod/skills/subagent-driven-development/code-quality-reviewer-prompt.md	2026-04-27 17:39:03
+--- superpowers-orig/skills/subagent-driven-development/code-quality-reviewer-prompt.md	2026-04-29 00:57:46
++++ superpowers-mod/skills/subagent-driven-development/code-quality-reviewer-prompt.md	2026-04-29 00:57:46
 @@ -6,8 +6,10 @@
  
  **Only dispatch after spec compliance review passes.**
@@ -431,8 +512,8 @@ diff -ruN superpowers-orig/skills/subagent-driven-development/code-quality-revie
 +
 +**After approval:** dispatch a prose cleanup pass (see Prose Cleanup Pass in SKILL.md) to humanize comments, docstrings, and error messages, and strip AI-obvious comments before marking the task complete.
 diff -ruN superpowers-orig/skills/subagent-driven-development/implementer-prompt.md superpowers-mod/skills/subagent-driven-development/implementer-prompt.md
---- superpowers-orig/skills/subagent-driven-development/implementer-prompt.md	2026-04-27 17:38:57
-+++ superpowers-mod/skills/subagent-driven-development/implementer-prompt.md	2026-04-27 17:39:03
+--- superpowers-orig/skills/subagent-driven-development/implementer-prompt.md	2026-04-29 00:57:46
++++ superpowers-mod/skills/subagent-driven-development/implementer-prompt.md	2026-04-29 00:59:49
 @@ -3,7 +3,7 @@
  Use this template when dispatching an implementer subagent.
  
@@ -442,7 +523,34 @@ diff -ruN superpowers-orig/skills/subagent-driven-development/implementer-prompt
    description: "Implement Task N: [task name]"
    prompt: |
      You are implementing Task N: [task name]
-@@ -70,6 +70,21 @@
+@@ -41,6 +41,26 @@
+     **While you work:** If you encounter something unexpected or unclear, **ask questions**.
+     It's always OK to pause and clarify. Don't guess or make assumptions.
+ 
++    ## Plan File Checkbox Tracking
++
++    The plan file is at: [plan path, e.g. `docs/plans/<filename>.md`]
++
++    Steps under your task use `- [ ]` checkboxes. Treat these as durable progress
++    state, not decoration:
++    - When you finish a step AND its verification passes (test green, command
++      output matches expected), edit the plan file and flip that step's leading
++      `- [ ]` to `- [x]` BEFORE moving on. Use Edit on the literal `- [ ]` prefix
++      of the step line; do not reformat anything else.
++    - One flip per verified step. Do not batch flips at the end.
++    - If a verification fails after you flipped, flip it back to `- [ ]` and treat
++      the step as pending.
++    - If you encounter a step already marked `- [x]` when you start, the
++      controller already accounted for it — do NOT redo it. If the side effects
++      look missing, stop and report it as DONE_WITH_CONCERNS rather than silently
++      re-running.
++    - Include the plan file's checkbox edits in your task commit (or as a final
++      `plan: progress on Task N` commit) so the resume point survives.
++
+     ## Code Organization
+ 
+     You reason best about code you can hold in context at once, and your edits are more
+@@ -70,6 +90,21 @@
      specifically what you're stuck on, what you've tried, and what kind of help you need.
      The controller can provide more context, re-dispatch with a more capable model,
      or break the task into smaller pieces.
@@ -465,8 +573,8 @@ diff -ruN superpowers-orig/skills/subagent-driven-development/implementer-prompt
      ## Before Reporting Back: Self-Review
  
 diff -ruN superpowers-orig/skills/writing-plans/SKILL.md superpowers-mod/skills/writing-plans/SKILL.md
---- superpowers-orig/skills/writing-plans/SKILL.md	2026-04-27 17:38:57
-+++ superpowers-mod/skills/writing-plans/SKILL.md	2026-04-27 17:47:53
+--- superpowers-orig/skills/writing-plans/SKILL.md	2026-04-29 00:57:46
++++ superpowers-mod/skills/writing-plans/SKILL.md	2026-04-29 00:58:21
 @@ -7,7 +7,7 @@
  
  ## Overview
@@ -498,7 +606,7 @@ diff -ruN superpowers-orig/skills/writing-plans/SKILL.md superpowers-mod/skills/
  # [Feature Name] Implementation Plan
  
 -> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
-+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or `/team-feature` to implement this plan task-by-task, per the Execution Strategy below. Steps use checkbox (`- [ ]`) syntax for tracking.
++> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or `/team-feature` to implement this plan task-by-task, per the Execution Strategy below. Steps use checkbox (`- [ ]`) syntax — these are **persistent durable state**, not visual decoration. The executor edits the plan file in place: `- [ ]` → `- [x]` the instant a step verifies, before moving on. On resume (new session, crash, takeover), the executor scans existing `- [x]` marks and skips them — these steps are NOT redone. TodoWrite mirrors this state in-session; the plan file is the source of truth across sessions.
  
  **Goal:** [One sentence describing what this builds]
  
@@ -522,7 +630,7 @@ diff -ruN superpowers-orig/skills/writing-plans/SKILL.md superpowers-mod/skills/
  ---
  ```
  
-@@ -95,12 +107,6 @@
+@@ -95,14 +107,25 @@
  Run: `pytest tests/path/test.py::test_name -v`
  Expected: PASS
  
@@ -534,8 +642,27 @@ diff -ruN superpowers-orig/skills/writing-plans/SKILL.md superpowers-mod/skills/
 -```
  ````
  
++## Checkbox State Tracking (the plan file is the durable progress log)
++
++Every actionable step uses a `- [ ]` checkbox. These are not cosmetic — they encode persistent execution state:
++
++- `- [ ]` = pending. Must still be done.
++- `- [x]` = completed. Verified passing. Do NOT redo.
++
++**Contract for plan authors:**
++- Every step that an executor must perform gets its own `- [ ]` checkbox on a line by itself, in the form `- [ ] **Step N: <imperative description>**`. Sub-bullets, code blocks, and explanatory prose hang under the step but do not get their own checkboxes.
++- Tasks themselves (the `### Task N: ...` headings) are NOT checkboxed — task completion is implied by all steps inside being `- [x]`.
++- Header notes outside any task (Goal, Architecture, Execution Strategy, Agent Assignments) never get checkboxes.
++- Do not author a plan with any pre-checked `- [x]` boxes. Executors interpret them as "skip this".
++
++**Contract for executors** (see executing-plans / subagent-driven-development for the full procedure):
++- On load, scan for `- [x]` and skip those steps.
++- On step verify, immediately edit the plan file to flip `- [ ]` → `- [x]` for that exact line. Commit periodically — the file is the cross-session resume point.
++
  ## No Placeholders
-@@ -113,11 +119,28 @@
+ 
+ Every step must contain the actual content an engineer needs. These are **plan failures** — never write them:
+@@ -113,11 +136,28 @@
  - Steps that describe what to do without showing how (code blocks required for code steps)
  - References to types, functions, or methods not defined in any task
  
@@ -566,7 +693,7 @@ diff -ruN superpowers-orig/skills/writing-plans/SKILL.md superpowers-mod/skills/
  
  ## Self-Review
  
-@@ -133,20 +156,17 @@
+@@ -133,20 +173,17 @@
  
  ## Execution Handoff
  

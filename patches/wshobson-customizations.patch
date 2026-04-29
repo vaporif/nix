@@ -1,19 +1,19 @@
-From b2548fb187adb7e329d916db6769db18789bfe4a Mon Sep 17 00:00:00 2001
+From 31bf96aa2f85febb60b60ad6dc0e3d7c33168f6a Mon Sep 17 00:00:00 2001
 From: Dmytro Onypko <vaporif@proton.me>
-Date: Wed, 29 Apr 2026 00:52:08 +0100
+Date: Wed, 29 Apr 2026 01:28:21 +0100
 Subject: [PATCH] wshobson-agents customizations
 
-- python-development: target Python 3.14+, Pydantic v2, LLM/AI guidance, strict ruff/mypy conventions
+- python-development: target Python 3.14+, Pydantic v2, LLM/AI guidance, strict ruff/basedpyright conventions
 - systems-programming: remove C, C++, and Rust agents and memory-safety skill (Rust handled by standalone rust-engineer agent)
 ---
  .../.claude-plugin/plugin.json                |   2 +-
- .../python-development/agents/python-pro.md   | 203 +++++-
+ .../python-development/agents/python-pro.md   | 219 ++++++-
  .../.claude-plugin/plugin.json                |   2 +-
  plugins/systems-programming/agents/c-pro.md   |  35 -
  plugins/systems-programming/agents/cpp-pro.md |  38 --
  .../systems-programming/agents/rust-pro.md    | 171 -----
  .../skills/memory-safety-patterns/SKILL.md    | 600 ------------------
- 7 files changed, 195 insertions(+), 856 deletions(-)
+ 7 files changed, 209 insertions(+), 858 deletions(-)
  delete mode 100644 plugins/systems-programming/agents/c-pro.md
  delete mode 100644 plugins/systems-programming/agents/cpp-pro.md
  delete mode 100644 plugins/systems-programming/agents/rust-pro.md
@@ -33,10 +33,10 @@ index f479af8..d048478 100644
      "name": "Seth Hobson",
      "email": "seth@major7apps.com"
 diff --git a/plugins/python-development/agents/python-pro.md b/plugins/python-development/agents/python-pro.md
-index e03c788..7163ba8 100644
+index e03c788..be648b5 100644
 --- a/plugins/python-development/agents/python-pro.md
 +++ b/plugins/python-development/agents/python-pro.md
-@@ -1,33 +1,216 @@
+@@ -1,33 +1,228 @@
  ---
  name: python-pro
 -description: Master Python 3.12+ with modern features, async programming, performance optimization, and production-ready practices. Expert in the latest Python ecosystem including uv, ruff, pydantic, and FastAPI. Use PROACTIVELY for Python development, optimization, or advanced Python patterns.
@@ -126,9 +126,9 @@ index e03c788..7163ba8 100644
 +**Tooling**
 +
 +- **Lint + format:** `ruff` only — replaces `black`, `isort`, `flake8`, `pyupgrade`, `bandit`, etc. Never combine ruff with those tools
-+- **Typecheck:** `mypy` in strict mode — `pyright` is acceptable but not the default
++- **Typecheck:** `basedpyright` in strict mode — fork of pyright with stricter defaults. Do not use `mypy` or stock `pyright` for new projects
 +- Add `lint`, `format`, `typecheck` recipes to `justfile` / `Makefile` if the project has one
-+- Pin in dev dependencies: `ruff>=0.6`, `mypy>=1.11`
++- Pin in dev dependencies: `ruff>=0.6`, `basedpyright>=1.19`
 +
 +**Canonical `pyproject.toml` (drop in verbatim, then adjust `line-length` and `target-version` to project)**
 +
@@ -151,6 +151,9 @@ index e03c788..7163ba8 100644
 +  "D213",  # conflicts with D212
 +  # Practically unenforceable
 +  "CPY001",  # missing copyright header on every file
++  # Any is gated by basedpyright's reportAny instead — every Any in source needs
++  # a per-site `# pyright: ignore[reportAny]` with a one-line rationale
++  "ANN401",
 +]
 +
 +[tool.ruff.lint.per-file-ignores]
@@ -177,26 +180,34 @@ index e03c788..7163ba8 100644
 +max-returns = 6
 +max-statements = 50
 +
-+[tool.mypy]
-+python_version = "3.11"
-+strict = true
-+warn_unreachable = true
-+warn_redundant_casts = true
-+warn_unused_ignores = true
-+disallow_any_explicit = true
-+disallow_any_unimported = true
-+no_implicit_reexport = true
-+extra_checks = true
++[tool.basedpyright]
++typeCheckingMode = "strict"
++pythonVersion = "3.11"
++include = ["<package_name>", "tests"]
++extraPaths = ["."]
++reportMissingTypeStubs = false
 +
-+[[tool.mypy.overrides]]
-+module = "tests.*"
-+disallow_untyped_defs = false
++# Promote these to errors — basedpyright defaults are already strict, but these
++# are the ones worth gating CI on:
++reportAny = "error"
++reportExplicitAny = "error"
++reportImplicitOverride = "error"
++reportUnreachable = "error"
++reportUnnecessaryTypeIgnoreComment = "error"
++reportImplicitStringConcatenation = "error"
 +
-+# For each third-party lib without type stubs, add an override.
-+# Discover with: mypy <pkg> 2>&1 | grep "library stubs not installed"
-+# [[tool.mypy.overrides]]
-+# module = ["some_untyped_lib", "another.*"]
-+# ignore_missing_imports = true
++# Tests get the same engine but with relaxed unknowns — third-party fixtures
++# and mocks pollute inference and aren't worth annotating.
++[tool.basedpyright.executionEnvironments]
++[[tool.basedpyright.executionEnvironments]]
++root = "tests"
++reportMissingParameterType = "none"
++reportUnknownParameterType = "none"
++reportUnknownArgumentType = "none"
++reportUnknownVariableType = "none"
++reportUnknownMemberType = "none"
++reportAny = "none"
++reportExplicitAny = "none"
 +```
 +
 +**Canonical `justfile` recipes**
@@ -211,13 +222,13 @@ index e03c788..7163ba8 100644
 +    uv run ruff format .
 +
 +typecheck:
-+    uv run mypy <package_name>
++    uv run basedpyright
 +```
 +
 +**Code conventions that emerge from this config — write code this way from the start**
 +
-+- **Type every signature, including return types.** `strict = true` + `disallow_any_explicit` means `def f(x: int) -> int: ...`, never `def f(x): ...` and never `Any`. Use `object` for true unknowns, `TypeVar` for generic, narrow with `isinstance` or `cast` only at boundaries
-+- **No `Any`, anywhere.** No `: Any`, no `cast(Any, x)`, no `# type: ignore` without a specific code (`# type: ignore[arg-type]`) and a reason. Use `object` or a `TypeVar` instead
++- **Type every signature, including return types.** `typeCheckingMode = "strict"` + `reportAny = "error"` means `def f(x: int) -> int: ...`, never `def f(x): ...` and never `Any`. Use `object` for true unknowns, `TypeVar` for generic, narrow with `isinstance` or `cast` only at boundaries
++- **No `Any` without justification.** Every `Any` in production code (SDK passthrough, dynamic schema, etc.) needs a per-site `# pyright: ignore[reportAny]` with a one-line rationale. No blanket `# pyright: ignore`, no bare type suppression — `reportUnnecessaryTypeIgnoreComment` will flag stale ones
 +- **No mutable default args** (`B006`): `def f(xs: list[int] | None = None) -> ...:` then `xs = xs or []` inside
 +- **No bare `except:` or `except Exception:`** without re-raise (`BLE001`, `B902`): catch the specific exception, or `except Exception: ... raise` to log-and-rethrow. Never swallow
 +- **`raise X from err` inside `except` blocks** (`B904`): preserve the cause chain, or use `raise X from None` to deliberately suppress
@@ -239,16 +250,17 @@ index e03c788..7163ba8 100644
 +**Stub gaps for untyped third-party libs**
 +
 +- First try `types-<lib>` from typeshed (e.g. `types-requests`, `types-PyYAML`)
-+- If no stubs exist, add a `[[tool.mypy.overrides]]` block with `module = ["lib.*"]` and `ignore_missing_imports = true` — never blanket-ignore mypy errors elsewhere
-+- Find missing stubs with: `uv run mypy <pkg> 2>&1 | grep -E "(library stubs not installed|Cannot find implementation)"`
++- `reportMissingTypeStubs = false` already silences the "no stubs" error globally — that's the project-wide knob, do not flip it back on
++- For specific calls into an untyped lib that produce `reportUnknownMemberType` / `reportUnknownVariableType` noise, suppress per-site with `# pyright: ignore[reportUnknownMemberType]` and a one-line rationale
++- Find untyped surfaces with: `uv run basedpyright --outputjson | jq '.generalDiagnostics[] | select(.rule | startswith("reportUnknown"))'`
 +
 +**Rollout procedure when adopting on an existing codebase**
 +
 +1. Add the config above; do **not** loosen it
 +2. `uv run ruff check --fix . && uv run ruff format .` — autofix everything autofixable, commit as one mechanical commit
 +3. `uv run ruff check .` — fix remaining lint manually, one rule family per commit (e.g. all `B` fixes in one commit, all `S` fixes in another)
-+4. `uv run mypy <pkg>` — fix type errors leaf-up (typed leaves enable typing their callers). Add `# type: ignore[code]` with a `# reason: <why>` comment only when the error is a genuine library-stub gap
-+5. Wire the three recipes into CI; fail the build on any of `ruff check`, `ruff format --check`, `mypy`
++4. `uv run basedpyright` — fix type errors leaf-up (typed leaves enable typing their callers). Add `# pyright: ignore[<rule>]` with a one-line rationale only when the error is a genuine library-stub gap or a deliberate `Any` boundary
++5. Wire the three recipes into CI; fail the build on any of `ruff check`, `ruff format --check`, `basedpyright`
 +
  ### Modern Tooling & Development Environment
  
@@ -256,11 +268,11 @@ index e03c788..7163ba8 100644
 -- Code formatting and linting with ruff (replacing black, isort, flake8)
 -- Static type checking with mypy and pyright
 +- Code formatting and linting with ruff (replacing black, isort, flake8) — see strict config in the section above
-+- Static type checking with mypy strict mode (`pyright` acceptable as alternate) — see strict config in the section above
++- Static type checking with basedpyright in strict mode — see strict config in the section above
  - Project configuration with pyproject.toml (modern standard)
  - Virtual environment management with venv, pipenv, or uv
  - Pre-commit hooks for code quality automation
-@@ -61,7 +244,7 @@ Expert Python developer mastering Python 3.12+ features, modern tooling, and pro
+@@ -61,7 +256,7 @@ Expert Python developer mastering Python 3.12+ features, modern tooling, and pro
  - FastAPI for high-performance APIs with automatic documentation
  - Django for full-featured web applications
  - Flask for lightweight web services
@@ -269,16 +281,18 @@ index e03c788..7163ba8 100644
  - SQLAlchemy 2.0+ with async support
  - Background task processing with Celery and Redis
  - WebSocket support with FastAPI and Django Channels
-@@ -115,7 +298,7 @@ Expert Python developer mastering Python 3.12+ features, modern tooling, and pro
+@@ -115,8 +310,8 @@ Expert Python developer mastering Python 3.12+ features, modern tooling, and pro
  
  ## Knowledge Base
  
 -- Python 3.12+ language features and performance improvements
+-- Modern Python tooling ecosystem (uv, ruff, pyright)
 +- Python 3.14+ language features and performance improvements
- - Modern Python tooling ecosystem (uv, ruff, pyright)
++- Modern Python tooling ecosystem (uv, ruff, basedpyright)
  - Current web framework best practices (FastAPI, Django 5.x)
  - Async programming patterns and asyncio ecosystem
-@@ -129,7 +312,7 @@ Expert Python developer mastering Python 3.12+ features, modern tooling, and pro
+ - Data science and machine learning Python stack
+@@ -129,7 +324,7 @@ Expert Python developer mastering Python 3.12+ features, modern tooling, and pro
  ## Response Approach
  
  1. **Analyze requirements** for modern Python best practices
@@ -287,6 +301,15 @@ index e03c788..7163ba8 100644
  3. **Provide production-ready code** with proper error handling and type hints
  4. **Include comprehensive tests** with pytest and appropriate fixtures
  5. **Consider performance implications** and suggest optimizations
+@@ -142,7 +337,7 @@ Expert Python developer mastering Python 3.12+ features, modern tooling, and pro
+ - "Help me migrate from pip to uv for package management"
+ - "Optimize this Python code for better async performance"
+ - "Design a FastAPI application with proper error handling and validation"
+-- "Set up a modern Python project with ruff, mypy, and pytest"
++- "Set up a modern Python project with ruff, basedpyright, and pytest"
+ - "Implement a high-performance data processing pipeline"
+ - "Create a production-ready Dockerfile for a Python application"
+ - "Design a scalable background task system with Celery"
 diff --git a/plugins/systems-programming/.claude-plugin/plugin.json b/plugins/systems-programming/.claude-plugin/plugin.json
 index 84307e2..f2e05ef 100644
 --- a/plugins/systems-programming/.claude-plugin/plugin.json
@@ -1168,3 +1191,6 @@ index b8aea29..0000000
 -# ThreadSanitizer
 -clang++ -fsanitize=thread -g source.cpp
 -```
+-- 
+2.53.0
+

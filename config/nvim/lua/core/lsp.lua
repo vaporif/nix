@@ -144,7 +144,7 @@ vim.lsp.enable 'basedpyright'
 
 vim.lsp.config.ruff = {
   settings = {
-    organizeImports = false,
+    organizeImports = true,
   },
 }
 vim.lsp.enable 'ruff'

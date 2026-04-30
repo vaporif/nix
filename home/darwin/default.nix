@@ -19,7 +19,7 @@ in {
       element-desktop
       signal-desktop
       qbittorrent
-      mpv
+      mpv-unwrapped
     ];
     sessionPath = [homebrewPath];
     sessionVariables =
@@ -39,6 +39,15 @@ in {
   };
 
   stylix.targets.librewolf.profileNames = ["default"];
+
+  # mac-app-util skips regenerating a trampoline if the destination .app
+  # already exists, so its inner wrapper script keeps pointing at the old
+  # nix-store path even after a switch (e.g. LibreWolf 149 → 150 launched
+  # the stale 149 binary). Wipe the trampolines dir before linkGeneration
+  # so every activation rebuilds them against current store paths.
+  home.activation.cleanStaleTrampolines = lib.hm.dag.entryBefore ["linkGeneration"] ''
+    run rm -rf "$HOME/Applications/Home Manager Trampolines"
+  '';
 
   programs.ssh = {
     extraOptionOverrides = lib.optionalAttrs (cfg.sshAgent == "secretive") {

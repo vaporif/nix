@@ -40,8 +40,7 @@
   });
 in {
   imports = [
-    (inputs.wrappers.lib.mkInstallModule {
-      loc = ["home" "packages"];
+    (inputs.wrappers.lib.getInstallModule {
       name = "neovim";
       value = inputs.wrappers.lib.wrapperModules.neovim;
     })

@@ -154,6 +154,11 @@
       builtins.elem (lib.getName pkg) [
         "spacetimedb"
         "claude-code"
+        # nixpkgs bug: upstream auto-updater couldn't detect the upstream
+        # license and defaulted meta.license to unfree in generated.nix.
+        # Both plugins are actually permissively licensed.
+        "neotest-vitest"
+        "neotest-foundry"
       ];
 
     nixpkgsConfig = {

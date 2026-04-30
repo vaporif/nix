@@ -31,8 +31,6 @@
       pkgs.rusty-man
       pkgs.graphviz
 
-      pkgs.yt-dlp
-
       pkgs.python3
       pkgs.python3Packages.huggingface-hub
 

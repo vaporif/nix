@@ -378,12 +378,7 @@ cve = [
 
 [cargo]
 comment = "Rust cargo CLI; CVEs are for MediaWiki Cargo Extension XSS (false positive name collision)"
-cve = [
-  "CVE-2026-39837",
-  "CVE-2026-39839",
-  "CVE-2026-39840",
-  "CVE-2026-39841",
-]
+cve = ["CVE-2026-39837", "CVE-2026-39839", "CVE-2026-39840", "CVE-2026-39841"]
 
 [libgcrypt]
 comment = "CVE-2026-41989: heap overflow in gcry_pk_decrypt via crafted ECDH ciphertext (DoS, local-only attack), fixed in 1.12.2; awaiting upstream nixpkgs bump"

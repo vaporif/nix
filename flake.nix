@@ -65,6 +65,10 @@
       url = "github:blader/napkin";
       flake = false;
     };
+    mattpocock-skills = {
+      url = "github:mattpocock/skills";
+      flake = false;
+    };
     wshobson-agents = {
       url = "github:wshobson/agents";
       flake = false;

@@ -1,7 +1,7 @@
 diff -ruN superpowers-orig/skills/brainstorming/SKILL.md superpowers-mod/skills/brainstorming/SKILL.md
 --- superpowers-orig/skills/brainstorming/SKILL.md	2026-05-01 20:09:58
 +++ superpowers-mod/skills/brainstorming/SKILL.md	2026-05-01 20:16:05
-@@ -22,32 +22,92 @@
+@@ -22,32 +22,101 @@
  You MUST create a task for each of these items and complete them in order:
  
  1. **Explore project context** — check files, docs, recent commits
@@ -30,6 +30,8 @@ diff -ruN superpowers-orig/skills/brainstorming/SKILL.md superpowers-mod/skills/
 +   - **Agent teams** → `/team-feature` (persistent agents with tmux panes, shared task list, inter-agent messaging). Only when the user has explicitly requested a coordinated team for this feature.
 +
 +   Then build the **task dependency graph** that step 9 will record in the spec. For each planned task, list its predecessor task IDs (or `none` if independent), using these rules:
++   - **Vertical-slice discipline:** every task must deliver a thin end-to-end behaviour cutting through every relevant layer (schema → logic → API → UI → tests), not a horizontal slice of one layer. A completed task must be independently demoable or verifiable. Reject horizontal layer tasks ("set up schema", "build endpoints", "wire UI") — collapse them into thin vertical features. Prefer many thin slices over few thick ones.
++   - **HITL vs AFK tag:** mark each task `HITL` (requires a human checkpoint — architectural decision, design review) or `AFK` (fully autonomous — agent ships without human interaction). Prefer AFK; only use HITL when human judgement is genuinely required.
 +   - Tasks A and B are parallelisable iff they touch disjoint files, have no shared dependencies neither has produced yet, and neither needs to read the other's output.
 +   - Tasks that depend on a previous task's artifacts (a generated type, a new file, a schema migration) are sequential — dispatch only after the predecessor's review passes.
 +   - Default to sequential when in doubt; parallelism only pays off when the independence is obvious.
@@ -57,9 +59,16 @@ diff -ruN superpowers-orig/skills/brainstorming/SKILL.md superpowers-mod/skills/
 +
 +9. **Write design doc** — save to `docs/specs/YYYY-MM-DD-<topic>-design.md`. The spec MUST include these sections, filled from steps 7–8:
 +   - `## Execution Strategy` — `Subagents` (default) or `Agent teams` (only on explicit user request), plus a one-paragraph reason
-+   - `## Task Dependency Graph` — a list mapping each task to its predecessor task IDs (or `none` if independent). Used by the executor to decide what to dispatch in parallel and what to chain.
++   - `## Task Dependency Graph` — a list mapping each task (a vertical slice tagged `HITL` or `AFK` per Step 7) to its predecessor task IDs (or `none` if independent). Used by the executor to decide what to dispatch in parallel and what to chain.
 +   - `## Agent Assignments` — task → agent type → language/domain, plus the mandatory `Polish:` line
 +   These sections are authoritative. Writing-plans and the execution skills read from them.
++
++   **ADR check** (after writing the spec, before review loop): scan the spec for decisions that satisfy ALL THREE criteria:
++   1. **Hard to reverse** — cost of changing your mind later is meaningful (DB engine, public API contract, encryption scheme, persistence model)
++   2. **Surprising without context** — a future reader will wonder "why did they do it this way?" If the choice is the obvious default, skip
++   3. **Result of a real trade-off** — genuine alternatives existed and you picked one for specific reasons. If only one option was ever viable, no ADR
++
++   For each decision passing all three, offer to draft an ADR alongside the spec at `docs/adr/NNNN-<slug>.md` (next available number). If any of the three is missing, do NOT offer — most decisions don't need ADRs, and a noisy ADR folder trains readers to ignore it. Existing ADRs in `docs/adr/` should be read during step 1 (Explore) so the spec doesn't re-litigate decisions already made.
 +10. **Spec review loop** — dispatch spec-document-reviewer subagent with precisely crafted review context (never your session history); fix issues and re-dispatch until approved (max 10 iterations, then surface to human)
 +11. **User reviews written spec** — ask user to review the spec file before proceeding
 +12. **Update memory** — only after the user has approved the spec in step 11:
@@ -106,7 +115,7 @@ diff -ruN superpowers-orig/skills/brainstorming/SKILL.md superpowers-mod/skills/
      "Visual questions ahead?" -> "Offer Visual Companion\n(own message, no other content)" [label="yes"];
      "Visual questions ahead?" -> "Ask clarifying questions" [label="no"];
      "Offer Visual Companion\n(own message, no other content)" -> "Ask clarifying questions";
-@@ -55,15 +115,22 @@
+@@ -55,15 +122,22 @@
      "Propose 2-3 approaches" -> "Present design sections";
      "Present design sections" -> "User approves design?";
      "User approves design?" -> "Present design sections" [label="no, revise"];
@@ -758,10 +767,10 @@ diff -ruN superpowers-orig/skills/writing-plans/SKILL.md superpowers-mod/skills/
 +
 +[Copy verbatim from the spec, or derive it from the plan's task list if the spec lacks the section. List every task with its predecessors. Format:
 +
-+- Task 1: depends on `none` → first batch
-+- Task 2: depends on `none` → first batch (parallel with Task 1)
-+- Task 3: depends on `Task 1, Task 2` → second batch (sequential after both complete)
-+- Task 4: depends on `Task 3` → third batch (sequential)
++- Task 1 [AFK]: depends on `none` → first batch
++- Task 2 [AFK]: depends on `none` → first batch (parallel with Task 1)
++- Task 3 [HITL]: depends on `Task 1, Task 2` → second batch (sequential after both complete; needs human design review)
++- Task 4 [AFK]: depends on `Task 3` → third batch (sequential)
 +
 +Tasks in the same batch are dispatched in parallel; later batches start only after every task in the previous batch passes its per-task review. A single-task plan has one batch with one task. Default to sequential ("depends on prior task") when independence is not obvious — false parallelism causes merge pain.]
 +

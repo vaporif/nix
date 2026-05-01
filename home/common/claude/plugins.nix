@@ -100,12 +100,6 @@
       version = readPluginVersion "${inputs.wshobson-agents}/plugins/security-scanning";
     }
     {
-      name = "git-pr-workflows";
-      description = "PR enhancement, git workflow automation, repo onboarding";
-      source = wshobsonPlugin "git-pr-workflows";
-      version = readPluginVersion "${inputs.wshobson-agents}/plugins/git-pr-workflows";
-    }
-    {
       name = "blockchain-web3";
       description = "Solidity security, DeFi protocols, NFT standards, Web3 testing";
       source = wshobsonPlugin "blockchain-web3";
@@ -159,9 +153,17 @@
     })
     plugins);
 
+  # Plugins to keep installed but disabled (skills/commands/agents not loaded).
+  # Toggle by adding/removing names here — no rebuild of plugin sources needed.
+  disabledPlugins = [
+    "blockchain-web3"
+    "ralph-loop"
+    "security-scanning"
+  ];
+
   enabledPlugins = builtins.listToAttrs (map (p: {
       name = "${p.name}@nix-plugins";
-      value = true;
+      value = !(builtins.elem p.name disabledPlugins);
     })
     plugins);
 

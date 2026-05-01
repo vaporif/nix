@@ -8,7 +8,57 @@
   cfg = config.custom;
   homeDir = config.home.homeDirectory;
 
-  serenaPatched = inputs.mcp-servers-nix.packages.${pkgs.stdenv.hostPlatform.system}.serena.overrideAttrs (_: {
+  # LSP-only claude-code context: replaces upstream claude-code.yml so only
+  # symbolic / LSP-backed tools are advertised. Keeps Serena from polluting
+  # context with file/memory/onboarding/think tools that Claude Code already
+  # covers natively (or that we cover via ferrex).
+  serenaClaudeCodeContext = pkgs.writeText "claude-code.yml" ''
+    description: Claude Code (LSP-only — symbolic tools only)
+    prompt: |
+      You are running in a CLI coding agent context where file operations, basic (line-based) edits and reads
+      as well as shell commands are handled by your own, internal tools.
+
+      Serena exposes only LSP-backed symbolic tools here. Prefer them over reading entire files:
+      use get_symbols_overview, find_symbol, find_referencing_symbols for exploration, and
+      replace_symbol_body / insert_after_symbol / insert_before_symbol / rename_symbol for edits.
+      For non-code text or unknown symbol names, use search_for_pattern.
+
+    excluded_tools:
+      # already excluded upstream — kept here so the list is self-contained
+      - create_text_file
+      - read_file
+      - execute_shell_command
+      - prepare_for_new_conversation
+      - replace_content
+      # file/dir ops Claude Code handles natively
+      - find_file
+      - list_dir
+      - delete_lines
+      - replace_lines
+      - insert_at_line
+      # memory subsystem — superseded by ferrex
+      - write_memory
+      - read_memory
+      - list_memories
+      - delete_memory
+      - edit_memory
+      # onboarding / meta-prompting / dashboard noise
+      - check_onboarding_performed
+      - onboarding
+      - think_about_collected_information
+      - think_about_task_adherence
+      - think_about_whether_you_are_done
+      - summarize_changes
+      - initial_instructions
+      - open_dashboard
+      - remove_project
+
+    tool_description_overrides: {}
+
+    single_project: true
+  '';
+
+  serenaPatched = inputs.mcp-servers-nix.packages.${pkgs.stdenv.hostPlatform.system}.serena.overrideAttrs (oldAttrs: {
     version = "0.1.4-unstable-2025-12-28";
     src = pkgs.fetchFromGitHub {
       owner = "vaporif";
@@ -16,6 +66,11 @@
       rev = "16c2124feb9a3cc242cc1583e70cb13f75cb8603";
       hash = "sha256-nozcdXVBHlHTtnXvJACC2M3Bat9oT1WEgVYP47SfrQ4=";
     };
+    postPatch =
+      (oldAttrs.postPatch or "")
+      + ''
+        cp ${serenaClaudeCodeContext} src/serena/resources/config/contexts/claude-code.yml
+      '';
   });
 
   mcp-nixos-package = pkgs.mcp-nixos;

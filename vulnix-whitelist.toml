@@ -135,6 +135,18 @@ cve = [
   "CVE-2025-68121",
   "CVE-2025-61732",
   "CVE-2025-22873",
+  "CVE-2026-25679",
+  "CVE-2026-27139",
+  "CVE-2026-27140",
+  "CVE-2026-27142",
+  "CVE-2026-27143",
+  "CVE-2026-27144",
+  "CVE-2026-32280",
+  "CVE-2026-32281",
+  "CVE-2026-32282",
+  "CVE-2026-32283",
+  "CVE-2026-32288",
+  "CVE-2026-32289",
 ]
 
 [ninja]
@@ -158,7 +170,7 @@ comment = "Build dep for typescript-language-server"
 
 # False positives - name collisions
 [git]
-comment = "Jenkins Git plugin false positives + git 2.47.0 CVEs (fixed in 2.48+, awaiting upstream nixpkgs bump)"
+comment = "Jenkins Git plugin false positives + git 2.47.0 CVEs (fixed in 2.48+, awaiting upstream nixpkgs bump); CVE-2025-66413 is Git for Windows-specific (NTLM hash leak)"
 cve = [
   "CVE-2022-36882",
   "CVE-2022-30947",
@@ -170,6 +182,7 @@ cve = [
   "CVE-2024-52006",
   "CVE-2024-50349",
   "CVE-2025-48384",
+  "CVE-2025-66413",
 ]
 
 [mercurial]
@@ -275,12 +288,22 @@ comment = "Apple Security framework (macOS SDK), CVEs are for Trend Micro Securi
 comment = "Build-time LLVM/Clang compilers (15.x, 16.x), low-severity CVE-2024-7883 (3.7 CVSS)"
 
 [cryptography]
-comment = "Python cryptography vendored deps, CVE-2026-34073 (5.3 CVSS); transitive build dep, awaiting upstream"
-cve = ["CVE-2026-34073"]
+comment = "Python cryptography vendored deps; CVE-2026-34073 (5.3) and CVE-2026-39892 (9.8 buffer overflow on non-contiguous buffer to Hash.update, fixed in 46.0.7); transitive build dep, awaiting upstream"
+cve = ["CVE-2026-34073", "CVE-2026-39892"]
 
 [cups]
-comment = "macOS print system, CVE-2022-26691 requires local auth; transitive dep"
-cve = ["CVE-2022-26691"]
+comment = "macOS uses Apple's CUPS, not nixpkgs CUPS; transitive build dep. RCE chain (CVE-2026-34980/34990) requires reachable shared PostScript queue (not exposed); other 2026 CVEs awaiting upstream"
+cve = [
+  "CVE-2022-26691",
+  "CVE-2026-27447",
+  "CVE-2026-34978",
+  "CVE-2026-34979",
+  "CVE-2026-34980",
+  "CVE-2026-34990",
+  "CVE-2026-39314",
+  "CVE-2026-39316",
+  "CVE-2026-41079",
+]
 
 [ffmpeg]
 comment = "Media processing transitive dep (Tidal audio stack); disputed/old CVEs, awaiting upstream nixpkgs bump"
@@ -338,5 +361,37 @@ comment = "Sass compiler, build-time dep for stylesheets"
 comment = "Apple Swift compiler, build-time dep; CVE-2023-26154 is for swift-corelibs-foundation"
 
 [thrift]
-comment = "Apache Thrift serialization, build-time dep; CVE-2021-24028 is for Facebook fbthrift (false positive)"
-cve = ["CVE-2021-24028"]
+comment = "Apache Thrift serialization, build-time transitive dep; CVE-2021-24028 is for Facebook fbthrift (false positive); 2026 CVEs affect Thrift servers/Go-TFramedTransport/c_glib bindings, fixed in 0.23.0; awaiting upstream"
+cve = [
+  "CVE-2021-24028",
+  "CVE-2025-48431",
+  "CVE-2026-41602",
+  "CVE-2026-41603",
+  "CVE-2026-41604",
+  "CVE-2026-41605",
+  "CVE-2026-41606",
+  "CVE-2026-41607",
+  "CVE-2026-41636",
+]
+
+# New findings (2026-05-01)
+
+[cargo]
+comment = "Rust cargo CLI; CVEs are for MediaWiki Cargo Extension XSS (false positive name collision)"
+cve = [
+  "CVE-2026-39837",
+  "CVE-2026-39839",
+  "CVE-2026-39840",
+  "CVE-2026-39841",
+]
+
+[libgcrypt]
+comment = "CVE-2026-41989: heap overflow in gcry_pk_decrypt via crafted ECDH ciphertext (DoS, local-only attack), fixed in 1.12.2; awaiting upstream nixpkgs bump"
+cve = ["CVE-2026-41989"]
+
+[libraw]
+comment = "RAW image parsing library, transitive build dep (image processing stack); heap overflow CVEs require processing untrusted RAW files, low exposure; awaiting upstream nixpkgs bump"
+
+[xz]
+comment = "CVE-2026-34743: heap overflow in lzma_index_decoder/append (5.3 CVSS), requires processing crafted xz data; fixed in 5.8.3, awaiting upstream nixpkgs bump"
+cve = ["CVE-2026-34743"]

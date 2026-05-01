@@ -16,6 +16,7 @@
 - Comment only when the "why" isn't obvious from the code itself
 - Test edge cases and error paths, not just happy paths
 - Rust: use modern module syntax (`foo.rs` + `foo/bar.rs`) instead of `foo/mod.rs`
+- ADRs: only write one when the decision is **hard to reverse** AND **surprising without context** AND **the result of a real trade-off** — if any of the three is missing, skip it
 
 ## Before Writing Code
 - Look for project-specific docs (CLAUDE.md, README, docs/) before starting

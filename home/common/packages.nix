@@ -35,6 +35,8 @@
       pkgs.python3Packages.huggingface-hub
 
       pkgs.presenterm
+      pkgs.asciinema
+      pkgs.asciinema-agg
       pkgs.tokei
       pkgs.just
       pkgs.lazydocker

@@ -1,7 +1,7 @@
 diff -ruN superpowers-orig/skills/brainstorming/SKILL.md superpowers-mod/skills/brainstorming/SKILL.md
---- superpowers-orig/skills/brainstorming/SKILL.md	2026-04-29 00:57:46
-+++ superpowers-mod/skills/brainstorming/SKILL.md	2026-04-29 00:57:46
-@@ -22,32 +22,87 @@
+--- superpowers-orig/skills/brainstorming/SKILL.md	2026-05-01 20:09:58
++++ superpowers-mod/skills/brainstorming/SKILL.md	2026-05-01 20:16:05
+@@ -22,32 +22,92 @@
  You MUST create a task for each of these items and complete them in order:
  
  1. **Explore project context** — check files, docs, recent commits
@@ -19,25 +19,31 @@ diff -ruN superpowers-orig/skills/brainstorming/SKILL.md superpowers-mod/skills/
 +   - If stale/contradictory memories are found, present them and offer to `/forget` outdated ones before proceeding
 +3. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
 +4. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
-+5. **Propose 2-3 approaches** — with trade-offs and your recommendation
++5. **Propose 2-3 approaches** — with trade-offs and your recommendation (unless one option strictly dominates the alternatives — see "Auto-select obvious winners" below)
 +6. **Present design** — in sections scaled to their complexity, get user approval after each section
-+7. **Select execution strategy (heuristic, no ask)** — once the design is approved, apply the Strategy Selection Heuristics (see section below) to the task list implied by the design. Pick ONE strategy. Do NOT ask the user to confirm. Announce it plainly:
++7. **Select execution strategy and build the dependency graph** — once the design is approved, default to **Subagents**. Switch to **Agent teams** only if the user explicitly requested a coordinated team in this conversation. Inline-controller execution is reserved for the degraded path (no subagent support) and is not picked here. Do NOT ask the user to confirm. Announce it plainly:
  
-+   > "Selected execution strategy: **<strategy>**. Reason: <one line grounded in the heuristics>."
++   > "Selected execution strategy: **<Subagents | Agent teams>**. <N> tasks parallelisable, <M> sequential. Reason: <one line, e.g. 'Tasks 2 and 3 share files with Task 1; rest are independent'>."
 +
-+   Strategies (only two — there is no sequential mode):
-+   - **Parallel subagents** → writing-plans → subagent-driven-development (fresh subagent per task, independent, no inter-agent communication). Default.
-+   - **Agent teams** → writing-plans → `/team-feature` (persistent agents with tmux panes, shared task list, inter-agent messaging). For large features with cross-cutting coordination.
-+8. **Assign agent types (heuristic, no ask)** — walk the planned tasks. For each, pick an agent type from the selection guide based on its primary language/domain. Do NOT present a table for approval. Announce assignments as a single block:
++   The choice is between:
++   - **Subagents** (default) — every task is implemented by a fresh dispatched agent. The executor batches independent tasks into parallel dispatches and chains dependent tasks sequentially.
++   - **Agent teams** → `/team-feature` (persistent agents with tmux panes, shared task list, inter-agent messaging). Only when the user has explicitly requested a coordinated team for this feature.
++
++   Then build the **task dependency graph** that step 9 will record in the spec. For each planned task, list its predecessor task IDs (or `none` if independent), using these rules:
++   - Tasks A and B are parallelisable iff they touch disjoint files, have no shared dependencies neither has produced yet, and neither needs to read the other's output.
++   - Tasks that depend on a previous task's artifacts (a generated type, a new file, a schema migration) are sequential — dispatch only after the predecessor's review passes.
++   - Default to sequential when in doubt; parallelism only pays off when the independence is obvious.
++8. **Assign agent types (heuristic, no ask)** — walk the planned tasks. For each, pick an implementer agent type from the selection guide based on its primary language/domain. Then add a final **Polish** line — the agent type that will run `post-implementation-polish` after all tasks finish. Default is `general-purpose`; only pick a specialist when the diff is uniformly in one domain (e.g. all Rust → `systems-programming:rust-pro`, all Solidity → `blockchain-web3:blockchain-developer`). Do NOT present a table for approval. Announce assignments as a single block:
 +
 +    ```
 +    Agent assignments (auto-selected):
 +      Task 1: Implement auth middleware → systems-programming:rust-pro    (Rust)
 +      Task 2: Add API endpoints         → systems-programming:golang-pro  (Go)
 +      Task 3: Update Nix config         → general-purpose                 (Nix)
++      Polish:                           → general-purpose                 (mixed diff)
 +    ```
 +
-+    **Agent type selection guide:**
++    **Agent type selection guide** (implementers only — review agents are picked separately by the review skills):
 +
 +    | Domain / Language      | Agent Type                               |
 +    |------------------------|------------------------------------------|
@@ -47,22 +53,21 @@ diff -ruN superpowers-orig/skills/brainstorming/SKILL.md superpowers-mod/skills/
 +    | C++                    | systems-programming:cpp-pro              |
 +    | Python                 | python-development:python-pro            |
 +    | Solidity / Web3 / DeFi | blockchain-web3:blockchain-developer     |
-+    | Security audit         | security-scanning:security-auditor       |
-+    | Code review            | git-pr-workflows:code-reviewer           |
 +    | General / other        | general-purpose (default)                |
 +
 +9. **Write design doc** — save to `docs/specs/YYYY-MM-DD-<topic>-design.md`. The spec MUST include these sections, filled from steps 7–8:
-+   - `## Execution Strategy` — the selected strategy name (Parallel subagents or Agent teams) and a one-paragraph reason grounded in the heuristics
-+   - `## Agent Assignments` — task → agent type → language/domain
++   - `## Execution Strategy` — `Subagents` (default) or `Agent teams` (only on explicit user request), plus a one-paragraph reason
++   - `## Task Dependency Graph` — a list mapping each task to its predecessor task IDs (or `none` if independent). Used by the executor to decide what to dispatch in parallel and what to chain.
++   - `## Agent Assignments` — task → agent type → language/domain, plus the mandatory `Polish:` line
 +   These sections are authoritative. Writing-plans and the execution skills read from them.
-+10. **Update memory** — after writing the spec:
++10. **Spec review loop** — dispatch spec-document-reviewer subagent with precisely crafted review context (never your session history); fix issues and re-dispatch until approved (max 10 iterations, then surface to human)
++11. **User reviews written spec** — ask user to review the spec file before proceeding
++12. **Update memory** — only after the user has approved the spec in step 11:
 +    - `/remember` key design decisions as semantic triples (e.g. "nix-darwin" / "uses" / "ferrex for memory")
 +    - `/remember` architectural choices as semantic triples
 +    - If any recalled memories from step 2 are now invalidated by this design, `/forget` them
 +    - If existing semantic facts contradict the new design, store updated facts with `supersedes` pointing to the old memory ID
-+11. **Spec review loop** — dispatch spec-document-reviewer subagent with precisely crafted review context (never your session history); fix issues and re-dispatch until approved (max 3 iterations, then surface to human)
-+12. **User reviews written spec** — ask user to review the spec file before proceeding
-+13. **Transition to implementation** — invoke writing-plans. Writing-plans MUST copy `## Execution Strategy` and `## Agent Assignments` from the spec into the plan verbatim. Then execute with the strategy recorded in the plan — no further confirmation.
++13. **Transition to implementation** — invoke writing-plans. Writing-plans MUST copy `## Execution Strategy`, `## Task Dependency Graph`, and `## Agent Assignments` from the spec into the plan verbatim. Then execute with the strategy recorded in the plan — no further confirmation.
 +
  ## Process Flow
  
@@ -89,7 +94,7 @@ diff -ruN superpowers-orig/skills/brainstorming/SKILL.md superpowers-mod/skills/
      "User reviews spec?" [shape=diamond];
 -    "Invoke writing-plans skill" [shape=doublecircle];
 +    "Invoke writing-plans skill" [shape=box];
-+    "Parallel subagents\n(subagent-driven-dev)" [shape=doublecircle];
++    "Subagents\n(subagent-driven-dev)" [shape=doublecircle];
 +    "Agent teams\n(/team-feature)" [shape=doublecircle];
  
 -    "Explore project context" -> "Visual questions ahead?";
@@ -101,7 +106,7 @@ diff -ruN superpowers-orig/skills/brainstorming/SKILL.md superpowers-mod/skills/
      "Visual questions ahead?" -> "Offer Visual Companion\n(own message, no other content)" [label="yes"];
      "Visual questions ahead?" -> "Ask clarifying questions" [label="no"];
      "Offer Visual Companion\n(own message, no other content)" -> "Ask clarifying questions";
-@@ -55,15 +110,22 @@
+@@ -55,15 +115,22 @@
      "Propose 2-3 approaches" -> "Present design sections";
      "Present design sections" -> "User approves design?";
      "User approves design?" -> "Present design sections" [label="no, revise"];
@@ -109,27 +114,28 @@ diff -ruN superpowers-orig/skills/brainstorming/SKILL.md superpowers-mod/skills/
 -    "Write design doc" -> "Spec self-review\n(fix inline)";
 -    "Spec self-review\n(fix inline)" -> "User reviews spec?";
 -    "User reviews spec?" -> "Write design doc" [label="changes requested"];
+-    "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
 +    "User approves design?" -> "Select strategy (heuristic)" [label="yes"];
 +    "Select strategy (heuristic)" -> "Assign agent types (heuristic)";
 +    "Assign agent types (heuristic)" -> "Write design doc\n(w/ Strategy + Agents sections)";
-+    "Write design doc\n(w/ Strategy + Agents sections)" -> "Update memory";
-+    "Update memory" -> "Spec review loop";
++    "Write design doc\n(w/ Strategy + Agents sections)" -> "Spec review loop";
 +    "Spec review loop" -> "Spec review passed?";
 +    "Spec review passed?" -> "Spec review loop" [label="issues found,\nfix and re-dispatch"];
 +    "Spec review passed?" -> "User reviews spec?" [label="approved"];
 +    "User reviews spec?" -> "Write design doc\n(w/ Strategy + Agents sections)" [label="changes requested"];
-     "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
-+    "Invoke writing-plans skill" -> "Parallel subagents\n(subagent-driven-dev)" [label="strategy=parallel"];
++    "User reviews spec?" -> "Update memory" [label="approved"];
++    "Update memory" -> "Invoke writing-plans skill";
++    "Invoke writing-plans skill" -> "Subagents\n(subagent-driven-dev)" [label="strategy=subagents"];
 +    "Invoke writing-plans skill" -> "Agent teams\n(/team-feature)" [label="strategy=teams"];
  }
  ```
  
 -**The terminal state is invoking writing-plans.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.
-+**Terminal state:** writing-plans → execute with the strategy recorded in the plan's header (Parallel subagents or Agent teams). There is no sequential mode. Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. Do NOT ask the user to pick a strategy — the heuristic selection happened in step 7 and is now fixed in the spec and plan.
++**Terminal state:** writing-plans → execute with the strategy recorded in the plan's header (Subagents or Agent teams). There is no separate sequential top-level strategy — sequencing is per-task within Subagents, driven by the dependency graph. Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. Do NOT ask the user to pick a strategy — the heuristic selection happened in step 7 and is now fixed in the spec and plan.
  
  ## The Process
  
-@@ -82,6 +144,7 @@
+@@ -82,6 +149,7 @@
  - Propose 2-3 different approaches with trade-offs
  - Present options conversationally with your recommendation and reasoning
  - Lead with your recommended option and explain why
@@ -137,7 +143,7 @@ diff -ruN superpowers-orig/skills/brainstorming/SKILL.md superpowers-mod/skills/
  
  **Presenting the design:**
  
-@@ -90,6 +153,7 @@
+@@ -90,6 +158,7 @@
  - Ask after each section whether it looks right so far
  - Cover: architecture, components, data flow, error handling, testing
  - Be ready to go back and clarify if something doesn't make sense
@@ -145,7 +151,7 @@ diff -ruN superpowers-orig/skills/brainstorming/SKILL.md superpowers-mod/skills/
  
  **Design for isolation and clarity:**
  
-@@ -108,32 +172,113 @@
+@@ -108,39 +177,109 @@
  
  **Documentation:**
  
@@ -185,37 +191,26 @@ diff -ruN superpowers-orig/skills/brainstorming/SKILL.md superpowers-mod/skills/
  
  - Invoke the writing-plans skill to create a detailed implementation plan
 -- Do NOT invoke any other skill. writing-plans is the next step.
-+- Writing-plans copies `## Execution Strategy` and `## Agent Assignments` from the spec into the plan header verbatim
++- Writing-plans copies `## Execution Strategy`, `## Task Dependency Graph`, and `## Agent Assignments` from the spec into the plan header verbatim
 +- Then execute with the strategy recorded in the plan — do NOT ask the user again:
-+  - **Parallel subagents**: invoke subagent-driven-development (spawns independent Agent subprocesses for each task — no communication between them). This is the default for most work.
-+  - **Agent teams**: use `/team-feature` to spawn a coordinated team (persistent agents in tmux panes with shared task list and inter-agent messaging — for large features where agents need to coordinate). The team-lead MUST enforce two-stage review gates after each implementer completes a task:
++  - **Subagents**: invoke subagent-driven-development. The executor reads the plan's `## Task Dependency Graph` and dispatches independent tasks in parallel batches, dependent tasks only after their predecessors pass review. Single-task plans run as a single dispatch. This is the default for most work.
++  - **Agent teams**: use `/team-feature` to spawn a coordinated team (persistent agents in tmux panes with shared task list and inter-agent messaging — for large features where agents need to coordinate). The team-lead MUST enforce three-stage review gates after each implementer completes a task:
 +    1. **Spec compliance review**: team-reviewer reads actual code against task requirements — checks for missing requirements, extra/unneeded work, and misunderstandings. Does NOT trust the implementer's report. If issues found, implementer fixes and reviewer re-reviews until approved.
 +    2. **Code quality review** (only after spec compliance passes): team-reviewer checks file responsibilities, decomposition, codebase pattern adherence, and standard quality concerns. Critical/Important issues block; Minor issues are noted. Implementer fixes and re-reviews until approved.
 +    3. **Final holistic review**: after all tasks pass both stages, team-reviewer performs a cross-stream review checking consistency, integration seams, and cross-cutting concerns that per-task reviews might miss.
+ 
 +    Never skip reviews. Never start code quality review before spec compliance passes. Never mark a task complete with open review issues.
++- After all tasks complete (in either strategy), the executing skill **always** invokes the `post-implementation-polish` skill, which runs its six phases in sequence and dispatches its own review/idiomatic/cleanup subagents from each phase. The agent type used inside polish is set in the plan's `## Agent Assignments` section (the `Polish:` line — defaults to `general-purpose`). Polish is never inline-only, never skipped, never user-confirmed.
 +
-+## Strategy Selection Heuristics
++## Strategy Selection
 +
-+Apply these rules in order. Take the first match. Record the match and reason in the spec's `## Execution Strategy` section. There are only two strategies — no sequential mode.
++Step 7 above is the source of truth — this section is a back-reference for the rules it applies.
 +
-+1. **Agent teams** when ALL of:
-+   - ≥4 independent tasks.
-+   - Cross-cutting coordination is required (shared integration points, negotiated contracts, coordinated schema/API changes across streams).
-+   - Reviews need to look at work holistically across streams, not just per-task.
-+   - The feature is large enough that a persistent team with messaging pays off (new subsystem, multi-service feature).
++**Subagents** is the default. Every task runs in a fresh dispatched agent, never inline in the controller's session. The executor batches independent tasks into parallel dispatches and chains dependent tasks sequentially based on `## Task Dependency Graph`. There is no separate "parallel" or "sequential" top-level strategy — both are flavours of dispatch under the Subagents umbrella, decided per task by the graph.
 +
-+2. **Parallel subagents** — the default in every other case. Use this when:
-+   - 1–3 tasks, OR
-+   - ≥4 tasks that can be worked on independently with clear file ownership and no inter-task communication, OR
-+   - Any work where per-task review is sufficient (no cross-stream concerns beyond a final integration check).
++**Agent teams** is the only alternative. It is picked only when the user has explicitly requested it in this conversation ("use a team", "spawn /team-feature", "tmux pane per agent"). Size or coordination heuristics do not escalate to teams; only an explicit user request does.
 +
-+   A single-task job still uses parallel subagents — you just dispatch one subagent and run the two-stage review.
-+
-+**Tiebreakers:**
-+- If torn between parallel and teams, choose parallel — it is simpler and has lower coordination overhead. Escalate to teams only if the coordination need is obvious from the design (not just "big feature").
-+- Multi-language designs (e.g., Rust backend + Nix config) are NOT a reason to escalate to teams — parallel subagents with different agent types handles it.
-+
-+**Do NOT ask the user to confirm the selection.** Announce it in the chat ("Selected execution strategy: **parallel subagents**. Reason: …") and write it into the spec. The user can countermand it explicitly; otherwise proceed.
++**Do NOT ask the user to confirm the selection.** Announce in the chat per the step-7 template and write it into the spec. If the user later countermands ("use a team instead", "switch back to subagents"), update the spec and plan accordingly.
 +
 +## Humanize All Non-Code Prose
 +
@@ -267,12 +262,20 @@ diff -ruN superpowers-orig/skills/brainstorming/SKILL.md superpowers-mod/skills/
 +**Auto-select obvious winners:** If one option has only pros and no cons compared to the alternatives (or its cons are strictly a subset of every other option's cons), auto-select it. Still show all options with their pros/cons so the reasoning is visible, but announce: "Auto-selected option N — it has no downsides compared to the alternatives. Let me know if you'd prefer a different choice." If the user doesn't object, proceed with it.
 +
 +**The point is not ceremony.** It's making trade-offs visible so the user (and future readers of the spec/plan) can see what was considered and why.
- 
++
  ## Key Principles
  
+ - **One question at a time** - Don't overwhelm with multiple questions
+ - **Multiple choice preferred** - Easier to answer than open-ended when possible
+ - **YAGNI ruthlessly** - Remove unnecessary features from all designs
+-- **Explore alternatives** - Always propose 2-3 approaches before settling
++- **Explore alternatives** - Propose 2-3 approaches before settling, unless one option strictly dominates (auto-select per the "Document Pros and Cons" section)
+ - **Incremental validation** - Present design, get approval before moving on
+ - **Be flexible** - Go back and clarify when something doesn't make sense
+ 
 diff -ruN superpowers-orig/skills/brainstorming/spec-document-reviewer-prompt.md superpowers-mod/skills/brainstorming/spec-document-reviewer-prompt.md
---- superpowers-orig/skills/brainstorming/spec-document-reviewer-prompt.md	2026-04-29 00:57:46
-+++ superpowers-mod/skills/brainstorming/spec-document-reviewer-prompt.md	2026-04-29 00:57:46
+--- superpowers-orig/skills/brainstorming/spec-document-reviewer-prompt.md	2026-05-01 20:09:58
++++ superpowers-mod/skills/brainstorming/spec-document-reviewer-prompt.md	2026-05-01 20:09:58
 @@ -4,7 +4,7 @@
  
  **Purpose:** Verify the spec is complete, consistent, and ready for implementation planning.
@@ -283,9 +286,44 @@ diff -ruN superpowers-orig/skills/brainstorming/spec-document-reviewer-prompt.md
  ```
  Task tool (general-purpose):
 diff -ruN superpowers-orig/skills/executing-plans/SKILL.md superpowers-mod/skills/executing-plans/SKILL.md
---- superpowers-orig/skills/executing-plans/SKILL.md	2026-04-29 00:57:46
-+++ superpowers-mod/skills/executing-plans/SKILL.md	2026-04-29 00:58:46
-@@ -18,17 +18,31 @@
+--- superpowers-orig/skills/executing-plans/SKILL.md	2026-05-01 20:09:58
++++ superpowers-mod/skills/executing-plans/SKILL.md	2026-05-01 20:09:58
+@@ -7,31 +7,92 @@
+ 
+ ## Overview
+ 
+-Load plan, review critically, execute all tasks, report when complete.
++This skill is a **router**. It reads the plan, picks the execution strategy, and hands off to a subagent-based sub-skill. It does NOT execute tasks itself in the controller's session — multi-agent execution is the default and the only normal path.
+ 
+-**Announce at start:** "I'm using the executing-plans skill to implement this plan."
++**Announce at start:** "I'm using the executing-plans skill to route this plan to its execution sub-skill."
+ 
+-**Note:** Tell your human partner that Superpowers works much better with access to subagents. The quality of its work will be significantly higher if run on a platform with subagent support (such as Claude Code or Codex). If subagents are available, use superpowers:subagent-driven-development instead of this skill.
++## Routing
+ 
+-## The Process
++Read the plan's header. Resolve the execution strategy in this order:
+ 
++1. **User override in this conversation** — if the user explicitly asked for a specific method (e.g. "use a team", "spawn /team-feature", "run it inline because subagents are broken"), honour that. Quote what they said when announcing the choice.
++2. **Plan's `## Execution Strategy` section** — if present, follow it verbatim. **Subagents** → invoke `superpowers:subagent-driven-development`. **Agent teams** → invoke `/team-feature`.
++3. **No section, no override** — default to **Subagents** via `superpowers:subagent-driven-development`. Do NOT ask the user.
++
++Subagent-driven-development reads the plan's `## Task Dependency Graph` to dispatch independent tasks in parallel batches and chain dependent tasks sequentially. Both shapes (parallel batch, sequential chain) are still subagent dispatch — no inline-controller execution.
++
++Announce the route plainly and hand off:
++
++> "Routing: **<strategy>**. Reason: <plan section / user request / default>. Switching to <sub-skill>."
++
++After the announcement, invoke the sub-skill. **The router stops here.** Do not continue into the steps below unless the inline-degraded path applies.
++
++## Inline-Degraded Path (very rare)
++
++Only run the controller-inline serial process below when BOTH are true:
++- The platform genuinely has no subagent support (e.g. raw CLI, no Task tool), AND
++- The user has been told subagents are unavailable and accepted the degraded path.
++
++In every other case, hand off to `subagent-driven-development` or `/team-feature` per Routing above. If you find yourself in this section by default rather than by necessity, stop and route correctly instead.
++
  ### Step 1: Load and Review Plan
  1. Read plan file
  2. Review critically - identify any questions or concerns about the plan
@@ -314,16 +352,48 @@ diff -ruN superpowers-orig/skills/executing-plans/SKILL.md superpowers-mod/skill
 +   - Keep comments that explain *why*, remove those that just say *what*
 +4. Mark as completed (TodoWrite). At this point every step under the task should already be `- [x]` in the plan file.
  
+-### Step 3: Complete Development
 +**Checkbox-flip rules:**
 +- Edit only the literal `- [ ]` → `- [x]` on the step line. Do not reformat surrounding lines, do not re-indent, do not restructure the plan.
 +- If a step is partly done (e.g. tests written but failing), leave it `- [ ]`. Half-done is not done.
 +- If a verification fails after you flipped the box (regression discovered later), flip it back to `- [ ]` and treat the step as pending.
 +- Commit the plan-file edits along with the implementation commit for that step (or as their own commit if the implementation hadn't changed any other files yet) so the resume point survives across sessions.
-+
- ### Step 3: Complete Development
  
- After all tasks complete and verified:
-@@ -56,6 +70,8 @@
+-After all tasks complete and verified:
++### Step 3: Post-Implementation Polish (always, via subagent named in the plan)
++
++After all tasks complete and verified, but before finishing the branch, **always** run the post-implementation-polish pipeline as a single dispatched subagent. Do not run polish inline in this session, do not skip it, and do not ask the user.
++
++Read the `Polish: post-implementation-polish → <agent type>` line from the plan's `## Agent Assignments` section and dispatch using that agent type. If the plan has no Polish line, fall back to `general-purpose` and note the gap so writing-plans can fix it next time.
++
++```
++Task tool (<agent type from plan's Polish line>):
++  description: "Run post-implementation polish on the full diff"
++  prompt: |
++    You own the post-implementation-polish skill end-to-end for this branch.
++
++    Plan: <path to plan file>
++    Spec: <path to spec file, if any>
++    Base SHA: <git merge-base HEAD main>
++    Head SHA: <git rev-parse HEAD>
++
++    Load the post-implementation-polish skill and execute ALL six phases
++    in order: three code review rounds (+ fixes), idiomatic pass, /cleanup,
++    then strip + humanize comments. Skip later review rounds only if the
++    previous round was clean. Commit between phases. Report back the phases
++    you ran, what you committed, and any unresolved Critical/Important
++    findings.
++```
++
++If the polish subagent reports unresolved Critical/Important findings, dispatch a fix subagent and re-run polish. Loop until clean (max 10 iterations across the polish stage), then surface to the user.
++
++### Step 4: Complete Development
++
++Once polish reports DONE:
+ - Announce: "I'm using the finishing-a-development-branch skill to complete this work."
+ - **REQUIRED SUB-SKILL:** Use superpowers:finishing-a-development-branch
+ - Follow that skill to verify tests, present options, execute choice
+@@ -56,6 +117,8 @@
  
  ## Remember
  - Review plan critically first
@@ -333,8 +403,8 @@ diff -ruN superpowers-orig/skills/executing-plans/SKILL.md superpowers-mod/skill
  - Don't skip verifications
  - Reference skills when plan says to
 diff -ruN superpowers-orig/skills/requesting-code-review/SKILL.md superpowers-mod/skills/requesting-code-review/SKILL.md
---- superpowers-orig/skills/requesting-code-review/SKILL.md	2026-04-29 00:57:46
-+++ superpowers-mod/skills/requesting-code-review/SKILL.md	2026-04-29 00:57:46
+--- superpowers-orig/skills/requesting-code-review/SKILL.md	2026-05-01 20:09:58
++++ superpowers-mod/skills/requesting-code-review/SKILL.md	2026-05-01 20:09:58
 @@ -58,7 +58,7 @@
  
  [Dispatch superpowers:code-reviewer subagent]
@@ -345,8 +415,8 @@ diff -ruN superpowers-orig/skills/requesting-code-review/SKILL.md superpowers-mo
    HEAD_SHA: 3df7661
    DESCRIPTION: Added verifyIndex() and repairIndex() with 4 issue types
 diff -ruN superpowers-orig/skills/subagent-driven-development/SKILL.md superpowers-mod/skills/subagent-driven-development/SKILL.md
---- superpowers-orig/skills/subagent-driven-development/SKILL.md	2026-04-29 00:57:46
-+++ superpowers-mod/skills/subagent-driven-development/SKILL.md	2026-04-29 00:59:33
+--- superpowers-orig/skills/subagent-driven-development/SKILL.md	2026-05-01 20:09:58
++++ superpowers-mod/skills/subagent-driven-development/SKILL.md	2026-05-01 20:09:58
 @@ -53,17 +53,19 @@
          "Spec reviewer subagent confirms code matches spec?" [shape=diamond];
          "Implementer subagent fixes spec gaps" [shape=box];
@@ -362,7 +432,8 @@ diff -ruN superpowers-orig/skills/subagent-driven-development/SKILL.md superpowe
 -    "Read plan, extract all tasks with full text, note context, create TodoWrite" [shape=box];
 +    "Read plan, scan checkbox state, skip tasks fully `- [x]`, extract pending tasks, note context, create TodoWrite" [shape=box];
      "More tasks remain?" [shape=diamond];
-     "Dispatch final code reviewer subagent for entire implementation" [shape=box];
+-    "Dispatch final code reviewer subagent for entire implementation" [shape=box];
++    "Dispatch polish subagent\n(post-implementation-polish, all 6 phases)" [shape=box];
      "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
  
 -    "Read plan, extract all tasks with full text, note context, create TodoWrite" -> "Dispatch implementer subagent (./implementer-prompt.md)";
@@ -370,7 +441,7 @@ diff -ruN superpowers-orig/skills/subagent-driven-development/SKILL.md superpowe
      "Dispatch implementer subagent (./implementer-prompt.md)" -> "Implementer subagent asks questions?";
      "Implementer subagent asks questions?" -> "Answer questions, provide context" [label="yes"];
      "Answer questions, provide context" -> "Dispatch implementer subagent (./implementer-prompt.md)";
-@@ -73,10 +75,12 @@
+@@ -73,17 +75,55 @@
      "Spec reviewer subagent confirms code matches spec?" -> "Implementer subagent fixes spec gaps" [label="no"];
      "Implementer subagent fixes spec gaps" -> "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)" [label="re-review"];
      "Spec reviewer subagent confirms code matches spec?" -> "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [label="yes"];
@@ -385,11 +456,71 @@ diff -ruN superpowers-orig/skills/subagent-driven-development/SKILL.md superpowe
 +    "Flip every step in plan file from `- [ ]` to `- [x]` and commit" -> "Mark task complete in TodoWrite";
      "Mark task complete in TodoWrite" -> "More tasks remain?";
      "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
-     "More tasks remain?" -> "Dispatch final code reviewer subagent for entire implementation" [label="no"];
-@@ -99,6 +103,47 @@
+-    "More tasks remain?" -> "Dispatch final code reviewer subagent for entire implementation" [label="no"];
+-    "Dispatch final code reviewer subagent for entire implementation" -> "Use superpowers:finishing-a-development-branch";
++    "More tasks remain?" -> "Dispatch polish subagent\n(post-implementation-polish, all 6 phases)" [label="no"];
++    "Dispatch polish subagent\n(post-implementation-polish, all 6 phases)" -> "Use superpowers:finishing-a-development-branch";
+ }
+ ```
+ 
++## Post-Implementation Polish (always, via subagent named in the plan)
++
++After the last per-task review passes, **always** run the polish pipeline. Do NOT skip it, do NOT run it inline, and do NOT ask the user.
++
++Read the `Polish: post-implementation-polish → <agent type>` line from the plan's `## Agent Assignments` section. Dispatch the polish subagent using **that** agent type — do not re-pick. If the line is missing, fall back to `general-purpose` and note the gap so writing-plans can fix it next time.
++
++The polish subagent owns all six phases (three review rounds, idiomatic pass, /cleanup, strip + humanize comments). Only after it reports DONE do you transition to `finishing-a-development-branch`.
++
++```
++Task tool (<agent type from plan's Polish line>):
++  description: "Run post-implementation polish on the full diff"
++  prompt: |
++    You own the post-implementation-polish skill end-to-end for this branch.
++
++    Plan: <path to plan file>
++    Spec: <path to spec file>
++    Base SHA: <git merge-base HEAD main>
++    Head SHA: <git rev-parse HEAD>
++
++    Read the post-implementation-polish skill and execute ALL six phases in order:
++      1. Code review round 1 (+ fixes, commit)
++      2. Code review round 2 (+ fixes, commit) — skip if round 1 was clean
++      3. Code review round 3 (+ fixes, commit) — skip if round 2 was clean
++      4. Idiomatic code pass
++      5. /cleanup (simplify) with fixes
++      6. Strip AI comments, then humanize remaining comments
++
++    Do not run any phase in parallel — each builds on the previous.
++    Do not modify code logic in phase 6.
++    Commit between phases.
++
++    Report back: phases run, phases skipped (with reason), commits made, any unresolved findings.
++```
++
++If polish itself surfaces unresolved Critical/Important findings, treat them as a regression: dispatch a fix subagent, then re-run the affected polish phase. Loop until clean (max 10 iterations across the whole polish stage), then surface to the user.
++
+ ## Model Selection
+ 
+ Use the least powerful model that can handle each role to conserve cost and increase speed.
+@@ -99,6 +139,65 @@
  - Touches multiple files with integration concerns → standard model
  - Requires design judgment or broad codebase understanding → most capable model
  
++
++## Batching: Parallel Where Independent, Sequential Where Dependent
++
++Read the plan's `## Task Dependency Graph` section to compute batches:
++
++- A **batch** is a set of tasks whose `depends on` lists are all satisfied (every predecessor's review passed).
++- The first batch is every task with `depends on: none`. Dispatch ALL of them in parallel — one Task tool call per task in the same response. Use the agent types from `## Agent Assignments`.
++- After every task in the current batch passes its per-task two-stage review (spec compliance + code quality), compute the next batch (every pending task whose predecessors are now complete) and dispatch that batch in parallel.
++- Continue until all tasks are done. A plan with no parallelism is just a chain of single-task batches.
++
++**Why this matters:** parallel dispatch of independent tasks is the whole point of subagents. Don't run independent tasks one-at-a-time — that wastes the orchestration model. But never speculatively parallelise tasks that share files or consume each other's output; that causes merge conflicts and broken interfaces. Default to sequential when independence is not obvious from the dependency graph.
++
++**Single-task plans:** trivially one batch with one dispatch. No parallelism overhead, but still via subagent — never inline.
++
++**If the plan lacks `## Task Dependency Graph`:** default every task to "depends on prior task" (full sequential chain) and note the gap so writing-plans can add the section next time. Better safe-sequential than unsafe-parallel.
 +
 +## Subagent Type Selection
 +
@@ -401,7 +532,10 @@ diff -ruN superpowers-orig/skills/subagent-driven-development/SKILL.md superpowe
 +| Go                     | systems-programming:golang-pro       |
 +| C                      | systems-programming:c-pro            |
 +| C++                    | systems-programming:cpp-pro          |
++| Python                 | python-development:python-pro        |
 +| Solidity / Web3 / DeFi | blockchain-web3:blockchain-developer |
++| Security audit         | security-scanning:security-auditor   |
++| Code review            | git-pr-workflows:code-reviewer       |
 +| General / other        | general-purpose (default)            |
 +
 +For code quality reviews of Web3/Solidity code, use `git-pr-workflows:code-reviewer` and additionally dispatch `security-scanning:security-auditor` for a parallel security review.
@@ -434,7 +568,7 @@ diff -ruN superpowers-orig/skills/subagent-driven-development/SKILL.md superpowe
  ## Handling Implementer Status
  
  Implementer subagents report one of four statuses. Handle each appropriately:
-@@ -128,7 +173,7 @@
+@@ -128,7 +227,7 @@
  ```
  You: I'm using Subagent-Driven Development to execute this plan.
  
@@ -443,7 +577,7 @@ diff -ruN superpowers-orig/skills/subagent-driven-development/SKILL.md superpowe
  [Extract all 5 tasks with full text and context]
  [Create TodoWrite with all tasks]
  
-@@ -246,6 +291,9 @@
+@@ -246,6 +345,9 @@
  - Let implementer self-review replace actual review (both are needed)
  - **Start code quality review before spec compliance is ✅** (wrong order)
  - Move to next task while either review has open issues
@@ -453,7 +587,7 @@ diff -ruN superpowers-orig/skills/subagent-driven-development/SKILL.md superpowe
  
  **If subagent asks questions:**
  - Answer clearly and completely
-@@ -255,12 +303,33 @@
+@@ -255,12 +357,33 @@
  **If reviewer finds issues:**
  - Implementer (same subagent) fixes them
  - Reviewer reviews again
@@ -489,8 +623,8 @@ diff -ruN superpowers-orig/skills/subagent-driven-development/SKILL.md superpowe
  ## Integration
  
 diff -ruN superpowers-orig/skills/subagent-driven-development/code-quality-reviewer-prompt.md superpowers-mod/skills/subagent-driven-development/code-quality-reviewer-prompt.md
---- superpowers-orig/skills/subagent-driven-development/code-quality-reviewer-prompt.md	2026-04-29 00:57:46
-+++ superpowers-mod/skills/subagent-driven-development/code-quality-reviewer-prompt.md	2026-04-29 00:57:46
+--- superpowers-orig/skills/subagent-driven-development/code-quality-reviewer-prompt.md	2026-05-01 20:09:58
++++ superpowers-mod/skills/subagent-driven-development/code-quality-reviewer-prompt.md	2026-05-01 20:09:58
 @@ -6,8 +6,10 @@
  
  **Only dispatch after spec compliance review passes.**
@@ -512,8 +646,8 @@ diff -ruN superpowers-orig/skills/subagent-driven-development/code-quality-revie
 +
 +**After approval:** dispatch a prose cleanup pass (see Prose Cleanup Pass in SKILL.md) to humanize comments, docstrings, and error messages, and strip AI-obvious comments before marking the task complete.
 diff -ruN superpowers-orig/skills/subagent-driven-development/implementer-prompt.md superpowers-mod/skills/subagent-driven-development/implementer-prompt.md
---- superpowers-orig/skills/subagent-driven-development/implementer-prompt.md	2026-04-29 00:57:46
-+++ superpowers-mod/skills/subagent-driven-development/implementer-prompt.md	2026-04-29 00:59:49
+--- superpowers-orig/skills/subagent-driven-development/implementer-prompt.md	2026-05-01 20:09:58
++++ superpowers-mod/skills/subagent-driven-development/implementer-prompt.md	2026-05-01 20:09:58
 @@ -3,7 +3,7 @@
  Use this template when dispatching an implementer subagent.
  
@@ -573,14 +707,14 @@ diff -ruN superpowers-orig/skills/subagent-driven-development/implementer-prompt
      ## Before Reporting Back: Self-Review
  
 diff -ruN superpowers-orig/skills/writing-plans/SKILL.md superpowers-mod/skills/writing-plans/SKILL.md
---- superpowers-orig/skills/writing-plans/SKILL.md	2026-04-29 00:57:46
-+++ superpowers-mod/skills/writing-plans/SKILL.md	2026-04-29 00:58:21
+--- superpowers-orig/skills/writing-plans/SKILL.md	2026-05-01 20:09:58
++++ superpowers-mod/skills/writing-plans/SKILL.md	2026-05-01 20:09:58
 @@ -7,7 +7,7 @@
  
  ## Overview
  
 -Write comprehensive implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
-+Write comprehensive implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. KISS.
++Write comprehensive implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. KISS. Frequent commits.
  
  Assume they are a skilled developer, but know almost nothing about our toolset or problem domain. Assume they don't know good test design very well.
  
@@ -610,13 +744,26 @@ diff -ruN superpowers-orig/skills/writing-plans/SKILL.md superpowers-mod/skills/
  
  **Goal:** [One sentence describing what this builds]
  
-@@ -57,6 +56,19 @@
+@@ -57,6 +56,35 @@
  
  **Tech Stack:** [Key technologies/libraries]
  
 +## Execution Strategy
 +
-+[Copy verbatim from the spec's `## Execution Strategy` section. Must name exactly one of: **Parallel subagents**, **Agent teams**. Include the one-paragraph reason. Do NOT add a Sequential option — it does not exist. This is authoritative — subagent-driven-development and `/team-feature` read from here. Do NOT ask the user to change it.]
++[Copy verbatim from the spec's `## Execution Strategy` section. Must name exactly one of: **Subagents**, **Agent teams**. Include the one-paragraph reason. There is no inline-controller strategy — that is the degraded fallback in executing-plans, not a normal choice. This is authoritative — subagent-driven-development and `/team-feature` read from here. Do NOT ask the user to change it.
++
++If the spec lacks an `## Execution Strategy` section (e.g. plan written outside the brainstorming flow), write **Subagents** here with reason "default — no spec override". Only deviate if the user has explicitly asked for a different strategy in this conversation.]
++
++## Task Dependency Graph
++
++[Copy verbatim from the spec, or derive it from the plan's task list if the spec lacks the section. List every task with its predecessors. Format:
++
++- Task 1: depends on `none` → first batch
++- Task 2: depends on `none` → first batch (parallel with Task 1)
++- Task 3: depends on `Task 1, Task 2` → second batch (sequential after both complete)
++- Task 4: depends on `Task 3` → third batch (sequential)
++
++Tasks in the same batch are dispatched in parallel; later batches start only after every task in the previous batch passes its per-task review. A single-task plan has one batch with one task. Default to sequential ("depends on prior task") when independence is not obvious — false parallelism causes merge pain.]
 +
 +## Agent Assignments
 +
@@ -624,13 +771,16 @@ diff -ruN superpowers-orig/skills/writing-plans/SKILL.md superpowers-mod/skills/
 +
 +- Task 1: <task name> → <agent type> (<language/domain>)
 +- Task 2: <task name> → <agent type> (<language/domain>)
++- Polish: post-implementation-polish → <agent type> (default: general-purpose)
++
++The Polish line is **mandatory** in every plan — polish always runs as a single dispatched subagent at the end of execution, and the plan picks which agent type owns it. Default is `general-purpose`. Pick a specialist (e.g. `git-pr-workflows:code-reviewer` for Web3, `systems-programming:rust-pro` for a Rust-only diff) only when the diff is uniformly in that domain. If the spec lacks a Polish line, write `Polish: post-implementation-polish → general-purpose` here and proceed.
 +
 +This table is authoritative for subagent-driven-development and `/team-feature`. Do NOT re-pick agents during execution.]
 +
  ---
  ```
  
-@@ -95,14 +107,25 @@
+@@ -95,14 +123,25 @@
  Run: `pytest tests/path/test.py::test_name -v`
  Expected: PASS
  
@@ -662,7 +812,7 @@ diff -ruN superpowers-orig/skills/writing-plans/SKILL.md superpowers-mod/skills/
  ## No Placeholders
  
  Every step must contain the actual content an engineer needs. These are **plan failures** — never write them:
-@@ -113,11 +136,28 @@
+@@ -113,11 +152,27 @@
  - Steps that describe what to do without showing how (code blocks required for code steps)
  - References to types, functions, or methods not defined in any task
  
@@ -686,14 +836,13 @@ diff -ruN superpowers-orig/skills/writing-plans/SKILL.md superpowers-mod/skills/
 +- Complete code in plan (not "add validation")
  - Exact commands with expected output
 -- DRY, YAGNI, TDD, frequent commits
-+- Reference relevant skills with @ syntax
-+- DRY, YAGNI, TDD, KISS
++- DRY, YAGNI, TDD, KISS, frequent commits (one commit per verified step, paired with the `- [x]` flip)
 +- Reuse existing utilities and dependencies before introducing new ones
 +- Follow project security guidelines (CLAUDE.md, AGENTS.md) — validate inputs at system boundaries, review OWASP Top 10 and SWC Registry for relevant threat patterns
  
  ## Self-Review
  
-@@ -133,20 +173,17 @@
+@@ -133,20 +188,18 @@
  
  ## Execution Handoff
  
@@ -701,24 +850,26 @@ diff -ruN superpowers-orig/skills/writing-plans/SKILL.md superpowers-mod/skills/
 +The plan's `## Execution Strategy` section is authoritative. Do NOT re-ask the user. After saving the plan, announce:
  
 -**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Two execution options:**
-+> "Plan complete and saved to `docs/plans/<filename>.md`. Strategy from spec: **<strategy>**. Proceeding with <sub-skill>."
++> "Plan complete and saved to `docs/plans/<filename>.md`. Strategy: **<strategy>**. <N> tasks parallelisable in <K> batches, <M> sequential. Proceeding with <sub-skill>."
  
 -**1. Subagent-Driven (recommended)** - I dispatch a fresh subagent per task, review between tasks, fast iteration
-+Then transition directly based on the strategy:
++Then transition directly based on the strategy. **If the strategy is missing or unrecognised, default to Subagents.** Only an explicit user request in the current conversation overrides this default.
  
 -**2. Inline Execution** - Execute tasks in this session using executing-plans, batch execution with checkpoints
 -
 -**Which approach?"**
 -
 -**If Subagent-Driven chosen:**
-+**Parallel subagents:**
++**Subagents (default):**
  - **REQUIRED SUB-SKILL:** Use superpowers:subagent-driven-development
- - Fresh subagent per task + two-stage review
-+- Use the agent types listed in `## Agent Assignments`
+-- Fresh subagent per task + two-stage review
++- Read `## Task Dependency Graph` to compute batches: tasks in a batch dispatch in parallel; later batches wait for the prior batch's reviews to pass.
++- Each task gets a fresh subagent + two-stage review (spec compliance, then code quality).
++- Use the agent types listed in `## Agent Assignments`.
  
 -**If Inline Execution chosen:**
 -- **REQUIRED SUB-SKILL:** Use superpowers:executing-plans
 -- Batch execution with checkpoints for review
 +**Agent teams:**
 +- Spawn via `/team-feature`
-+- The team-lead reads `## Agent Assignments` for implementer roles and enforces the two-stage review gates documented in brainstorming's Implementation section
++- The team-lead reads `## Task Dependency Graph` for batching and `## Agent Assignments` for implementer roles, and enforces the two-stage review gates documented in brainstorming's Implementation section.

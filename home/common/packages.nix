@@ -56,6 +56,7 @@
 
       pkgs.tdf
 
+      pkgs.ffmpeg
       pkgs.wget
       pkgs.rsync
       pkgs.delta

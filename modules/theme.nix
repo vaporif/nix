@@ -5,6 +5,11 @@
 }: let
   schemeToml = builtins.fromTOML (builtins.readFile "${inputs.earthtone-nvim}/extras/base16-earthtone-light.toml");
 in {
+  fonts.packages = [
+    pkgs.nerd-fonts.monaspace
+    pkgs.inter
+  ];
+
   stylix = {
     enable = true;
     base16Scheme = schemeToml.palette // {inherit (schemeToml.scheme) name author;};

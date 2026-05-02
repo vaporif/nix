@@ -25,7 +25,7 @@
   patchedWshobsonAgents = pkgs.applyPatches {
     name = "wshobson-agents-patched";
     src = inputs.wshobson-agents;
-    patches = [../../../patches/wshobson-customizations.patch];
+    patches = [../../../patches/wshobson-systems-programming.patch];
   };
 
   readPluginVersion = src: let
@@ -38,10 +38,11 @@
   patchedWshobsonPlugin = patchPlugin patchedWshobsonAgents;
 
   pythonProOnlyPlugin = pkgs.runCommand "claude-plugin-python-development" {} ''
-    cp -r ${patchedWshobsonAgents}/plugins/python-development $out
+    cp -r ${inputs.wshobson-agents}/plugins/python-development $out
     chmod -R u+w $out
     rm -f $out/agents/django-pro.md $out/agents/fastapi-pro.md
     rm -rf $out/skills $out/commands
+    cp ${../../../config/claude/agents/python-pro.md} $out/agents/python-pro.md
   '';
 
   plugins = [

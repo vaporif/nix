@@ -8,20 +8,21 @@
   cfg = config.custom;
   homeDir = config.home.homeDirectory;
 
+  # Strip Serena's ~700-token system prompt template. We use Serena only as an
+  # MCP — each tool description already explains itself, so the agent-role
+  # preamble (and the interactive/editing mode prompts it renders) are dead weight.
+  serenaSystemPrompt = pkgs.writeText "system_prompt.yml" ''
+    prompts:
+      system_prompt: ""
+  '';
+
   # LSP-only claude-code context: replaces upstream claude-code.yml so only
   # symbolic / LSP-backed tools are advertised. Keeps Serena from polluting
   # context with file/memory/onboarding/think tools that Claude Code already
   # covers natively (or that we cover via ferrex).
   serenaClaudeCodeContext = pkgs.writeText "claude-code.yml" ''
     description: Claude Code (LSP-only — symbolic tools only)
-    prompt: |
-      You are running in a CLI coding agent context where file operations, basic (line-based) edits and reads
-      as well as shell commands are handled by your own, internal tools.
-
-      Serena exposes only LSP-backed symbolic tools here. Prefer them over reading entire files:
-      use get_symbols_overview, find_symbol, find_referencing_symbols for exploration, and
-      replace_symbol_body / insert_after_symbol / insert_before_symbol / rename_symbol for edits.
-      For non-code text or unknown symbol names, use search_for_pattern.
+    prompt: ""
 
     excluded_tools:
       # already excluded upstream — kept here so the list is self-contained
@@ -70,6 +71,7 @@
       (oldAttrs.postPatch or "")
       + ''
         cp ${serenaClaudeCodeContext} src/serena/resources/config/contexts/claude-code.yml
+        cp ${serenaSystemPrompt} src/serena/resources/config/prompt_templates/system_prompt.yml
       '';
   });
 

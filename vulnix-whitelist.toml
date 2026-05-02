@@ -390,3 +390,13 @@ comment = "RAW image parsing library, transitive build dep (image processing sta
 [xz]
 comment = "CVE-2026-34743: heap overflow in lzma_index_decoder/append (5.3 CVSS), requires processing crafted xz data; fixed in 5.8.3, awaiting upstream nixpkgs bump"
 cve = ["CVE-2026-34743"]
+
+# New findings (2026-05-02)
+
+[echo]
+comment = "Haskell echo library (Hackage); CVE-2009-5135 is for NextApp Echo Java XML parser (name collision)"
+cve = ["CVE-2009-5135"]
+
+[libyaml]
+comment = "Haskell libyaml binding (Hackage); CVE-2013-6393 is for C LibYAML <0.1.5 (name+version coincidence, C library is patched in nixpkgs)"
+cve = ["CVE-2013-6393"]

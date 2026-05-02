@@ -99,6 +99,12 @@ vim.lsp.config.nixd = {
 vim.lsp.enable 'nixd'
 
 vim.lsp.config.basedpyright = {
+  cmd = function(dispatchers, config)
+    local root = config.root_dir or vim.fn.getcwd()
+    local venv_bin = root .. '/.venv/bin/basedpyright-langserver'
+    local exec = vim.uv.fs_stat(venv_bin) and venv_bin or 'basedpyright-langserver'
+    return vim.lsp.rpc.start({ exec, '--stdio' }, dispatchers)
+  end,
   settings = {
     pyright = {
       -- disable import sorting and use Ruff for this

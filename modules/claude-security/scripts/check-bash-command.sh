@@ -92,32 +92,36 @@ done < <(echo "$CMDS" | jq -r '.[][0] // empty')
 # command-prefix whose first N tokens equal the rule's tokens, with N = rule's
 # token count. This naturally handles whitespace variations and refuses to be
 # fooled by environment-variable prefixes (those are not CallExpr Args).
-match_subcmd() {
-  local rule_json=$1 prefix_json=$2
-  jq -e --argjson rule "$rule_json" --argjson prefix "$prefix_json" '
-    ($rule | length) as $n |
-    ($prefix | length) >= $n and
-    ($prefix[:$n]) == $rule
-  ' <<<'null' >/dev/null
-}
+#
+# Single jq pass: emit "deny <rule>" / "ask <rule>" for the first matching rule
+# per CallExpr (deny rules win over ask rules at the same prefix).
+MATCHES=$(jq -nr \
+  --argjson cmds "$CMDS" \
+  --argjson denyRules "$DENIED_SUBCMDS_JSON" \
+  --argjson askRules "$BLOCKED_SUBCMDS_JSON" '
+  def tokenize: split(" ");
+  def matchPrefix($rules; $prefix):
+    first(
+      $rules[] as $r |
+      ($r | tokenize) as $rt |
+      select(($prefix | length) >= ($rt | length) and ($prefix[:($rt | length)]) == $rt) |
+      $r
+    ) // empty;
+  $cmds[] |
+    select(length > 0 and (any(.[]; . == null) | not)) as $prefix |
+    (matchPrefix($denyRules; $prefix) | "deny " + .),
+    (matchPrefix($askRules; $prefix) | "ask " + .)
+')
 
-while IFS= read -r prefix_json; do
-  [ -z "$prefix_json" ] || [ "$prefix_json" = "null" ] && continue
-  while IFS= read -r rule; do
-    [ -z "$rule" ] && continue
-    rule_json=$(jq -c --arg r "$rule" '$r | split(" ")' <<<'null')
-    if match_subcmd "$rule_json" "$prefix_json"; then
-      deny "Command '$rule' is denied."
-    fi
-  done < <(echo "$DENIED_SUBCMDS_JSON" | jq -r '.[]')
-  while IFS= read -r rule; do
-    [ -z "$rule" ] && continue
-    rule_json=$(jq -c --arg r "$rule" '$r | split(" ")' <<<'null')
-    if match_subcmd "$rule_json" "$prefix_json"; then
-      ask "Command '$rule' requires confirmation."
-    fi
-  done < <(echo "$BLOCKED_SUBCMDS_JSON" | jq -r '.[]')
-done < <(echo "$CMDS" | jq -c '.[]')
+while IFS= read -r line; do
+  [ -z "$line" ] && continue
+  action=${line%% *}
+  rule=${line#* }
+  case $action in
+    deny) deny "Command '$rule' is denied." ;;
+    ask) ask "Command '$rule' requires confirmation." ;;
+  esac
+done <<<"$MATCHES"
 
 # Pattern matching: blockedPatterns is a list of "src|sink" strings.
 # We DENY if any CallExpr names src AND any later CallExpr in the same

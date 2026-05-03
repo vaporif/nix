@@ -81,12 +81,6 @@
       source = patchedSuperpowers;
       version = readPluginVersion inputs.superpowers;
     }
-    # {
-    #   name = "visual-explainer";
-    #   description = "Generate HTML pages for diagrams, diff reviews, plan reviews, and data tables";
-    #   source = inputs.visual-explainer;
-    #   version = readPluginVersion inputs.visual-explainer;
-    # }
     {
       name = "systems-programming";
       description = "Go agent with concurrency patterns";

@@ -567,7 +567,9 @@
         "flake-utils": [
           "flake-utils"
         ],
-        "nixpkgs": "nixpkgs_3",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
         "systems": "systems_3",
         "treefmt-nix": "treefmt-nix_2"
       },
@@ -803,22 +805,6 @@
     },
     "nixpkgs_3": {
       "locked": {
-        "lastModified": 1732617236,
-        "narHash": "sha256-PYkz6U0bSEaEB1al7O1XsqVNeSNS+s3NVclJw7YC43w=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "af51545ec9a44eadf3fe3547610a5cdd882bc34e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "af51545ec9a44eadf3fe3547610a5cdd882bc34e",
-        "type": "github"
-      }
-    },
-    "nixpkgs_4": {
-      "locked": {
         "lastModified": 1761236834,
         "narHash": "sha256-+pthv6hrL5VLW2UqPdISGuLiUZ6SnAXdd2DdUE+fV2Q=",
         "owner": "nixos",
@@ -833,7 +819,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_5": {
+    "nixpkgs_4": {
       "locked": {
         "lastModified": 1777641297,
         "narHash": "sha256-WNGcmeOZ8Tr9dq6ztCspYbzWFswr2mPebM9LpsfGxPk=",
@@ -916,7 +902,7 @@
         "napkin": "napkin",
         "nix-darwin": "nix-darwin",
         "nix-devshells": "nix-devshells",
-        "nixpkgs": "nixpkgs_5",
+        "nixpkgs": "nixpkgs_4",
         "parry-guard": "parry-guard",
         "sandnix": "sandnix",
         "sops-nix": "sops-nix",
@@ -924,7 +910,6 @@
         "superpowers": "superpowers",
         "vim-tidal": "vim-tidal",
         "vim-tidal-lua": "vim-tidal-lua",
-        "visual-explainer": "visual-explainer",
         "wezterm-agent-deck": "wezterm-agent-deck",
         "wrappers": "wrappers",
         "wshobson-agents": "wshobson-agents",
@@ -1228,7 +1213,7 @@
     },
     "treefmt-nix_2": {
       "inputs": {
-        "nixpkgs": "nixpkgs_4"
+        "nixpkgs": "nixpkgs_3"
       },
       "locked": {
         "lastModified": 1766000401,
@@ -1273,22 +1258,6 @@
       "original": {
         "owner": "vaporif",
         "repo": "vim-tidal-lua",
-        "type": "github"
-      }
-    },
-    "visual-explainer": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1777310126,
-        "narHash": "sha256-82RYY9txFLhj24oVyvvcXEm6F1RRyRTIXXf8vAJzeoE=",
-        "owner": "nicobailon",
-        "repo": "visual-explainer",
-        "rev": "8f1d0e38ab0f265632a31d2fd032f7b730c98c15",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nicobailon",
-        "repo": "visual-explainer",
         "type": "github"
       }
     },

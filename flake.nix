@@ -90,10 +90,6 @@
       url = "github:Wilfred/difftastic";
       flake = false;
     };
-    visual-explainer = {
-      url = "github:nicobailon/visual-explainer";
-      flake = false;
-    };
     vim-tidal = {
       url = "github:tidalcycles/vim-tidal";
       flake = false;
@@ -126,6 +122,7 @@
     flake-utils.url = "github:numtide/flake-utils";
     mac-app-util = {
       url = "github:hraban/mac-app-util";
+      inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-utils.follows = "flake-utils";
     };
   };

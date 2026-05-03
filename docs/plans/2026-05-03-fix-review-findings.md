@@ -1282,11 +1282,11 @@ git commit -m "read-gate/edit-track: realpath-normalize paths, key cache on slic
 
 **Background.** `visual-explainer` is fully dead (every consumer commented out). `mac-app-util` pulls a separate `nixpkgs_3` in the lock — adding `nixpkgs.follows` is the real win.
 
-- [ ] **Step 1: Remove `visual-explainer` input and its commented usage**
+- [x] **Step 1: Remove `visual-explainer` input and its commented usage**
 
 Drop `flake.nix:93-96` (the `visual-explainer` block) and the dead reference in `home/common/claude/plugins.nix`.
 
-- [ ] **Step 2: Add follows to mac-app-util**
+- [x] **Step 2: Add follows to mac-app-util**
 
 ```diff
  mac-app-util = {
@@ -1296,7 +1296,7 @@ Drop `flake.nix:93-96` (the `visual-explainer` block) and the dead reference in 
  };
 ```
 
-- [ ] **Step 3: Update lock and verify dedup**
+- [x] **Step 3: Update lock and verify dedup**
 
 ```
 nix flake update mac-app-util
@@ -1307,13 +1307,13 @@ grep -E '"nixpkgs(_[0-9]+)?":' flake.lock | sort -u
 
 Expected: `nixpkgs_3` is no longer in the output. (Counting `"nixpkgs"` occurrences globally is a noisy heuristic — also matches repo-name fields and follows arrays — so use the node-name regex above instead.)
 
-- [ ] **Step 4: Verify build still works**
+- [x] **Step 4: Verify build still works**
 
 ```
 nix build .#darwinConfigurations.burnedapple.system --no-link
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add flake.nix flake.lock home/common/claude/plugins.nix

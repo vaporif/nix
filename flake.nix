@@ -218,6 +218,10 @@
           pkgs = chkPkgs;
           inherit home-manager;
         };
+        check-bash-matcher = import ./tests/check-bash-matcher.nix {
+          pkgs = chkPkgs;
+          inherit home-manager;
+        };
         xdg-config-paths = import ./tests/xdg-config-paths.nix {
           pkgs = chkPkgs;
           inherit home-manager inputs;

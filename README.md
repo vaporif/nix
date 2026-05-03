@@ -42,9 +42,9 @@ sudo ./result/bin/switch-to-configuration switch
 direnv allow ~
 ```
 
-> **Forking:** `just switch` and `just cache` hardcode the host attribute
-> names (`burnedapple` / `nixos`). If you change `hostname` in your host file,
-> either match one of those names or edit the recipes in `justfile`.
+> **Forking:** `just switch` and `just cache` hardcode the flake attribute
+> names `burnedapple` (darwin) and `nixos` (linux). If you rename them in
+> `flake.nix`, update the recipes in `justfile` to match.
 
 ### Manual setup
 

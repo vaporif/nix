@@ -26,19 +26,16 @@
     ]
     (builtins.readFile ./check-bash-command.sh);
 in {
-  # check-bash-command uses writeShellApplication for fail-closed posture
-  # (set -euo pipefail). The script body deliberately omits its own shebang
-  # and `set` lines because writeShellApplication injects them.
+  # writeShellApplication injects shebang + `set -euo pipefail` so the body
+  # is fail-closed (any unset var or piped failure aborts the hook).
   check-bash-command = pkgs.writeShellApplication {
     name = "claude-check-bash-command";
     runtimeInputs = with pkgs; [jq shfmt coreutils gnugrep];
     text = checkBashCommandSrc;
   };
 
-  # notify uses writeShellApplication so the body runs under
-  # `set -euo pipefail` and a clean PATH. The macOS branch reaches
-  # /usr/bin/osascript by absolute path because that binary ships with
-  # macOS itself and has no nix-package equivalent.
+  # Same writeShellApplication treatment. /usr/bin/osascript is absolute
+  # because cleanPATH won't find it and there's no nixpkgs equivalent.
   notify = pkgs.writeShellApplication {
     name = "claude-notify";
     runtimeInputs = [pkgs.jq pkgs.curl pkgs.coreutils];
@@ -54,9 +51,10 @@ in {
       (builtins.readFile ./notify.sh);
   };
 
-  # writeShellScriptBin (not writeShellApplication) for the rest because:
-  # - shfmt pipeline uses 2>/dev/null and relies on non-zero exits for fallback
-  # symlinkJoin + makeWrapper prepends runtimeInputs to PATH
+  # The remaining hooks need to swallow non-zero exits from their
+  # internals (notably shfmt fallback paths), which `set -e` from
+  # writeShellApplication wouldn't tolerate. symlinkJoin+makeWrapper
+  # gives them a runtime PATH without the strict-mode wrapper.
   read-gate = let
     script = pkgs.writeShellScriptBin "claude-read-gate" (builtins.readFile ./read-gate.sh);
   in

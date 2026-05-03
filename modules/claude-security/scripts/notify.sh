@@ -1,8 +1,7 @@
-# Notify when Claude needs input: macOS notification + phone push via ntfy
-# Phone setup: install ntfy app, subscribe to your topic
+# Notify when Claude needs input: macOS notification + optional ntfy push.
+# Phone setup: install the ntfy app, subscribe to your topic.
 #
-# Shebang and `set -euo pipefail` are intentionally omitted —
-# writeShellApplication injects them.
+# Shebang and `set -euo pipefail` are injected by writeShellApplication.
 
 input=$(cat)
 
@@ -10,11 +9,10 @@ title=$(jq -r '.title // "Claude Code"' <<<"$input")
 message=$(jq -r '.message // "Waiting for input"' <<<"$input")
 
 if [ "$(uname)" = "Darwin" ]; then
-  # Pass values via env; AppleScript reads them with `system attribute`,
-  # which is string-clean and cannot be smuggled into the script body.
-  # /usr/bin/osascript is part of macOS itself; pkgs.darwin.osascript
-  # does not exist as a nix attribute. writeShellApplication uses cleanPATH,
-  # so use the absolute path.
+  # Title and message ride env vars; AppleScript reads them via
+  # `system attribute`, which can't be smuggled out of string context.
+  # /usr/bin/osascript is shipped by macOS — there's no nixpkgs equivalent,
+  # and writeShellApplication's cleanPATH won't find a relative `osascript`.
   CLAUDE_TITLE="$title" CLAUDE_MESSAGE="$message" \
     /usr/bin/osascript <<'APPLESCRIPT'
 set t to (system attribute "CLAUDE_TITLE")
@@ -26,8 +24,8 @@ fi
 if [ "@ntfyEnabled@" = "true" ]; then
   NTFY_TOPIC=""
   if [ -n "@ntfyTopicFile@" ] && [ -r "@ntfyTopicFile@" ]; then
-    # Strip any character outside the ntfy topic charset.
-    # `-` is last in the class so it's literal, not a range marker.
+    # Strip anything outside the ntfy topic charset. `-` is last in the
+    # class so it's literal, not a range.
     NTFY_TOPIC=$(tr -dc 'A-Za-z0-9_-' <"@ntfyTopicFile@" || true)
   fi
   if [ -n "$NTFY_TOPIC" ] && [ -n "@ntfyServerUrl@" ]; then

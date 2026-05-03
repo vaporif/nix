@@ -126,17 +126,14 @@
     '';
   };
 
-  # Nix-level regression test for mkConfirmHook apostrophe injection.
-  # Renders the hook command with a reason that contains an apostrophe
-  # and asserts the resulting script outputs valid JSON with the exact
-  # reason preserved.
+  # Regression test for the mkConfirmHook apostrophe-injection bug:
+  # render the hook with an apostrophe-bearing reason and assert the
+  # generated script emits valid JSON with the reason preserved verbatim.
   evaluatedSecurity = pkgs.lib.evalModules {
     modules = [
       ../modules/claude-security
-      # Stub home-manager / NixOS options the module reads or sets.
-      # evalModules has no host schema, so declare the minimum surface
-      # to satisfy `config.home.homeDirectory` reads and `assertions`
-      # writes.
+      # evalModules has no host schema, so stub the minimum HM/NixOS
+      # surface the module reads (homeDirectory) or writes (assertions).
       ({lib, ...}: {
         options.home.homeDirectory = lib.mkOption {
           type = lib.types.str;
@@ -182,15 +179,14 @@
       touch "$out"
     '';
 
-  # Fragment-coverage test: pins the fragment→settings splice contract.
-  # Asserts that every hook key declared in settingsFragment.hooks lands
-  # in the rendered ~/.claude/settings.json's hooks attribute. This is the
-  # regression guard that prevents silent drift if a future hook key is
-  # added to the fragment but forgotten in home/common/claude/settings.nix.
+  # Fragment → settings splice contract: every hook key declared in
+  # settingsFragment.hooks must appear in the rendered settings.json.
+  # Catches the case where someone adds a new hook key to the fragment
+  # but forgets to splice it in home/common/claude/settings.nix.
   fragmentCoverageTest = let
     sec = evaluatedSecurity.config.programs.claude-code.security.settingsFragment;
-    # Mirror the splice logic from home/common/claude/settings.nix, both darwin
-    # and non-darwin branches, so the test covers what the real config produces.
+    # Mirrors the splice in home/common/claude/settings.nix (both darwin
+    # and linux branches) so the test exercises real-config output.
     parryHook = {
       hooks = [
         {

@@ -14,8 +14,8 @@
   programs.claude-code.security = {
     enable = true;
     hooks.readOnce.enable = false;
-    # ntfy needs a topicFile; skip the whole block when sops isn't configured
-    # so the assertion (enable -> topicFile != null) doesn't trip.
+    # No sops, no topicFile, no ntfy — keeps the (enable -> topicFile != null)
+    # assertion happy on a fresh fork.
     hooks.notification.ntfy = lib.mkIf (config.custom.secrets.ntfy-topic != null) {
       enable = true;
       topicFile = config.custom.secrets.ntfy-topic;

@@ -101,8 +101,10 @@ in {
       then "/Users/${config.custom.user}"
       else "/home/${config.custom.user}";
 
-    # Populate secret paths only when sops is configured. Consumers must gate
-    # their wiring on the value being non-null (see modules/nix.nix etc.).
+    # Populate /run/secrets paths when sops is configured; otherwise leave
+    # everything null. Consumers gate on the value (see modules/nix.nix etc).
+    # Lives here, not in modules/sops.nix, because both system and HM modules
+    # consume custom.secrets.* and only options.nix is in both scopes.
     secrets = lib.mkIf secretsExist (
       lib.genAttrs (import ./secrets.nix) (name: "/run/secrets/${name}")
     );

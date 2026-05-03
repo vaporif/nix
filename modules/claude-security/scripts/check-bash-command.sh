@@ -1,6 +1,6 @@
-# Hook contract: stdin is JSON with .tool_input.command. We emit a JSON
-# permissionDecision on stdout AND exit non-zero (2) for deny, so the harness
-# treats us as fail-closed even if JSON parsing breaks downstream.
+# PreToolUse hook. stdin is JSON with .tool_input.command. We print the
+# permissionDecision JSON on stdout and exit 2 for deny, so the harness
+# fails closed if downstream JSON parsing breaks.
 
 deny() {
   jq -nc --arg reason "$1" '{
@@ -28,7 +28,7 @@ allow() { exit 0; }
 
 input=$(cat)
 
-# If we cannot parse the input, ask. Never silently allow.
+# Unparseable input → ask, never silently allow.
 COMMAND=$(jq -r '.tool_input.command // empty' <<<"$input" 2>/dev/null) \
   || ask "could not parse hook input"
 
@@ -39,18 +39,14 @@ BLOCKED_SUBCMDS_JSON='@blockedSubcommandsJson@'
 DENIED_SUBCMDS_JSON='@deniedSubcommandsJson@'
 BLOCKED_PATTERNS_JSON='@blockedPatternsJson@'
 
-# Walk the AST. For each CallExpr, extract a list of "command tokens".
-# A token is a string ONLY when every Part is type Lit AND the joined
-# literal value matches the raw source span exactly. If any Part is
-# non-literal (DblQuoted, SglQuoted, ParamExp, CmdSubst, escapes that
-# shfmt collapses, etc) we mark the whole token as opaque (null).
-# Opaque tokens force ask().
+# Per CallExpr we want a list of arg tokens. A token is a string only when
+# every Part is Lit AND the joined literal matches the raw source span
+# exactly. Anything else (DblQuoted, SglQuoted, ParamExp, CmdSubst, an
+# escape that shfmt collapsed) becomes null — opaque, forces ask.
 AST=$(shfmt --to-json <<<"$COMMAND" 2>/dev/null) \
   || ask "could not parse command via shfmt"
 
-# Extract command-prefix tokens per CallExpr.
-# Output format: one JSON array per CallExpr, each element is either a
-# string (concatenated Lit Parts and matching raw source) or null (opaque).
+# CMDS = [[token-or-null, ...], ...] — one inner array per CallExpr.
 CMDS=$(jq -c --arg src "$COMMAND" '
   def tokens: [.Parts[] |
     if .Type == "Lit" then .Value
@@ -68,17 +64,15 @@ CMDS=$(jq -c --arg src "$COMMAND" '
   ]
 ' <<<"$AST")
 
-# If any CallExpr has any opaque (null) token at any arg position, ask.
-# This is intentionally broad: a non-literal arg at position i could be
-# masking a denied subcommand (e.g. `git "$(echo push)" --force` would
-# otherwise slip past the prefix matcher because "git push" doesn't
-# equal ["git", null, "--force"]). The cost is asking on benign quoted
-# args like `echo "hello"` — acceptable for a security boundary.
+# Any opaque token anywhere in any CallExpr → ask. Broad on purpose: a
+# non-literal arg can mask a deny rule (e.g. `git "$(echo push)" --force`
+# wouldn't match the "git push" prefix because the middle token is null).
+# Cost: also asks on benign quoted args like `echo "hello"`.
 if echo "$CMDS" | jq -e 'flatten | any(. == null)' >/dev/null; then
   ask "command contains non-literal tokens (variable, substitution, or quoted) — review manually"
 fi
 
-# Iterate command-prefixes (the first token of each CallExpr) for blockedCommands.
+# blockedCommands: match by the basename of the first token in each CallExpr.
 while IFS= read -r cmd; do
   [ -z "$cmd" ] && continue
   base=$(basename -- "$cmd")
@@ -87,14 +81,13 @@ while IFS= read -r cmd; do
   fi
 done < <(echo "$CMDS" | jq -r '.[][0] // empty')
 
-# Subcommand prefix matching. We tokenize the full prefix (e.g. ["git" "push" "--force"])
-# and check against each rule's space-split tokens. A rule "git push" matches any
-# command-prefix whose first N tokens equal the rule's tokens, with N = rule's
-# token count. This naturally handles whitespace variations and refuses to be
-# fooled by environment-variable prefixes (those are not CallExpr Args).
+# Subcommand prefix match. Each rule "git push" splits into tokens ["git" "push"]
+# and matches a CallExpr whose first 2 args are exactly those. Whitespace in the
+# input collapses cleanly; env-var prefixes don't fool us because shfmt parses
+# them as Assigns, not Args.
 #
-# Single jq pass: emit "deny <rule>" / "ask <rule>" for the first matching rule
-# per CallExpr (deny rules win over ask rules at the same prefix).
+# One jq pass per command: emit "deny <rule>" / "ask <rule>" for the first match
+# per CallExpr. Deny lines come first so the bash loop hits them first.
 MATCHES=$(jq -nr \
   --argjson cmds "$CMDS" \
   --argjson denyRules "$DENIED_SUBCMDS_JSON" \
@@ -123,10 +116,9 @@ while IFS= read -r line; do
   esac
 done <<<"$MATCHES"
 
-# Pattern matching: blockedPatterns is a list of "src|sink" strings.
-# We DENY if any CallExpr names src AND any later CallExpr in the same
-# pipeline/sequence names sink. This is structural — it catches
-# `curl x | sh`, `curl x; sh /tmp/x`, `curl x > /tmp/x && sh /tmp/x`.
+# blockedPatterns are "src|sink" pairs. Deny if both names appear as
+# CallExpr basenames anywhere in the command. Structural, not regex —
+# catches `curl x | sh`, `curl x; sh /tmp/x`, `curl x > /tmp/x && sh /tmp/x`.
 ALL_BASES=$(echo "$CMDS" | jq -r '.[][0] // empty | split("/") | last')
 while IFS= read -r pattern; do
   [ -z "$pattern" ] && continue

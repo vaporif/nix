@@ -11,7 +11,6 @@ in {
     ./git.nix
     ./ssh.nix
     ./mcp.nix
-    ./qdrant.nix
     ./xdg.nix
     ./packages.nix
     ./shell.nix

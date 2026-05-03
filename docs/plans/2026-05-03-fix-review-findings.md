@@ -827,11 +827,11 @@ git commit -m "README/setup: use burnedapple consistently, fix bootstrap command
 
 Auto-selected — moving the import is strictly better than guarding the file write inline; it keeps platform concerns where they belong.
 
-- [ ] **Step 1: Remove `./qdrant.nix` from `home/common/default.nix:14`**
+- [x] **Step 1: Remove `./qdrant.nix` from `home/common/default.nix:14`**
 
-- [ ] **Step 2: Add `../common/qdrant.nix` to `home/darwin/default.nix` imports**
+- [x] **Step 2: Add `../common/qdrant.nix` to `home/darwin/default.nix` imports**
 
-- [ ] **Step 3: Verify NixOS build no longer ships the file**
+- [x] **Step 3: Verify NixOS build no longer ships the file**
 
 ```
 nix build .#nixosConfigurations.nixos.config.home-manager.users.vaporif.home.activationPackage --no-link --print-out-paths
@@ -840,7 +840,7 @@ find $(nix eval --raw .#nixosConfigurations.nixos.config.home-manager.users.vapo
 
 Expected: no output.
 
-- [ ] **Step 4: Verify darwin still ships it**
+- [x] **Step 4: Verify darwin still ships it**
 
 ```
 find $(nix eval --raw .#darwinConfigurations.burnedapple.config.home-manager.users.vaporif.home.activationPackage) -name 'config.yaml' -path '*qdrant*'
@@ -848,7 +848,7 @@ find $(nix eval --raw .#darwinConfigurations.burnedapple.config.home-manager.use
 
 Expected: one path printed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add home/common/default.nix home/darwin/default.nix

@@ -51,11 +51,10 @@ in {
       (builtins.readFile ./notify.sh);
   };
 
-  # read-gate and edit-track stay on writeShellScriptBin for now: the migration
-  # to writeShellApplication isn't load-bearing here (no shellcheck wins to
-  # collect, no `set -e` traps to enforce — both scripts intentionally tolerate
-  # non-zero exits from realpath/sha256sum via `|| ...` fallbacks). symlinkJoin
-  # + makeWrapper still gives them coreutils/jq on PATH.
+  # The remaining hooks stay on writeShellScriptBin: they intentionally tolerate
+  # non-zero exits from realpath/sha256sum/find via `|| ...` fallbacks, and
+  # writeShellApplication's `set -euo pipefail` would abort instead. symlinkJoin
+  # + makeWrapper still puts coreutils/jq/findutils on PATH at runtime.
   read-gate = let
     script = pkgs.writeShellScriptBin "claude-read-gate" (builtins.readFile ./read-gate.sh);
   in

@@ -622,7 +622,7 @@ git commit -m "claude-security: mkConfirmHook — escape reason via jq --arg"
 
 **Background.** Existing tests cover only happy paths. After A1–A3, we want a regression suite that fails if any of the documented bypasses sneaks back in.
 
-- [ ] **Step 1: Extend `tests/claude-security.nix` — payload-driven loop**
+- [x] **Step 1: Extend `tests/claude-security.nix` — payload-driven loop**
 
 A naïve `machine.fail(f"... {payload} ...")` in a Python f-string is wrong on two axes:
 
@@ -658,7 +658,7 @@ Notes:
 - The single-quoted bash body avoids shell-interpolation entirely; payloads only flow through `$p`/`$payload_json`.
 - We accept both `deny` (exit 2) and `ask` (exit 0) as non-bypasses.
 
-- [ ] **Step 2: Add notify.sh injection test (Linux smoke)**
+- [x] **Step 2: Add notify.sh injection test (Linux smoke)**
 
 In `tests/claude-security.nix` (also use a raw triple-quoted Python string so backslashes flow through to bash literally):
 
@@ -671,7 +671,7 @@ machine.succeed(r'''
 ''')
 ```
 
-- [ ] **Step 3: Run**
+- [x] **Step 3: Run**
 
 ```
 nix build .#checks.aarch64-linux.claude-security
@@ -679,7 +679,7 @@ nix build .#checks.aarch64-linux.claude-security
 
 Expected: pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```
 git add tests/claude-security.nix

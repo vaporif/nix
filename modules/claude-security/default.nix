@@ -121,7 +121,7 @@ in {
         };
         blockedCommands = lib.mkOption {
           type = lib.types.listOf lib.types.str;
-          default = ["sudo" "doas" "eval" "dd" "mkfs" "shred"];
+          default = ["sudo" "doas" "eval" "dd" "mkfs" "shred" "rm"];
           description = "Commands that trigger confirmation before execution";
         };
         blockedSubcommands = lib.mkOption {
@@ -136,7 +136,7 @@ in {
         };
         blockedPatterns = lib.mkOption {
           type = lib.types.listOf lib.types.str;
-          default = ["curl|sh" "wget|python"];
+          default = ["curl|sh" "curl|bash" "wget|sh" "wget|bash" "wget|python"];
           description = "Pipe patterns (source|sink) that trigger confirmation";
         };
       };

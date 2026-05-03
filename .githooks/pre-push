@@ -1,4 +1,3 @@
 #!/usr/bin/env bash
 set -e
-echo "Running fast lint checks (CI runs nix flake check)..."
-just check-fast
+just check

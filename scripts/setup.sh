@@ -205,15 +205,6 @@ EOF
     echo "Edit and encrypt with: sops secrets/secrets.yaml"
 fi
 
-# Update hostname references in CI/build files
-echo ""
-echo -e "${YELLOW}Updating hostname references...${NC}"
-if [[ "${OS}" == "Darwin" ]]; then
-    sed -i "s/MacBook-Pro/${HOSTNAME}/g" .github/workflows/check.yml 2>/dev/null || true
-else
-    sed -i "s/nixos/${HOSTNAME}/g" .github/workflows/check.yml 2>/dev/null || true
-fi
-
 echo ""
 echo -e "${GREEN}=== Setup Complete ===${NC}"
 echo ""

@@ -1177,17 +1177,17 @@ git commit -m "claude-security: deny git reset/rebase/clean/filter-branch/checko
 
 **Background.** Sed targets `.github/workflows/check.yml` (file doesn't exist; actual workflows are `ci.yml`/`vulns.yml`/`update-flake.yml`) for literal `MacBook-Pro` (string isn't anywhere in the repo). Silenced by `|| true`. Pure dead code.
 
-- [ ] **Step 1: Remove the block**
+- [x] **Step 1: Remove the block**
 
 Delete lines 208–215 (the "Updating hostname references in CI/build files" echo plus both sed invocations). Line 216 is blank — drop it too if it leaves a trailing gap.
 
-- [ ] **Step 2: Run shellcheck**
+- [x] **Step 2: Run shellcheck**
 
 ```
 shellcheck -S style -o all scripts/setup.sh
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```
 git add scripts/setup.sh

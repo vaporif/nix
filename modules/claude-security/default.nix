@@ -131,7 +131,17 @@ in {
         };
         deniedSubcommands = lib.mkOption {
           type = lib.types.listOf lib.types.str;
-          default = ["git push" "git push --force" "git push -f"];
+          default = [
+            "git push"
+            "git reset --hard"
+            "git rebase -i"
+            "git checkout --"
+            "git clean -f"
+            "git clean -fd"
+            "git clean -fdx"
+            "git filter-branch"
+            "git update-ref -d"
+          ];
           description = "Multi-word commands that are hard-blocked (denied even in unrestricted mode)";
         };
         blockedPatterns = lib.mkOption {

@@ -1129,7 +1129,7 @@ git commit -m "nixos: drop redundant nixpkgs.hostPlatform override"
 
 **Background.** Round 2 confirmed `git reset --hard`, `git rebase -i`, `git checkout -- .`, `git clean -fdx`, `git filter-branch`, `git update-ref -d` are all unguarded. After A1's matcher rewrite, simply listing them in `deniedSubcommands` works.
 
-- [ ] **Step 1: Update defaults**
+- [x] **Step 1: Update defaults**
 
 In `modules/claude-security/default.nix`, find `deniedSubcommands.default`:
 
@@ -1151,7 +1151,7 @@ In `modules/claude-security/default.nix`, find `deniedSubcommands.default`:
 
 (Drop `git push --force` / `git push -f` — they're covered by the broader `git push`.)
 
-- [ ] **Step 2: Confirm the bypass test suite still passes**
+- [x] **Step 2: Confirm the bypass test suite still passes**
 
 ```
 nix build .#checks.aarch64-darwin.check-bash-matcher
@@ -1159,7 +1159,7 @@ nix build .#checks.aarch64-darwin.check-bash-matcher
 
 (All these payloads are already in `bypass-payloads.txt`; this verifies they now deny.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```
 git add modules/claude-security/default.nix

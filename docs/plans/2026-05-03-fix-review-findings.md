@@ -1096,7 +1096,7 @@ git commit -m "claude/settings: pin fragment→settings splice contract via cove
 
 **Background.** `hardware-configuration.nix:29` already sets `nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux"`. The override at `default.nix:40` resolves to the same value but masks the `mkDefault`.
 
-- [ ] **Step 1: Delete the line**
+- [x] **Step 1: Delete the line**
 
 ```
 git diff system/nixos/default.nix
@@ -1104,7 +1104,7 @@ git diff system/nixos/default.nix
 
 Drop `nixpkgs.hostPlatform = cfg.system;` at line 40.
 
-- [ ] **Step 2: Verify the build still resolves the platform**
+- [x] **Step 2: Verify the build still resolves the platform**
 
 ```
 nix eval --raw .#nixosConfigurations.nixos.config.nixpkgs.hostPlatform.config
@@ -1112,7 +1112,7 @@ nix eval --raw .#nixosConfigurations.nixos.config.nixpkgs.hostPlatform.config
 
 Expected: `aarch64-linux`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```
 git add system/nixos/default.nix

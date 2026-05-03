@@ -31,10 +31,20 @@
     ntfyEnabled = cfg.hooks.notification.ntfy.enable;
   };
 
-  mkConfirmHook = entry: {
+  mkConfirmHook = entry: let
+    hookScript = pkgs.writeShellScript "claude-confirm-${entry.tool}" ''
+      ${pkgs.jq}/bin/jq -nc --arg reason ${lib.escapeShellArg entry.reason} '{
+        hookSpecificOutput: {
+          hookEventName: "PreToolUse",
+          permissionDecision: "ask",
+          permissionDecisionReason: $reason
+        }
+      }'
+    '';
+  in {
     hooks = [
       {
-        command = "echo '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"ask\", \"permissionDecisionReason\": \"${entry.reason}\"}}'";
+        command = toString hookScript;
         type = "command";
       }
     ];

@@ -517,7 +517,7 @@ git commit -m "claude-security: notify.sh — close AppleScript and ntfy-topic i
 
 **Background.** `mkConfirmHook` builds JSON via `echo '{"...permissionDecisionReason": "${entry.reason}"}'`. A `'` in the reason terminates the bash quote — round 2 demonstrated arbitrary code execution via crafted reason. Fix: render to a `pkgs.writeShellScript` that calls `jq -n --arg reason "$REASON"`.
 
-- [ ] **Step 1: Write the failing test (Nix-level)**
+- [x] **Step 1: Write the failing test (Nix-level)**
 
 The `claude-security` module is a function `{ config, lib, pkgs, ... }: { ... }` with `mkOption` declarations — you cannot evaluate `settingsFragment` by `import`-ing it directly. Use `lib.evalModules` to build a synthetic module set and then read the rendered hook command:
 
@@ -562,7 +562,7 @@ in
 
 (The `|>` pipe operator requires `--extra-experimental-features pipe-operator`; if your eval doesn't have it, replace with nested `let ... in builtins.head ...`. Adjust `evalModules` module list to match the actual import structure of `modules/claude-security/`.)
 
-- [ ] **Step 2: Run, confirm it fails**
+- [x] **Step 2: Run, confirm it fails**
 
 ```
 nix build .#checks.aarch64-linux.claude-settings 2>&1 | head -20
@@ -570,7 +570,7 @@ nix build .#checks.aarch64-linux.claude-settings 2>&1 | head -20
 
 Expected: the rendered `hookCommand` shells out and bash chokes on the unterminated quote (or jq parses garbage), test exits 1.
 
-- [ ] **Step 3: Rewrite `mkConfirmHook`**
+- [x] **Step 3: Rewrite `mkConfirmHook`**
 
 In `modules/claude-security/default.nix`, replace lines 34–42:
 
@@ -598,13 +598,13 @@ in {
 
 `escapeShellArg` handles arbitrary characters in `entry.reason` at the Nix level; `jq --arg` passes the value through unchanged.
 
-- [ ] **Step 4: Run, confirm green**
+- [x] **Step 4: Run, confirm green**
 
 ```
 nix build .#checks.aarch64-linux.claude-settings
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 alejandra modules/claude-security/default.nix tests/claude-settings.nix

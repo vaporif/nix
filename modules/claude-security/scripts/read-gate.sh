@@ -22,29 +22,31 @@ fi
 # Normalize: realpath -m handles non-existent components.
 NORM_PATH=$(realpath -m -- "$FILE_PATH" 2>/dev/null || printf '%s' "$FILE_PATH")
 
-# File must exist and be a regular file
-if [[ ! -f "$FILE_PATH" ]]; then
+# File must exist and be a regular file. Use the normalized path so
+# the existence check matches what we hash and key the cache on.
+if [[ ! -f "$NORM_PATH" ]]; then
   exit 0
 fi
 
 SESSION_HASH=$(echo -n "$SESSION_ID" | sha256sum | cut -c1-16)
 
-# Include slice in cache key so identical (file, offset, limit) triples
-# dedupe but different slices don't collide.
-SLICE=$(printf '%s|%s|%s' "$NORM_PATH" "${OFFSET:-0}" "${LIMIT:-0}")
-PATH_HASH=$(printf '%s' "$SLICE" | sha256sum | cut -c1-16)
+# Two-level cache layout: <session>/<path-hash>/<slice-hash>. Keying the slice
+# under a per-path subdirectory lets edit-track invalidate every slice of a
+# modified file by removing the whole path-hash dir.
+PATH_HASH=$(printf '%s' "$NORM_PATH" | sha256sum | cut -c1-16)
+SLICE_HASH=$(printf '%s|%s' "${OFFSET:-0}" "${LIMIT:-0}" | sha256sum | cut -c1-16)
 
-CACHE_DIR="${HOME}/.claude/read-once/${SESSION_HASH}"
-CACHE_FILE="${CACHE_DIR}/${PATH_HASH}"
+CACHE_DIR="${HOME}/.claude/read-once/${SESSION_HASH}/${PATH_HASH}"
+CACHE_FILE="${CACHE_DIR}/${SLICE_HASH}"
 
 mkdir -p "$CACHE_DIR"
 
-CURRENT_HASH=$(sha256sum "$FILE_PATH" | cut -c1-64)
+CURRENT_HASH=$(sha256sum "$NORM_PATH" | cut -c1-64)
 
 if [[ -f "$CACHE_FILE" ]]; then
   CACHED_HASH=$(cat "$CACHE_FILE")
   if [[ "$CACHED_HASH" == "$CURRENT_HASH" ]]; then
-    BASENAME=$(basename "$FILE_PATH")
+    BASENAME=$(basename "$NORM_PATH")
     jq -n --arg reason "read-once: ${BASENAME} unchanged (sha256:${CURRENT_HASH:0:12}…), already in context." \
       '{ hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: $reason } }'
     exit 0

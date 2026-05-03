@@ -22,7 +22,8 @@ NORM_PATH=$(realpath -m -- "$FILE_PATH" 2>/dev/null || printf '%s' "$FILE_PATH")
 SESSION_HASH=$(echo -n "$SESSION_ID" | sha256sum | cut -c1-16)
 PATH_HASH=$(printf '%s' "$NORM_PATH" | sha256sum | cut -c1-16)
 
-CACHE_FILE="${HOME}/.claude/read-once/${SESSION_HASH}/${PATH_HASH}"
+# Drop every cached slice for this path (read-gate keys slices under PATH_HASH/).
+CACHE_PATH_DIR="${HOME}/.claude/read-once/${SESSION_HASH}/${PATH_HASH}"
 
-rm -f "$CACHE_FILE"
+rm -rf "$CACHE_PATH_DIR"
 exit 0

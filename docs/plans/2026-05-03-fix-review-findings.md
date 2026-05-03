@@ -788,7 +788,7 @@ git commit -m "justfile: hardcode flake keys (burnedapple / nixos), drop hostnam
 
 **Background.** README's `nix eval --raw -f hosts/macbook.nix hostname` doesn't work — `hosts/macbook.nix` is a module function, not an evaluable. setup.sh has the broken sed (handled in E1); this task only fixes the hostname references.
 
-- [ ] **Step 1: Update README bootstrap**
+- [x] **Step 1: Update README bootstrap**
 
 Replace any `nix eval -f hosts/macbook.nix hostname` invocations with:
 
@@ -798,7 +798,7 @@ nix eval --raw .#darwinConfigurations.burnedapple.config.custom.hostname
 
 Or remove the lookup entirely if its only purpose was to derive the flake key (the user can read the flake.nix).
 
-- [ ] **Step 2: Audit setup.sh for hardcoded `MacBook-Pro` / `macbook` / `burned-apple` strings**
+- [x] **Step 2: Audit setup.sh for hardcoded `MacBook-Pro` / `macbook` / `burned-apple` strings**
 
 ```
 grep -n 'MacBook-Pro\|macbook\|burned-apple\|burnedapple' scripts/setup.sh
@@ -806,7 +806,7 @@ grep -n 'MacBook-Pro\|macbook\|burned-apple\|burnedapple' scripts/setup.sh
 
 Update or remove stale references. (The actual broken sed line is removed in E1.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```
 git add README.md scripts/setup.sh

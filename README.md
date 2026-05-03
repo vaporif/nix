@@ -26,14 +26,15 @@ cd ~/.config/nix-darwin
 sops secrets/secrets.yaml
 
 # First-time build (just/nom/nvd aren't available yet)
+# Replace `<hostname>` with the value of `custom.hostname` from your host file
+# (e.g. `hosts/macbook.nix` or `hosts/nixos.nix`).
+
 # macOS:
-hostname=$(nix eval --raw -f hosts/macbook.nix hostname)
-nix build ".#darwinConfigurations.${hostname}.system"
+nix build ".#darwinConfigurations.<hostname>.system"
 sudo ./result/activate
 
 # NixOS:
-hostname=$(nix eval --raw -f hosts/nixos.nix hostname)
-nix build ".#nixosConfigurations.${hostname}.config.system.build.toplevel"
+nix build ".#nixosConfigurations.<hostname>.config.system.build.toplevel"
 sudo ./result/bin/switch-to-configuration switch
 
 # After first build, use: just switch

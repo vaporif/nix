@@ -134,15 +134,19 @@ in {
           default = [
             "git push"
             "git reset --hard"
+            "git reset --merge"
+            "git reset --keep"
             "git rebase -i"
+            "git rebase --interactive"
             "git checkout --"
-            "git clean -f"
-            "git clean -fd"
-            "git clean -fdx"
+            "git restore"
+            "git clean"
             "git filter-branch"
+            "git filter-repo"
             "git update-ref -d"
+            "git update-ref --stdin"
           ];
-          description = "Multi-word commands that are hard-blocked (denied even in unrestricted mode)";
+          description = "Multi-word commands that are hard-blocked (denied even in unrestricted mode). The matcher does literal token-prefix matching, so flag aliases are listed explicitly. Bare-prefix rules (git clean, git restore) intentionally block all flag combinations at the cost of also blocking the rare safe forms.";
         };
         blockedPatterns = lib.mkOption {
           type = lib.types.listOf lib.types.str;

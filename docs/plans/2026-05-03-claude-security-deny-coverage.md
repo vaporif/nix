@@ -285,7 +285,7 @@ The fixture (`bypass-payloads.txt`) already covers the original rebase/clean/che
 
 The earlier draft of this plan suggested driving the matcher binary directly via `nix eval --raw .#checks.aarch64-linux.check-bash-matcher`, but that derivation's `$out` is a plain file (`touch $out` in `tests/check-bash-matcher.nix:39`) — it has no `bin/claude-check-bash-command`. The actual binary is built by `modules/claude-security/scripts/wrap.nix` and is exercised inside the test via `${hookScript}/bin/claude-check-bash-command`. Trying to invoke it from outside the test is the wrong tree to bark up; the test IS the spot-check.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Run:
 

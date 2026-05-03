@@ -8,11 +8,17 @@
       deniedSubcommands = [
         "git push"
         "git reset --hard"
+        "git reset --merge"
+        "git reset --keep"
         "git rebase -i"
+        "git rebase --interactive"
         "git checkout --"
+        "git restore"
         "git clean"
         "git filter-branch"
+        "git filter-repo"
         "git update-ref -d"
+        "git update-ref --stdin"
       ];
       blockedPatterns = ["curl|sh" "curl|bash"];
       notificationSound = "Glass";

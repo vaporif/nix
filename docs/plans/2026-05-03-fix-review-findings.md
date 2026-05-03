@@ -742,7 +742,7 @@ git commit -m "canonicalize hostname as burnedapple (no hyphen)"
 
 **Background.** Today `just switch` reads `scutil --get LocalHostName`, which only happens to match `burnedapple`. After B1 the values still happen to match, but the dependency is implicit. Hardcode the flake-key per platform — there's exactly one of each.
 
-- [ ] **Step 1: Update `justfile`**
+- [x] **Step 1: Update `justfile`**
 
 ```diff
  switch:
@@ -767,11 +767,11 @@ git commit -m "canonicalize hostname as burnedapple (no hyphen)"
 
 Apply the same hardcoding to the `cache` recipe. The `cachix_name` lookup keeps working because it uses the same flake key.
 
-- [ ] **Step 2: Run `just --dry-run switch`**
+- [x] **Step 2: Run `just --dry-run switch`**
 
 Confirm the expanded command names the right flake key.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```
 git add justfile

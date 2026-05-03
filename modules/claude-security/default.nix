@@ -146,7 +146,12 @@ in {
             "git update-ref -d"
             "git update-ref --stdin"
           ];
-          description = "Multi-word commands that are hard-blocked (denied even in unrestricted mode). The matcher does literal token-prefix matching, so flag aliases are listed explicitly. Bare-prefix rules (git clean, git restore) intentionally block all flag combinations at the cost of also blocking the rare safe forms.";
+          description = ''
+            Multi-word commands that are hard-blocked (denied even in unrestricted mode).
+            The matcher does literal token-prefix matching, so flag aliases are listed
+            explicitly. Bare-prefix rules (git clean, git restore) block all flag
+            combinations at the cost of also blocking the rare safe forms.
+          '';
         };
         blockedPatterns = lib.mkOption {
           type = lib.types.listOf lib.types.str;

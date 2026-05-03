@@ -51,10 +51,10 @@ in {
       (builtins.readFile ./notify.sh);
   };
 
-  # The remaining hooks stay on writeShellScriptBin: they intentionally tolerate
-  # non-zero exits from realpath/sha256sum/find via `|| ...` fallbacks, and
-  # writeShellApplication's `set -euo pipefail` would abort instead. symlinkJoin
-  # + makeWrapper still puts coreutils/jq/findutils on PATH at runtime.
+  # The remaining hooks stay on writeShellScriptBin: they tolerate non-zero
+  # exits from realpath/sha256sum/find via `|| ...` fallbacks, which
+  # writeShellApplication's `set -euo pipefail` would abort instead.
+  # symlinkJoin + makeWrapper still puts coreutils/jq/findutils on PATH.
   read-gate = let
     script = pkgs.writeShellScriptBin "claude-read-gate" (builtins.readFile ./read-gate.sh);
   in

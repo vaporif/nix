@@ -1,8 +1,8 @@
 {config, ...}: let
   homeDir = config.home.homeDirectory;
-  # Bind to 0.0.0.0 so the NixOS VM can reach qdrant over UTM's shared net.
-  # macOS firewall already restricts inbound to the UTM subnet (see system/darwin).
-  # This module is darwin-only — imported from home/darwin/default.nix.
+  # Bind 0.0.0.0 so the NixOS VM can reach qdrant over UTM's shared net.
+  # macOS firewall restricts inbound to the UTM subnet (see system/darwin).
+  # Darwin-only; imported from home/darwin/default.nix.
   bindHost = "0.0.0.0";
 in {
   home.file.".qdrant/config.yaml".text = ''

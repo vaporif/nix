@@ -28,7 +28,7 @@ allow() { exit 0; }
 
 input=$(cat)
 
-# Unparseable input → ask, never silently allow.
+# Unparsable input → ask, never silently allow.
 COMMAND=$(jq -r '.tool_input.command // empty' <<<"$input" 2>/dev/null) \
   || ask "could not parse hook input"
 

@@ -1,7 +1,7 @@
 diff -ruN superpowers-orig/skills/brainstorming/SKILL.md superpowers-mod/skills/brainstorming/SKILL.md
 --- superpowers-orig/skills/brainstorming/SKILL.md	2026-05-01 20:09:58
 +++ superpowers-mod/skills/brainstorming/SKILL.md	2026-05-01 20:16:05
-@@ -22,32 +22,101 @@
+@@ -22,32 +22,98 @@
  You MUST create a task for each of these items and complete them in order:
  
  1. **Explore project context** — check files, docs, recent commits
@@ -13,7 +13,7 @@ diff -ruN superpowers-orig/skills/brainstorming/SKILL.md superpowers-mod/skills/
 -7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
 -8. **User reviews written spec** — ask user to review the spec file before proceeding
 -9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
-+2. **Check memory for prior context** — ask the user: "Want me to check memory for prior context on this?" If yes:
++2. **Check memory for prior context** — do this automatically without asking the user:
 +   - Run `/recall` with the topic in the project namespace to pull relevant prior decisions and context
 +   - Run `/reflect` on the project namespace to surface stale or contradicting memories
 +   - If stale/contradictory memories are found, present them and offer to `/forget` outdated ones before proceeding
@@ -83,7 +83,6 @@ diff -ruN superpowers-orig/skills/brainstorming/SKILL.md superpowers-mod/skills/
  ```dot
  digraph brainstorming {
      "Explore project context" [shape=box];
-+    "Check memory?" [shape=diamond];
 +    "Run /recall with topic" [shape=box];
 +    "Run /reflect" [shape=box];
      "Visual questions ahead?" [shape=diamond];
@@ -107,11 +106,9 @@ diff -ruN superpowers-orig/skills/brainstorming/SKILL.md superpowers-mod/skills/
 +    "Agent teams\n(/team-feature)" [shape=doublecircle];
  
 -    "Explore project context" -> "Visual questions ahead?";
-+    "Explore project context" -> "Check memory?";
-+    "Check memory?" -> "Run /recall with topic" [label="user says yes"];
++    "Explore project context" -> "Run /recall with topic";
 +    "Run /recall with topic" -> "Run /reflect";
 +    "Run /reflect" -> "Visual questions ahead?";
-+    "Check memory?" -> "Visual questions ahead?" [label="no"];
      "Visual questions ahead?" -> "Offer Visual Companion\n(own message, no other content)" [label="yes"];
      "Visual questions ahead?" -> "Ask clarifying questions" [label="no"];
      "Offer Visual Companion\n(own message, no other content)" -> "Ask clarifying questions";

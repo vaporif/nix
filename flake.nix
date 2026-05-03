@@ -122,7 +122,9 @@
     flake-utils.url = "github:numtide/flake-utils";
     mac-app-util = {
       url = "github:hraban/mac-app-util";
-      inputs.nixpkgs.follows = "nixpkgs";
+      # Don't override nixpkgs — upstream pins an older revision deliberately,
+      # because their lisp deps (named-readtables, cl-interpol) regressed on
+      # SBCL 2.6.x. See hraban/mac-app-util#42, NixOS/nixpkgs#491773.
       inputs.flake-utils.follows = "flake-utils";
     };
   };

@@ -39,10 +39,6 @@ require('lze').load {
             popup = { border = 'none', title = '' },
             border = 'none',
             mappings = {
-              ['e'] = 'none',
-              ['h'] = function()
-                vim.cmd 'Neotree float git_status'
-              end,
               ['f'] = function()
                 vim.cmd 'Neotree float filesystem'
               end,

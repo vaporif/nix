@@ -25,21 +25,6 @@
       (builtins.toJSON blockedPatterns)
     ]
     (builtins.readFile ./check-bash-command.sh);
-
-  notifySrc =
-    builtins.replaceStrings
-    ["@sound@" "@ntfyServerUrl@" "@ntfyTopicFile@" "@ntfyEnabled@"]
-    [
-      notificationSound
-      ntfyServerUrl
-      (
-        if ntfyTopicFile != null
-        then toString ntfyTopicFile
-        else ""
-      )
-      (lib.boolToString ntfyEnabled)
-    ]
-    (builtins.readFile ./notify.sh);
 in {
   # check-bash-command uses writeShellApplication for fail-closed posture
   # (set -euo pipefail). The script body deliberately omits its own shebang
@@ -50,23 +35,32 @@ in {
     text = checkBashCommandSrc;
   };
 
+  # notify uses writeShellApplication so the body runs under
+  # `set -euo pipefail` and a clean PATH. The macOS branch reaches
+  # /usr/bin/osascript by absolute path because that binary ships with
+  # macOS itself and has no nix-package equivalent.
+  notify = pkgs.writeShellApplication {
+    name = "claude-notify";
+    runtimeInputs = [pkgs.jq pkgs.curl pkgs.coreutils];
+    text =
+      builtins.replaceStrings
+      ["@sound@" "@ntfyEnabled@" "@ntfyTopicFile@" "@ntfyServerUrl@"]
+      [
+        notificationSound
+        (lib.boolToString ntfyEnabled)
+        (
+          if ntfyTopicFile != null
+          then toString ntfyTopicFile
+          else ""
+        )
+        ntfyServerUrl
+      ]
+      (builtins.readFile ./notify.sh);
+  };
+
   # writeShellScriptBin (not writeShellApplication) for the rest because:
-  # - notify.sh osascript fails on Linux (expected, not an error)
   # - shfmt pipeline uses 2>/dev/null and relies on non-zero exits for fallback
   # symlinkJoin + makeWrapper prepends runtimeInputs to PATH
-  notify = let
-    script = pkgs.writeShellScriptBin "claude-notify" notifySrc;
-  in
-    pkgs.symlinkJoin {
-      name = "claude-notify";
-      paths = [script];
-      buildInputs = [pkgs.makeWrapper];
-      postBuild = ''
-        wrapProgram $out/bin/claude-notify \
-          --prefix PATH : ${lib.makeBinPath [pkgs.jq pkgs.curl]}
-      '';
-    };
-
   read-gate = let
     script = pkgs.writeShellScriptBin "claude-read-gate" (builtins.readFile ./read-gate.sh);
   in

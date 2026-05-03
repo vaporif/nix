@@ -374,7 +374,7 @@ git commit -m "claude-security: rewrite bash matcher (AST-walking, fail-closed)"
 
 **Background.** Round 2 of validation actually executed `do shell script "touch /tmp/PWNED_INJECTION_PROOF"` via a crafted notification title. Any model-controlled string in `.title` or `.message` becomes RCE. Fix: pass values through environment variables, have AppleScript read them via `system attribute`.
 
-- [ ] **Step 1: Write a failing injection test**
+- [x] **Step 1: Write a failing injection test**
 
 Create `tests/notify-injection.nix`:
 
@@ -413,11 +413,11 @@ pkgs.runCommand "notify-injection-test" {
 
 (Note: on Linux this is a smoke test only; real reproduction needs darwin. But the script's escape contract should not depend on platform.)
 
-- [ ] **Step 2: Run the test, confirm it fails on darwin**
+- [x] **Step 2: Run the test, confirm it fails on darwin**
 
 Skip if no darwin host available; the rewrite below makes it pass by construction.
 
-- [ ] **Step 3: Rewrite `notify.sh`**
+- [x] **Step 3: Rewrite `notify.sh`**
 
 Replace `modules/claude-security/scripts/notify.sh` with:
 
@@ -461,7 +461,7 @@ Note: `tr -dc 'A-Za-z0-9_-'` strips any character that isn't a valid ntfy topic 
 
 **Important:** Drop the `#!/usr/bin/env bash` shebang and the `set -euo pipefail` line from `notify.sh` — `writeShellApplication` injects them. The substituted `text` should start at `input=$(cat)`.
 
-- [ ] **Step 4: Update wrap.nix to use writeShellApplication**
+- [x] **Step 4: Update wrap.nix to use writeShellApplication**
 
 In `modules/claude-security/scripts/wrap.nix`, change the `notify` derivation:
 
@@ -484,7 +484,7 @@ notify = pkgs.writeShellApplication {
 };
 ```
 
-- [ ] **Step 5: Run tests on darwin (manual verification)**
+- [x] **Step 5: Run tests on darwin (manual verification)**
 
 On a darwin host:
 
@@ -498,7 +498,7 @@ ls /tmp/SHOULD_NOT_EXIST 2>&1
 
 Expected: `No such file or directory` — payload is treated as literal string in notification title.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```
 alejandra modules/claude-security/scripts/wrap.nix

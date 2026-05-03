@@ -1413,7 +1413,7 @@ git commit -m "githooks: pre-commit checks formatting only, pre-push skips nix f
 
 `!` flips grep's exit-2 (file missing) to 0 → silent success on missing flake.lock. Also never propagates failure when indirect inputs ARE present.
 
-- [ ] **Step 1: Rewrite the recipe**
+- [x] **Step 1: Rewrite the recipe**
 
 ```diff
  check-pinned:
@@ -1428,7 +1428,7 @@ git commit -m "githooks: pre-commit checks formatting only, pre-push skips nix f
 +    @echo "All inputs properly pinned."
 ```
 
-- [ ] **Step 2: Verify both failure modes**
+- [x] **Step 2: Verify both failure modes**
 
 ```
 # Missing lock
@@ -1444,7 +1444,7 @@ git checkout flake.lock
 
 Expected: exit 1 in both cases.
 
-- [ ] **Step 3: Verify success path**
+- [x] **Step 3: Verify success path**
 
 ```
 just check-pinned
@@ -1452,7 +1452,7 @@ just check-pinned
 
 Expected: exit 0, prints "All inputs properly pinned."
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```
 git add justfile

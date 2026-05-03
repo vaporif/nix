@@ -62,7 +62,13 @@ check-vulns:
 # Verify inputs are pinned
 check-pinned:
     @echo "Checking all inputs are pinned..."
-    @! grep -q '"type": "indirect"' flake.lock && echo "All inputs properly pinned."
+    @if [ ! -f flake.lock ]; then echo "ERROR: flake.lock missing" >&2; exit 1; fi
+    @if grep -q '"type": "indirect"' flake.lock; then \
+        echo "ERROR: indirect inputs found" >&2; \
+        grep -n '"type": "indirect"' flake.lock >&2; \
+        exit 1; \
+    fi
+    @echo "All inputs properly pinned."
 
 # Format all
 fmt: fmt-lua fmt-nix fmt-toml

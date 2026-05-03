@@ -2,7 +2,10 @@
   lib,
   config,
   ...
-}: {
+}: let
+  secretsPath = ../secrets/secrets.yaml;
+  secretsExist = builtins.pathExists secretsPath;
+in {
   options.custom = {
     homeDir = lib.mkOption {
       type = lib.types.str;
@@ -86,14 +89,22 @@
       (import ./secrets.nix)
       (name:
         lib.mkOption {
-          type = lib.types.str;
-          default = "/run/secrets/${name}";
-          description = "Path to ${name} secret file";
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          description = "Path to ${name} secret file. null when sops is not configured.";
         });
   };
 
-  config.custom.homeDir =
-    if lib.hasSuffix "darwin" config.custom.system
-    then "/Users/${config.custom.user}"
-    else "/home/${config.custom.user}";
+  config.custom = {
+    homeDir =
+      if lib.hasSuffix "darwin" config.custom.system
+      then "/Users/${config.custom.user}"
+      else "/home/${config.custom.user}";
+
+    # Populate secret paths only when sops is configured. Consumers must gate
+    # their wiring on the value being non-null (see modules/nix.nix etc.).
+    secrets = lib.mkIf secretsExist (
+      lib.genAttrs (import ./secrets.nix) (name: "/run/secrets/${name}")
+    );
+  };
 }

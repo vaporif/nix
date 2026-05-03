@@ -924,7 +924,7 @@ git commit -m "options: utmGatewayIp default → 192.168.64.1 (UTM shared-net ga
 
 The original plan only addressed `nix.custom.conf`. Switching the option default to `null` without updating these consumers breaks evaluation on hosts without sops. Either gate every consumer with `mkIf (... != null)`, or keep the path-string default and gate at activation. Pick gating — explicit is better.
 
-- [ ] **Step 1: Audit consumers**
+- [x] **Step 1: Audit consumers**
 
 ```
 grep -rn 'cfg\.secrets\.\|config\.custom\.secrets\.' modules/ home/ system/
@@ -932,7 +932,7 @@ grep -rn 'cfg\.secrets\.\|config\.custom\.secrets\.' modules/ home/ system/
 
 Confirm the four sites above and surface anything new.
 
-- [ ] **Step 2: Make the option `nullOr str` with `null` default**
+- [x] **Step 2: Make the option `nullOr str` with `null` default**
 
 In `modules/options.nix:84-92`, change the option builder so each `secrets.<name>` is:
 
@@ -946,7 +946,7 @@ lib.mkOption {
 
 Match the actual option-builder pattern in the file (likely `genAttrs` over `import ./secrets.nix` or a literal list).
 
-- [ ] **Step 3: Populate `custom.secrets.*` from `sops.nix` when secrets exist**
+- [x] **Step 3: Populate `custom.secrets.*` from `sops.nix` when secrets exist**
 
 In `modules/sops.nix`, inside the `mkIf secretsExist` block:
 
@@ -956,7 +956,7 @@ custom.secrets = lib.genAttrs (import ./secrets.nix) (name: "/run/secrets/${name
 
 (Confirm `./secrets.nix` is the keys list. If sops.nix uses a different source-of-truth for the secret-name list, mirror it.)
 
-- [ ] **Step 4: Gate `nix.custom.conf`**
+- [x] **Step 4: Gate `nix.custom.conf`**
 
 ```diff
 -environment.etc."nix/nix.custom.conf".text = lib.mkAfter ''
@@ -969,7 +969,7 @@ custom.secrets = lib.genAttrs (import ./secrets.nix) (name: "/run/secrets/${name
 +};
 ```
 
-- [ ] **Step 5: Gate the hf-token consumer**
+- [x] **Step 5: Gate the hf-token consumer**
 
 In `home/common/default.nix:70` find the line setting `hfTokenFile`. Either:
 
@@ -980,11 +980,11 @@ hfTokenFile = lib.mkIf (config.custom.secrets.hf-token-scan-injection != null)
 
 …or refactor the parent `mkIf` block so the whole hf-token wiring is skipped when the secret is `null`. Choose whichever matches the surrounding style.
 
-- [ ] **Step 6: Gate the tavily/youtube MCP wiring**
+- [x] **Step 6: Gate the tavily/youtube MCP wiring**
 
 In `home/common/mcp.nix:111` and `:159`, wrap each MCP entry that references `cfg.secrets.tavily-key` / `cfg.secrets.youtube-key` in `lib.optionalAttrs (cfg.secrets.<name> != null) { ... }` (or use `mkIf` on the parent attr). Verify by evaluating the rendered MCP config under both states.
 
-- [ ] **Step 7: Verify both states**
+- [x] **Step 7: Verify both states**
 
 With sops configured:
 
@@ -997,7 +997,7 @@ Expected: `!include /run/secrets/nix-access-tokens`; mcp keys include tavily/you
 
 Move `secrets/secrets.yaml` aside (or test against a host without sops), re-eval. Expected: the etc entry doesn't exist; mcp keys exclude tavily/youtube; no eval errors.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```
 git add modules/nix.nix modules/options.nix modules/sops.nix \

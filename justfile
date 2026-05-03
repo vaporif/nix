@@ -23,9 +23,9 @@ lint-nix-fast:
     statix check
     deadnix --fail
 
-# Lint nix files (full — includes flake check)
+# Lint nix files (full — runs flake checks including tests)
 lint-nix: lint-nix-fast
-    nix flake check --no-build
+    nix flake check
 
 # Format nix files
 fmt-nix:

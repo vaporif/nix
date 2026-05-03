@@ -42,6 +42,10 @@ sudo ./result/bin/switch-to-configuration switch
 direnv allow ~
 ```
 
+> **Forking:** `just switch` and `just cache` hardcode the host attribute
+> names (`burnedapple` / `nixos`). If you change `hostname` in your host file,
+> either match one of those names or edit the recipes in `justfile`.
+
 ### Manual setup
 
 1. **Edit host config** in `hosts/`:

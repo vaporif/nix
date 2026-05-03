@@ -1,16 +1,9 @@
-{
-  config,
-  pkgs,
-  ...
-}: let
+{config, ...}: let
   homeDir = config.home.homeDirectory;
-  # On macOS: bind to 0.0.0.0 so NixOS VM can connect over UTM network
-  # macOS firewall restricts access to UTM subnet only (see system/darwin)
-  # On NixOS: localhost only (uses macOS qdrant over network)
-  bindHost =
-    if pkgs.stdenv.isDarwin
-    then "0.0.0.0"
-    else "127.0.0.1";
+  # Bind to 0.0.0.0 so the NixOS VM can reach qdrant over UTM's shared net.
+  # macOS firewall already restricts inbound to the UTM subnet (see system/darwin).
+  # This module is darwin-only — imported from home/darwin/default.nix.
+  bindHost = "0.0.0.0";
 in {
   home.file.".qdrant/config.yaml".text = ''
     service:

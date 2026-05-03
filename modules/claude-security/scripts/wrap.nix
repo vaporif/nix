@@ -51,10 +51,11 @@ in {
       (builtins.readFile ./notify.sh);
   };
 
-  # The remaining hooks need to swallow non-zero exits from their
-  # internals (notably shfmt fallback paths), which `set -e` from
-  # writeShellApplication wouldn't tolerate. symlinkJoin+makeWrapper
-  # gives them a runtime PATH without the strict-mode wrapper.
+  # read-gate and edit-track stay on writeShellScriptBin for now: the migration
+  # to writeShellApplication isn't load-bearing here (no shellcheck wins to
+  # collect, no `set -e` traps to enforce — both scripts intentionally tolerate
+  # non-zero exits from realpath/sha256sum via `|| ...` fallbacks). symlinkJoin
+  # + makeWrapper still gives them coreutils/jq on PATH.
   read-gate = let
     script = pkgs.writeShellScriptBin "claude-read-gate" (builtins.readFile ./read-gate.sh);
   in

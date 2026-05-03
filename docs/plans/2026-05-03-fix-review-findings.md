@@ -1204,7 +1204,7 @@ git commit -m "setup.sh: drop dead sed (target file/string don't exist)"
 
 **Background.** `read-gate.sh:23-25` exits 0 with no caching when `offset` or `limit` is set — `Read(file, limit=999999)` is ungated. `read-gate.sh:33` and `edit-track.sh:20` hash `$FILE_PATH` verbatim, so `./foo.md` and `/abs/foo.md` are different cache keys.
 
-- [ ] **Step 1: Add `realpath` normalization**
+- [x] **Step 1: Add `realpath` normalization**
 
 In both scripts, after extracting `FILE_PATH`:
 
@@ -1214,7 +1214,7 @@ NORM_PATH=$(realpath -m -- "$FILE_PATH" 2>/dev/null || printf '%s' "$FILE_PATH")
 PATH_HASH=$(printf '%s' "$NORM_PATH" | shasum -a 256 | cut -c1-16)
 ```
 
-- [ ] **Step 2: Include offset/limit in cache key**
+- [x] **Step 2: Include offset/limit in cache key**
 
 In `read-gate.sh`, replace the early-exit-on-partial-read with cache-keying:
 
@@ -1225,7 +1225,7 @@ SLICE=$(printf '%s|%s|%s' "$NORM_PATH" "${OFFSET:-0}" "${LIMIT:-0}")
 PATH_HASH=$(printf '%s' "$SLICE" | shasum -a 256 | cut -c1-16)
 ```
 
-- [ ] **Step 3: Verify `runtimeInputs` for `realpath` and `shasum`**
+- [x] **Step 3: Verify `runtimeInputs` for `realpath` and `shasum`**
 
 `pkgs.coreutils` is already in `runtimeInputs` for both `read-gate` and `edit-track` (`wrap.nix:90,103`) — `realpath -m` works (GNU realpath). No change needed there.
 
@@ -1238,7 +1238,7 @@ PATH_HASH=$(printf '%s' "$SLICE" | shasum -a 256 | cut -c1-16)
 
 Apply the same change everywhere `shasum -a 256` appears in `read-gate.sh` and `edit-track.sh`.
 
-- [ ] **Step 4: Test the partial-read regression**
+- [x] **Step 4: Test the partial-read regression**
 
 Manually:
 
@@ -1251,7 +1251,7 @@ echo "$INPUT" | claude-read-gate; echo "exit=$?"
 
 Expected: first call exit 0 (allow + cache); second call exit 2 with deny ("already read").
 
-- [ ] **Step 5: Test the path-aliasing regression**
+- [x] **Step 5: Test the path-aliasing regression**
 
 ```
 INPUT_REL='{"tool_name":"Read","tool_input":{"file_path":"./test.md"}}'
@@ -1263,7 +1263,7 @@ echo "$INPUT_ABS" | claude-read-gate; echo "exit=$?"
 
 Expected: second call denies (paths normalize to the same hash).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```
 git add modules/claude-security/scripts/read-gate.sh \

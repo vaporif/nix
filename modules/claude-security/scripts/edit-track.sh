@@ -16,8 +16,11 @@ if [[ -z "$FILE_PATH" || -z "$SESSION_ID" ]]; then
   exit 0
 fi
 
-SESSION_HASH=$(echo -n "$SESSION_ID" | shasum -a 256 | cut -c1-16)
-PATH_HASH=$(echo -n "$FILE_PATH" | shasum -a 256 | cut -c1-16)
+# Normalize: realpath -m handles non-existent components.
+NORM_PATH=$(realpath -m -- "$FILE_PATH" 2>/dev/null || printf '%s' "$FILE_PATH")
+
+SESSION_HASH=$(echo -n "$SESSION_ID" | sha256sum | cut -c1-16)
+PATH_HASH=$(printf '%s' "$NORM_PATH" | sha256sum | cut -c1-16)
 
 CACHE_FILE="${HOME}/.claude/read-once/${SESSION_HASH}/${PATH_HASH}"
 

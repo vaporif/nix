@@ -1,7 +1,4 @@
-{
-  pkgs,
-  home-manager,
-}: let
+{pkgs}: let
   hookScript =
     (import ../modules/claude-security/scripts/wrap.nix {
       inherit pkgs;

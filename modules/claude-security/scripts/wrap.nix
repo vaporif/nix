@@ -48,11 +48,7 @@ in {
       [
         notificationSound
         (lib.boolToString ntfyEnabled)
-        (
-          if ntfyTopicFile != null
-          then toString ntfyTopicFile
-          else ""
-        )
+        (lib.optionalString (ntfyTopicFile != null) (toString ntfyTopicFile))
         ntfyServerUrl
       ]
       (builtins.readFile ./notify.sh);

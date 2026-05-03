@@ -1331,7 +1331,7 @@ git commit -m "flake: drop visual-explainer, dedupe mac-app-util's nixpkgs"
 
 **Background.** Pre-commit runs `just fmt`, which mutates the working tree without `git add`, so commits ship unformatted code (formatter ran but the staged blob did not change). The hook should not format — it should *check* and reject the commit if anything is unformatted, leaving the user in control of what gets staged. Pre-push runs full `just check` including `nix flake check` (3.6s warm, more cold) for every push; we drop the slow `nix flake check` (CI runs it) and keep the fast linters.
 
-- [ ] **Step 1: Rewrite `.githooks/pre-commit` — check only, never fmt**
+- [x] **Step 1: Rewrite `.githooks/pre-commit` — check only, never fmt**
 
 ```bash
 #!/usr/bin/env bash
@@ -1347,7 +1347,7 @@ taplo fmt --check
 
 The hook MUST NOT invoke `just fmt` or any other mutating formatter — its only job is to fail the commit if files are unformatted, so the user re-runs `just fmt` themselves and re-stages.
 
-- [ ] **Step 2: Split `lint-nix` into fast + flake-check halves**
+- [x] **Step 2: Split `lint-nix` into fast + flake-check halves**
 
 The current `lint-nix` recipe in `justfile` bundles `alejandra --check`, `statix check`, `deadnix --fail`, and `nix flake check` together. We want pre-push to skip the slow `nix flake check` while still running the fast nix linters. Don't duplicate the body — split:
 
@@ -1374,7 +1374,7 @@ Then add a `check-fast` recipe that excludes the slow nix flake check:
 +check-fast: lint-lua lint-nix-fast lint-json lint-toml lint-shell lint-actions check-typos check-pinned
 ```
 
-- [ ] **Step 3: Rewrite `.githooks/pre-push`**
+- [x] **Step 3: Rewrite `.githooks/pre-push`**
 
 ```bash
 #!/usr/bin/env bash
@@ -1383,7 +1383,7 @@ echo "Running fast lint checks (CI runs nix flake check)..."
 just check-fast
 ```
 
-- [ ] **Step 4: Time it**
+- [x] **Step 4: Time it**
 
 ```
 time .githooks/pre-push
@@ -1391,7 +1391,7 @@ time .githooks/pre-push
 
 Expected: under 2 seconds warm.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add .githooks/pre-commit .githooks/pre-push justfile

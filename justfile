@@ -5,6 +5,9 @@ default:
 # Run all checks
 check: lint-lua lint-nix lint-json lint-toml lint-shell lint-actions check-typos check-pinned
 
+# Run fast checks (skip slow nix flake check)
+check-fast: lint-lua lint-nix-fast lint-json lint-toml lint-shell lint-actions check-typos check-pinned
+
 # Lint nvim lua with selene
 lint-lua:
     cd config/nvim && selene lua after init.lua
@@ -14,12 +17,15 @@ lint-lua:
 fmt-lua:
     stylua config/
 
-# Lint nix files
-lint-nix:
-    nix flake check
+# Lint nix files (fast — no flake check)
+lint-nix-fast:
     alejandra --check .
     statix check
     deadnix --fail
+
+# Lint nix files (full — includes flake check)
+lint-nix: lint-nix-fast
+    nix flake check --no-build
 
 # Format nix files
 fmt-nix:

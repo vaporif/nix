@@ -130,39 +130,40 @@
   # Renders the hook command with a reason that contains an apostrophe
   # and asserts the resulting script outputs valid JSON with the exact
   # reason preserved.
+  evaluatedSecurity = pkgs.lib.evalModules {
+    modules = [
+      ../modules/claude-security
+      # Stub home-manager / NixOS options the module reads or sets.
+      # evalModules has no host schema, so declare the minimum surface
+      # to satisfy `config.home.homeDirectory` reads and `assertions`
+      # writes.
+      ({lib, ...}: {
+        options.home.homeDirectory = lib.mkOption {
+          type = lib.types.str;
+          default = "/home/testuser";
+        };
+        options.assertions = lib.mkOption {
+          type = lib.types.listOf lib.types.unspecified;
+          default = [];
+        };
+      })
+      {
+        _module.args = {inherit pkgs;};
+        programs.claude-code.security = {
+          enable = true;
+          permissions.confirmBeforeWrite = [
+            {
+              tool = "Edit";
+              reason = "Don't allow this";
+            }
+          ];
+        };
+      }
+    ];
+  };
+
   confirmHookApostropheTest = let
-    evaluated = pkgs.lib.evalModules {
-      modules = [
-        ../modules/claude-security
-        # Stub home-manager / NixOS options the module reads or sets.
-        # evalModules has no host schema, so declare the minimum surface
-        # to satisfy `config.home.homeDirectory` reads and `assertions`
-        # writes.
-        ({lib, ...}: {
-          options.home.homeDirectory = lib.mkOption {
-            type = lib.types.str;
-            default = "/home/testuser";
-          };
-          options.assertions = lib.mkOption {
-            type = lib.types.listOf lib.types.unspecified;
-            default = [];
-          };
-        })
-        {
-          _module.args = {inherit pkgs;};
-          programs.claude-code.security = {
-            enable = true;
-            permissions.confirmBeforeWrite = [
-              {
-                tool = "Edit";
-                reason = "Don't allow this";
-              }
-            ];
-          };
-        }
-      ];
-    };
-    preHooks = evaluated.config.programs.claude-code.security.settingsFragment.hooks.PreToolUse;
+    preHooks = evaluatedSecurity.config.programs.claude-code.security.settingsFragment.hooks.PreToolUse;
     confirmEntry = builtins.head (builtins.filter (h: h.matcher == "Edit") preHooks);
     hookCommand = (builtins.head confirmEntry.hooks).command;
   in
@@ -180,14 +181,82 @@
         || { echo "FAIL: hook output [$hook_out] missing event/decision fields" >&2; exit 1; }
       touch "$out"
     '';
+
+  # Fragment-coverage test: pins the fragment→settings splice contract.
+  # Asserts that every hook key declared in settingsFragment.hooks lands
+  # in the rendered ~/.claude/settings.json's hooks attribute. This is the
+  # regression guard that prevents silent drift if a future hook key is
+  # added to the fragment but forgotten in home/common/claude/settings.nix.
+  fragmentCoverageTest = let
+    sec = evaluatedSecurity.config.programs.claude-code.security.settingsFragment;
+    # Mirror the splice logic from home/common/claude/settings.nix, both darwin
+    # and non-darwin branches, so the test covers what the real config produces.
+    parryHook = {
+      hooks = [
+        {
+          command = "parry-guard hook";
+          type = "command";
+        }
+      ];
+    };
+    renderHooksFor = isDarwin: {
+      PreToolUse =
+        sec.hooks.PreToolUse
+        ++ pkgs.lib.optionals isDarwin [
+          (parryHook // {matcher = "Bash|Read|Write|Edit|Glob|Grep|WebFetch|WebSearch|NotebookEdit|Task|mcp__.*";})
+        ];
+      PostToolUse =
+        sec.hooks.PostToolUse
+        ++ [
+          {
+            hooks = [
+              {
+                command = "claude-formatter";
+                type = "command";
+              }
+            ];
+            matcher = "Edit|Write";
+          }
+        ]
+        ++ pkgs.lib.optionals isDarwin [
+          (parryHook // {matcher = "Read|WebFetch|Bash|mcp__github__get_file_contents|mcp__filesystem__read_file|mcp__filesystem__read_text_file";})
+        ];
+      inherit (sec.hooks) Notification SessionStart;
+      UserPromptSubmit =
+        sec.hooks.UserPromptSubmit
+        ++ pkgs.lib.optionals isDarwin [
+          (parryHook // {matcher = "";})
+        ];
+    };
+    fragmentJson = pkgs.writeText "fragment-hooks.json" (builtins.toJSON sec.hooks);
+    renderedDarwinJson = pkgs.writeText "rendered-darwin-hooks.json" (builtins.toJSON (renderHooksFor true));
+    renderedLinuxJson = pkgs.writeText "rendered-linux-hooks.json" (builtins.toJSON (renderHooksFor false));
+  in
+    pkgs.runCommand "fragment-coverage" {} ''
+      set -euo pipefail
+      fragment_keys=$(${pkgs.jq}/bin/jq -r 'keys[]' < ${fragmentJson})
+      for rendered in ${renderedDarwinJson} ${renderedLinuxJson}; do
+        rendered_keys=$(${pkgs.jq}/bin/jq -r 'keys[]' < "$rendered")
+        for k in $fragment_keys; do
+          echo "$rendered_keys" | grep -qFx "$k" || {
+            echo "FAIL: fragment hook '$k' missing in $rendered" >&2
+            echo "fragment keys: $fragment_keys" >&2
+            echo "rendered keys: $rendered_keys" >&2
+            exit 1
+          }
+        done
+      done
+      touch "$out"
+    '';
 in
   pkgs.runCommand "claude-settings" {
     passthru = {
-      inherit vmTest confirmHookApostropheTest;
+      inherit vmTest confirmHookApostropheTest fragmentCoverageTest;
     };
   } ''
-    # Force both checks to be built as dependencies of this aggregate.
+    # Force all checks to be built as dependencies of this aggregate.
     echo ${vmTest} > /dev/null
     echo ${confirmHookApostropheTest} > /dev/null
+    echo ${fragmentCoverageTest} > /dev/null
     touch $out
   ''

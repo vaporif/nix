@@ -1018,7 +1018,7 @@ git commit -m "secrets: gate every consumer on sops being configured (no null de
 
 The real risk is silent drift: if anyone adds a `UserPromptSubmit` (or future hook) entry to the fragment, `settings.nix`'s `inherit (sec.hooks) ...` won't pick it up. Fix is two-sided: declare `UserPromptSubmit` in the fragment now (with an empty default), then splice + list-merge in `settings.nix`, and add a coverage test that pins the contract.
 
-- [ ] **Step 1: Add `UserPromptSubmit` to `settingsFragment.hooks`**
+- [x] **Step 1: Add `UserPromptSubmit` to `settingsFragment.hooks`**
 
 In `modules/claude-security/default.nix:570-578`, extend the fragment so every hook event is at least `[]`-valued:
 
@@ -1034,7 +1034,7 @@ In `modules/claude-security/default.nix:570-578`, extend the fragment so every h
 
 (If you want the security module to actually contribute a UPS hook, populate the list; otherwise the empty default is just a contract pin.)
 
-- [ ] **Step 2: Splice all fragment keys in `settings.nix`**
+- [x] **Step 2: Splice all fragment keys in `settings.nix`**
 
 ```
 grep -n 'sec\.hooks' home/common/claude/settings.nix
@@ -1053,7 +1053,7 @@ hooks = {
 
 (Adjust `parryGuardHook` to whatever name the existing darwin-only hook uses at `settings.nix:70-73`.)
 
-- [ ] **Step 3: Add a fragment-coverage test**
+- [x] **Step 3: Add a fragment-coverage test**
 
 In `tests/claude-settings.nix`:
 
@@ -1074,13 +1074,13 @@ testFragmentCoverage = pkgs.runCommand "fragment-coverage" {} ''
 
 (`fragmentJson` and `renderedSettingsJson` need to be plumbed in — derive each via `pkgs.writeText "frag.json" (builtins.toJSON settingsFragment.hooks)` and the equivalent for the rendered settings; match the existing test scaffolding in the file.)
 
-- [ ] **Step 4: Run the test**
+- [x] **Step 4: Run the test**
 
 ```
 nix build .#checks.aarch64-linux.claude-settings
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add modules/claude-security/default.nix home/common/claude/settings.nix tests/claude-settings.nix

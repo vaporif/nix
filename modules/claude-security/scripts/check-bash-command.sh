@@ -68,7 +68,12 @@ CMDS=$(jq -c --arg src "$COMMAND" '
   ]
 ' <<<"$AST")
 
-# If any CallExpr has any opaque (null) token, ask the user.
+# If any CallExpr has any opaque (null) token at any arg position, ask.
+# This is intentionally broad: a non-literal arg at position i could be
+# masking a denied subcommand (e.g. `git "$(echo push)" --force` would
+# otherwise slip past the prefix matcher because "git push" doesn't
+# equal ["git", null, "--force"]). The cost is asking on benign quoted
+# args like `echo "hello"` — acceptable for a security boundary.
 if echo "$CMDS" | jq -e 'flatten | any(. == null)' >/dev/null; then
   ask "command contains non-literal tokens (variable, substitution, or quoted) — review manually"
 fi

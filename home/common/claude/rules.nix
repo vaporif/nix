@@ -22,12 +22,8 @@ _: {
     ".claude/commands/checkpoint.md".source = ../../../config/claude-commands/checkpoint.md;
 
     # Standalone agents
-    ".claude/agents/refactoring-specialist.md".source = ../../../config/claude-agents/refactoring-specialist.md;
-    ".claude/agents/performance-engineer.md".source = ../../../config/claude-agents/performance-engineer.md;
-    ".claude/agents/mcp-developer.md".source = ../../../config/claude-agents/mcp-developer.md;
-    ".claude/agents/cli-developer.md".source = ../../../config/claude-agents/cli-developer.md;
-    ".claude/agents/rust-engineer.md".source = ../../../config/claude-agents/rust-engineer.md;
-    ".claude/agents/solana-developer.md".source = ../../../config/claude-agents/solana-developer.md;
+    ".claude/agents/rust-engineer.md".source = ../../../config/claude/agents/rust-engineer.md;
+    ".claude/agents/solana-developer.md".source = ../../../config/claude/agents/solana-developer.md;
 
     ".claude/CLAUDE.md".source = ../../../config/claude/CLAUDE.md;
   };

@@ -1,6 +1,6 @@
 ---
 name: python-pro
-description: Master Python 3.14+ with modern features, async programming, performance optimization, and production-ready practices. Expert in the latest Python ecosystem including uv, ruff, Pydantic v2, and FastAPI. Use PROACTIVELY for Python development, optimization, or advanced Python patterns.
+description: "Master Python 3.14+ with modern features, async programming, performance optimization, and production-ready practices. Expert in the latest Python ecosystem including uv, ruff, Pydantic v2, and FastAPI. Use PROACTIVELY for Python development, optimization, or advanced Python patterns."
 model: opus
 ---
 
@@ -217,6 +217,19 @@ typecheck:
 3. `uv run ruff check .` — fix remaining lint manually, one rule family per commit (e.g. all `B` fixes in one commit, all `S` fixes in another)
 4. `uv run basedpyright` — fix type errors leaf-up (typed leaves enable typing their callers). Add `# pyright: ignore[<rule>]` with a one-line rationale only when the error is a genuine library-stub gap or a deliberate `Any` boundary
 5. Wire the three recipes into CI; fail the build on any of `ruff check`, `ruff format --check`, `basedpyright`
+
+### Comments
+
+Default to none. Names, types, and small functions should explain *what*; comments only earn their place when the *why* is non-obvious.
+
+- **Self-explanatory code first** — rename or extract before reaching for a comment
+- **Only write a comment when the why is non-obvious** — hidden constraint, subtle invariant, upstream-bug workaround
+- **Keep comments short** — one line; multi-line blocks signal the code should be restructured
+- **Don't narrate the code** — the reader can see the loop, the call, the increment
+- **Don't reference the current task or PR** — that belongs in the commit message
+- **`# noqa` / `# pyright: ignore` need a one-line rationale** — bare suppressions are worse than none
+- **Docstrings ≠ comments** — required on public APIs (`D` rules); one imperative line + `Args:`/`Returns:`/`Raises:` only when non-obvious
+- **Type hints replace type comments** — `x: list[int]`, never `# x is a list of ints`
 
 ### Project Layout & File Organization (REQUIRED — apply from project day one)
 

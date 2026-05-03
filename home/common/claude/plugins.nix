@@ -35,14 +35,19 @@
 
   officialPlugin = patchPlugin inputs.claude-code-plugins;
   wshobsonPlugin = patchPlugin inputs.wshobson-agents;
-  patchedWshobsonPlugin = patchPlugin patchedWshobsonAgents;
 
   pythonProOnlyPlugin = pkgs.runCommand "claude-plugin-python-development" {} ''
     cp -r ${inputs.wshobson-agents}/plugins/python-development $out
     chmod -R u+w $out
     rm -f $out/agents/django-pro.md $out/agents/fastapi-pro.md
     rm -rf $out/skills $out/commands
-    cp ${../../../config/claude/agents/python-pro.md} $out/agents/python-pro.md
+    cp ${../../../config/claude/agent-overrides/python-pro.md} $out/agents/python-pro.md
+  '';
+
+  systemsProgrammingPlugin = pkgs.runCommand "claude-plugin-systems-programming" {} ''
+    cp -r ${patchedWshobsonAgents}/plugins/systems-programming $out
+    chmod -R u+w $out
+    cp ${../../../config/claude/agent-overrides/golang-pro.md} $out/agents/golang-pro.md
   '';
 
   plugins = [
@@ -85,7 +90,7 @@
     {
       name = "systems-programming";
       description = "Go agent with concurrency patterns";
-      source = patchedWshobsonPlugin "systems-programming";
+      source = systemsProgrammingPlugin;
       version = readPluginVersion "${inputs.wshobson-agents}/plugins/systems-programming";
     }
     {

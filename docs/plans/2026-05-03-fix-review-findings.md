@@ -867,7 +867,7 @@ git commit -m "qdrant: import only on darwin (NixOS connects to host's qdrant vi
 
 UTM's shared-network mode places the host gateway at `192.168.64.1` in the `192.168.64.0/24` subnet; pick that as the convention.
 
-- [ ] **Step 1: Update default in `modules/options.nix:42-46`**
+- [x] **Step 1: Update default in `modules/options.nix:42-46`**
 
 ```diff
  utmGatewayIp = lib.mkOption {
@@ -878,7 +878,7 @@ UTM's shared-network mode places the host gateway at `192.168.64.1` in the `192.
  };
 ```
 
-- [ ] **Step 2: Verify NixOS evaluation**
+- [x] **Step 2: Verify NixOS evaluation**
 
 ```
 nix eval --raw .#nixosConfigurations.nixos.config.home-manager.users.vaporif.custom.utmGatewayIp
@@ -886,14 +886,14 @@ nix eval --raw .#nixosConfigurations.nixos.config.home-manager.users.vaporif.cus
 
 Expected: `192.168.64.1`
 
-- [ ] **Step 3: Trace the qdrant URL**
+- [x] **Step 3: Trace the qdrant URL**
 
 ```
 nix eval --json .#nixosConfigurations.nixos.config.home-manager.users.vaporif.programs.zsh.shellAliases 2>/dev/null | head
 # or read mcp.nix:126 to confirm cfg.utmGatewayIp flows in correctly
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```
 git add modules/options.nix

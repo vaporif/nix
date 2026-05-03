@@ -41,8 +41,8 @@
     };
     utmGatewayIp = lib.mkOption {
       type = lib.types.str;
-      default = "192.168.64.11";
-      description = "IP of macOS host as seen from UTM VM (NixOS only)";
+      default = "192.168.64.1";
+      description = "IP of macOS host as seen from UTM VM (NixOS only). Default is UTM's shared-network gateway address.";
     };
     git = {
       name = lib.mkOption {

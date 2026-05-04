@@ -1,0 +1,12 @@
+echo "hello"
+echo 'world'
+echo "---"
+git commit -m "fix bug"
+git commit -m "decompose UiPlugin into per-panel sub-plugins"
+git log --oneline -5 && echo "---" && git status
+git -C /tmp/repo add file.rs && git -C /tmp/repo commit -m "msg"
+printf '%s\n' "line"
+ls "some dir"
+ls 'some dir'
+echo a"b"c
+echo a'b'c

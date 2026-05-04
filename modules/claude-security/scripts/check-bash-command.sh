@@ -39,28 +39,38 @@ BLOCKED_SUBCMDS_JSON='@blockedSubcommandsJson@'
 DENIED_SUBCMDS_JSON='@deniedSubcommandsJson@'
 BLOCKED_PATTERNS_JSON='@blockedPatternsJson@'
 
-# Per CallExpr we want a list of arg tokens. A token is a string only when
-# every Part is Lit AND the joined literal matches the raw source span
-# exactly. Anything else (DblQuoted, SglQuoted, ParamExp, CmdSubst, an
-# escape that shfmt collapsed) becomes null — opaque, forces ask.
+# Per CallExpr we want a list of arg tokens. A token is a known string when
+# every Part is one of:
+#   - Lit (no backslash — bash escapes are preserved by shfmt as raw `\`,
+#     so the presence of `\` in a Lit means a possible escape we can't safely
+#     interpret)
+#   - SglQuoted (single quotes do zero shell expansion — .Value is the
+#     literal byte-for-byte string, even backslashes)
+#   - DblQuoted whose inner Parts are all Lit (no $, no `, no expansion;
+#     same backslash caveat as top-level Lit)
+# Anything else (ParamExp, CmdSubst, ANSI-C $'...', DblQuoted with any
+# expansion inside) → null = opaque, forces ask.
 AST=$(shfmt --to-json <<<"$COMMAND" 2>/dev/null) \
   || ask "could not parse command via shfmt"
 
 # CMDS = [[token-or-null, ...], ...] — one inner array per CallExpr.
-CMDS=$(jq -c --arg src "$COMMAND" '
-  def tokens: [.Parts[] |
-    if .Type == "Lit" then .Value
-    else null end];
-  def rawSpan: $src[.Pos.Offset:.End.Offset];
+CMDS=$(jq -c '
+  def partValue:
+    if .Type == "Lit" then
+      if .Value | test("\\\\") then null else .Value end
+    elif .Type == "SglQuoted" then
+      .Value
+    elif .Type == "DblQuoted" and (all(.Parts[]; .Type == "Lit")) then
+      ([.Parts[].Value] | add // "") as $j |
+      if $j | test("\\\\") then null else $j end
+    else null
+    end;
+  def tokens: [.Parts[] | partValue];
   [.. | objects | select(.Type == "CallExpr") |
     [.Args[]? |
-      . as $arg |
       tokens as $toks |
-      ($toks | add // "") as $joined |
       if any($toks[]; . == null) then null
-      elif $joined != ($arg | rawSpan) then null
-      elif ($joined | test("\\\\")) then null
-      else $joined end]
+      else ($toks | add // "") end]
   ]
 ' <<<"$AST")
 

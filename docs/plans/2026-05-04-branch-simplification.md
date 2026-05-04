@@ -485,12 +485,12 @@ Run: `git commit -am "check-bash-command: hoist ALL_BASES; drop redundant basena
 
 ## Final verification
 
-- [ ] **Run the full check suite**
+- [x] **Run the full check suite**
 
 Run: `just check`
 Expected: PASS across formatters, linters, and `nix flake check` (including all VM tests, `check-bash-matcher`, and `claude-settings`).
 
-- [ ] **Confirm git history is clean**
+- [x] **Confirm git history is clean**
 
 Run: `git log main..HEAD --oneline | head -10`
 Expected: five new commits on top of the prior branch tip, each scoped to one task.

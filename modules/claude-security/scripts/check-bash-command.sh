@@ -85,9 +85,8 @@ if echo "$CMDS" | jq -e 'any(.[]; length > 0 and .[0] == null)' >/dev/null; then
   ask "command name is non-literal (variable, substitution, or escape) — review manually"
 fi
 
-# blockedCommands: match by the basename of the first token in each CallExpr.
-# Compute basenames of every CallExpr's first token once. Reused by
-# the blocked-commands loop and the pipe-fetch check below.
+# Basename of the first token of every CallExpr, computed once and reused
+# by the blocked-commands check below and the pipe-fetch check at the end.
 ALL_BASES=$(echo "$CMDS" | jq -r '.[][0] // empty | split("/") | last')
 
 while IFS= read -r base; do

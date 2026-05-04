@@ -2,7 +2,10 @@
   lib,
   config,
   ...
-}: {
+}: let
+  secretsPath = ../secrets/secrets.yaml;
+  secretsExist = builtins.pathExists secretsPath;
+in {
   options.custom = {
     homeDir = lib.mkOption {
       type = lib.types.str;
@@ -41,8 +44,8 @@
     };
     utmGatewayIp = lib.mkOption {
       type = lib.types.str;
-      default = "192.168.64.11";
-      description = "IP of macOS host as seen from UTM VM (NixOS only)";
+      default = "192.168.64.1";
+      description = "IP of macOS host as seen from UTM VM (NixOS only). Default is UTM's shared-network gateway address.";
     };
     git = {
       name = lib.mkOption {
@@ -86,14 +89,24 @@
       (import ./secrets.nix)
       (name:
         lib.mkOption {
-          type = lib.types.str;
-          default = "/run/secrets/${name}";
-          description = "Path to ${name} secret file";
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          description = "Path to ${name} secret file. null when sops is not configured.";
         });
   };
 
-  config.custom.homeDir =
-    if lib.hasSuffix "darwin" config.custom.system
-    then "/Users/${config.custom.user}"
-    else "/home/${config.custom.user}";
+  config.custom = {
+    homeDir =
+      if lib.hasSuffix "darwin" config.custom.system
+      then "/Users/${config.custom.user}"
+      else "/home/${config.custom.user}";
+
+    # Populate /run/secrets paths when sops is configured; otherwise leave
+    # everything null. Consumers gate on the value (see modules/nix.nix etc).
+    # Lives here, not in modules/sops.nix, because both system and HM modules
+    # consume custom.secrets.* and only options.nix is in both scopes.
+    secrets = lib.mkIf secretsExist (
+      lib.genAttrs (import ./secrets.nix) (name: "/run/secrets/${name}")
+    );
+  };
 }

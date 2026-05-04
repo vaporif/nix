@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# PostToolUse hook: invalidate read-once cache when a file is modified.
-# Ensures the next Read after an Edit/Write goes through.
+# PostToolUse hook: drop the read-once cache for a file we just modified
+# so the next Read can see the new content.
 
 INPUT=$(cat)
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty')
@@ -16,10 +16,15 @@ if [[ -z "$FILE_PATH" || -z "$SESSION_ID" ]]; then
   exit 0
 fi
 
-SESSION_HASH=$(echo -n "$SESSION_ID" | shasum -a 256 | cut -c1-16)
-PATH_HASH=$(echo -n "$FILE_PATH" | shasum -a 256 | cut -c1-16)
+# realpath -m tolerates non-existent components.
+NORM_PATH=$(realpath -m -- "$FILE_PATH" 2>/dev/null || printf '%s' "$FILE_PATH")
 
-CACHE_FILE="${HOME}/.claude/read-once/${SESSION_HASH}/${PATH_HASH}"
+SESSION_HASH=$(echo -n "$SESSION_ID" | sha256sum | cut -c1-16)
+PATH_HASH=$(printf '%s' "$NORM_PATH" | sha256sum | cut -c1-16)
 
-rm -f "$CACHE_FILE"
+# Wipes every slice for this file in one shot (read-gate keys slices
+# under <session>/<path>/<slice>).
+CACHE_PATH_DIR="${HOME}/.claude/read-once/${SESSION_HASH}/${PATH_HASH}"
+
+rm -rf "$CACHE_PATH_DIR"
 exit 0

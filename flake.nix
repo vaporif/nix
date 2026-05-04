@@ -90,10 +90,6 @@
       url = "github:Wilfred/difftastic";
       flake = false;
     };
-    visual-explainer = {
-      url = "github:nicobailon/visual-explainer";
-      flake = false;
-    };
     vim-tidal = {
       url = "github:tidalcycles/vim-tidal";
       flake = false;
@@ -126,6 +122,9 @@
     flake-utils.url = "github:numtide/flake-utils";
     mac-app-util = {
       url = "github:hraban/mac-app-util";
+      # Don't override nixpkgs — upstream pins an older revision deliberately,
+      # because their lisp deps (named-readtables, cl-interpol) regressed on
+      # SBCL 2.6.x. See hraban/mac-app-util#42, NixOS/nixpkgs#491773.
       inputs.flake-utils.follows = "flake-utils";
     };
   };
@@ -217,6 +216,9 @@
         claude-settings = import ./tests/claude-settings.nix {
           pkgs = chkPkgs;
           inherit home-manager;
+        };
+        check-bash-matcher = import ./tests/check-bash-matcher.nix {
+          pkgs = chkPkgs;
         };
         xdg-config-paths = import ./tests/xdg-config-paths.nix {
           pkgs = chkPkgs;

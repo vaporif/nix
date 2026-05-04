@@ -1,7 +1,7 @@
 {config, ...}: {
   imports = [./common.nix];
   custom = {
-    hostname = "burned-apple";
+    hostname = "burnedapple";
     system = "aarch64-darwin";
     configPath = "${config.custom.homeDir}/.config/nix-darwin";
     sshAgent = "secretive";

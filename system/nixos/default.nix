@@ -37,8 +37,6 @@ in {
     ];
   };
 
-  nixpkgs.hostPlatform = cfg.system;
-
   environment.etc."claude-code/managed-mcp.json".source = hmCfg.codeMcpServersConfig;
 
   system.stateVersion = "25.11";

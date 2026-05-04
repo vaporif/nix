@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -e
-
-echo "Formatting..."
-just fmt
-
+cd "$(git rev-parse --show-toplevel)"
+echo "Checking formatters (run 'just fmt' to fix)..."
+alejandra -c .
+stylua --check config/
+taplo fmt --check

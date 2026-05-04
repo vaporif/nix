@@ -4,80 +4,59 @@
   blockedCommands,
   blockedSubcommands,
   deniedSubcommands,
-  blockedPatterns,
+  blockedPipePatterns,
   notificationSound,
   ntfyServerUrl,
   ntfyTopicFile,
   ntfyEnabled,
 }: let
-  blockedCommandsStr = builtins.concatStringsSep " " blockedCommands;
-
-  # Convert pipe patterns to grep-compatible regexes
-  # "curl|sh" becomes "curl.*\|.*sh"
-  patternToRegex = pattern: let
-    parts = builtins.split "\\|" pattern;
-    source = builtins.elemAt parts 0;
-    sink = builtins.elemAt parts 2;
-  in "${source}.*\\|.*${sink}";
-
-  # blockedSubcommands as newline-separated "command subcommand [flags]" entries
-  blockedSubcommandsStr = builtins.concatStringsSep "\n" blockedSubcommands;
-  deniedSubcommandsStr = builtins.concatStringsSep "\n" deniedSubcommands;
-
-  blockedPatternsStr = builtins.concatStringsSep "\n" (map patternToRegex blockedPatterns);
-
   checkBashCommandSrc =
     builtins.replaceStrings
-    ["@blockedCommands@" "@blockedSubcommands@" "@deniedSubcommands@" "@blockedPatterns@"]
-    [blockedCommandsStr blockedSubcommandsStr deniedSubcommandsStr blockedPatternsStr]
-    (builtins.readFile ./check-bash-command.sh);
-
-  notifySrc =
-    builtins.replaceStrings
-    ["@sound@" "@ntfyServerUrl@" "@ntfyTopicFile@" "@ntfyEnabled@"]
     [
-      notificationSound
-      ntfyServerUrl
-      (
-        if ntfyTopicFile != null
-        then toString ntfyTopicFile
-        else ""
-      )
-      (lib.boolToString ntfyEnabled)
+      "@blockedCommandsJson@"
+      "@blockedSubcommandsJson@"
+      "@deniedSubcommandsJson@"
+      "@pipeSourcesJson@"
+      "@pipeSinksJson@"
     ]
-    (builtins.readFile ./notify.sh);
+    [
+      (builtins.toJSON blockedCommands)
+      (builtins.toJSON blockedSubcommands)
+      (builtins.toJSON deniedSubcommands)
+      (builtins.toJSON blockedPipePatterns.sources)
+      (builtins.toJSON blockedPipePatterns.sinks)
+    ]
+    (builtins.readFile ./check-bash-command.sh);
 in {
-  # writeShellScriptBin (not writeShellApplication) because:
-  # - writeShellApplication adds set -euo pipefail which breaks these scripts
-  # - shfmt pipeline uses 2>/dev/null and relies on non-zero exits for fallback
-  # - notify.sh osascript fails on Linux (expected, not an error)
-  # symlinkJoin + makeWrapper prepends runtimeInputs to PATH
-  check-bash-command = let
-    script = pkgs.writeShellScriptBin "claude-check-bash-command" checkBashCommandSrc;
-  in
-    pkgs.symlinkJoin {
-      name = "claude-check-bash-command";
-      paths = [script];
-      buildInputs = [pkgs.makeWrapper];
-      postBuild = ''
-        wrapProgram $out/bin/claude-check-bash-command \
-          --prefix PATH : ${lib.makeBinPath [pkgs.shfmt pkgs.jq pkgs.coreutils pkgs.gawk]}
-      '';
-    };
+  # writeShellApplication injects shebang + `set -euo pipefail` so the body
+  # is fail-closed (any unset var or piped failure aborts the hook).
+  check-bash-command = pkgs.writeShellApplication {
+    name = "claude-check-bash-command";
+    runtimeInputs = with pkgs; [jq shfmt coreutils gnugrep];
+    text = checkBashCommandSrc;
+  };
 
-  notify = let
-    script = pkgs.writeShellScriptBin "claude-notify" notifySrc;
-  in
-    pkgs.symlinkJoin {
-      name = "claude-notify";
-      paths = [script];
-      buildInputs = [pkgs.makeWrapper];
-      postBuild = ''
-        wrapProgram $out/bin/claude-notify \
-          --prefix PATH : ${lib.makeBinPath [pkgs.jq pkgs.curl]}
-      '';
-    };
+  # Same writeShellApplication treatment. /usr/bin/osascript is absolute
+  # because cleanPATH won't find it and there's no nixpkgs equivalent.
+  notify = pkgs.writeShellApplication {
+    name = "claude-notify";
+    runtimeInputs = [pkgs.jq pkgs.curl pkgs.coreutils];
+    text =
+      builtins.replaceStrings
+      ["@sound@" "@ntfyEnabled@" "@ntfyTopicFile@" "@ntfyServerUrl@"]
+      [
+        notificationSound
+        (lib.boolToString ntfyEnabled)
+        (lib.optionalString (ntfyTopicFile != null) (toString ntfyTopicFile))
+        ntfyServerUrl
+      ]
+      (builtins.readFile ./notify.sh);
+  };
 
+  # The remaining hooks stay on writeShellScriptBin: they tolerate non-zero
+  # exits from realpath/sha256sum/find via `|| ...` fallbacks, which
+  # writeShellApplication's `set -euo pipefail` would abort instead.
+  # symlinkJoin + makeWrapper still puts coreutils/jq/findutils on PATH.
   read-gate = let
     script = pkgs.writeShellScriptBin "claude-read-gate" (builtins.readFile ./read-gate.sh);
   in

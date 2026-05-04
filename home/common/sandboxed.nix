@@ -4,8 +4,10 @@
   ...
 }: let
   cfg = config.custom;
-  # Shared secret names (read outside sandbox, injected as env vars)
-  secretEnvVars = [
+  # Secrets read outside the sandbox and forwarded in as env vars.
+  # Filter out null entries so a fork without sops doesn't try to
+  # interpolate a null path.
+  secretEnvVars = lib.filter (s: s.file != null) [
     {
       env = "TAVILY_API_KEY";
       file = cfg.secrets.tavily-key;
@@ -111,11 +113,13 @@
     ++ nixDevshellEnvNames
     ++ secretEnvNames;
 
-  # GitHub token: read from sops secret before sandbox (preserve existing value)
+  # GitHub token: load from sops secret before sandbox (existing env wins).
   ghTokenPreload = ''
-    if [ -z "''${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ] && [ -r ${cfg.secrets.github-token} ]; then
-      GITHUB_PERSONAL_ACCESS_TOKEN="$(cat ${cfg.secrets.github-token})"
-    fi
+    ${lib.optionalString (cfg.secrets.github-token != null) ''
+      if [ -z "''${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ] && [ -r ${cfg.secrets.github-token} ]; then
+        GITHUB_PERSONAL_ACCESS_TOKEN="$(cat ${cfg.secrets.github-token})"
+      fi
+    ''}
     export GITHUB_PERSONAL_ACCESS_TOKEN="''${GITHUB_PERSONAL_ACCESS_TOKEN:-}"
     export GH_TOKEN="$GITHUB_PERSONAL_ACCESS_TOKEN"
   '';

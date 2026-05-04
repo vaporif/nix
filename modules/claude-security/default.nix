@@ -24,7 +24,7 @@
 
   scripts = import ./scripts/wrap.nix {
     inherit pkgs lib;
-    inherit (cfg.hooks.bashValidation) blockedCommands blockedSubcommands deniedSubcommands blockedPatterns;
+    inherit (cfg.hooks.bashValidation) blockedCommands blockedSubcommands deniedSubcommands blockedPipePatterns;
     notificationSound = cfg.hooks.notification.sound;
     ntfyServerUrl = cfg.hooks.notification.ntfy.serverUrl;
     ntfyTopicFile = cfg.hooks.notification.ntfy.topicFile;
@@ -34,7 +34,15 @@
   mkConfirmHook = entry: {
     hooks = [
       {
-        command = "echo '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"ask\", \"permissionDecisionReason\": \"${entry.reason}\"}}'";
+        command = ''
+          ${pkgs.jq}/bin/jq -nc --arg reason ${lib.escapeShellArg entry.reason} '{
+            hookSpecificOutput: {
+              hookEventName: "PreToolUse",
+              permissionDecision: "ask",
+              permissionDecisionReason: $reason
+            }
+          }'
+        '';
         type = "command";
       }
     ];
@@ -111,7 +119,7 @@ in {
         };
         blockedCommands = lib.mkOption {
           type = lib.types.listOf lib.types.str;
-          default = ["sudo" "doas" "eval" "dd" "mkfs" "shred"];
+          default = ["sudo" "doas" "eval" "dd" "mkfs" "shred" "rm"];
           description = "Commands that trigger confirmation before execution";
         };
         blockedSubcommands = lib.mkOption {
@@ -121,13 +129,48 @@ in {
         };
         deniedSubcommands = lib.mkOption {
           type = lib.types.listOf lib.types.str;
-          default = ["git push" "git push --force" "git push -f"];
-          description = "Multi-word commands that are hard-blocked (denied even in unrestricted mode)";
+          default = [
+            "git push"
+            "git reset --hard"
+            "git reset --merge"
+            "git reset --keep"
+            "git rebase -i"
+            "git rebase --interactive"
+            "git checkout --"
+            "git restore"
+            "git clean"
+            "git filter-branch"
+            "git filter-repo"
+            "git update-ref -d"
+            "git update-ref --stdin"
+          ];
+          description = ''
+            Multi-word commands that are hard-blocked (denied even in unrestricted mode).
+            The matcher does literal token-prefix matching, so flag aliases are listed
+            explicitly. Bare-prefix rules (git clean, git restore) block all flag
+            combinations at the cost of also blocking the rare safe forms.
+          '';
         };
-        blockedPatterns = lib.mkOption {
-          type = lib.types.listOf lib.types.str;
-          default = ["curl|sh" "wget|python"];
-          description = "Pipe patterns (source|sink) that trigger confirmation";
+        blockedPipePatterns = lib.mkOption {
+          type = lib.types.submodule {
+            options = {
+              sources = lib.mkOption {
+                type = lib.types.listOf lib.types.str;
+                default = ["curl" "wget"];
+                description = "Commands that fetch remote content.";
+              };
+              sinks = lib.mkOption {
+                type = lib.types.listOf lib.types.str;
+                default = ["sh" "bash" "python" "python3"];
+                description = "Interpreters that execute fetched content.";
+              };
+            };
+          };
+          default = {};
+          description = ''
+            Deny when any source command and any sink interpreter both appear as
+            CallExpr basenames in the same command sequence (curl … | bash, curl … ; sh /tmp/x, …).
+          '';
         };
       };
 
@@ -575,6 +618,10 @@ in {
         PostToolUse = lib.optional cfg.hooks.readOnce.enable editTrackHook;
         SessionStart = lib.optional cfg.hooks.readOnce.enable readOnceCleanupHook;
         Notification = lib.optional cfg.hooks.notification.enable notificationHook;
+        # Declared empty so the fragment-coverage test in tests/claude-settings.nix
+        # forces the splice in home/common/claude/settings.nix to keep handling
+        # this key — adding entries here will land in settings.json automatically.
+        UserPromptSubmit = [];
       };
       permissions = {
         allow = cfg.permissions.allowedTools ++ cfg.permissions.extraAllowed;

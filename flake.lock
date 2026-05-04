@@ -924,7 +924,6 @@
         "superpowers": "superpowers",
         "vim-tidal": "vim-tidal",
         "vim-tidal-lua": "vim-tidal-lua",
-        "visual-explainer": "visual-explainer",
         "wezterm-agent-deck": "wezterm-agent-deck",
         "wrappers": "wrappers",
         "wshobson-agents": "wshobson-agents",
@@ -1273,22 +1272,6 @@
       "original": {
         "owner": "vaporif",
         "repo": "vim-tidal-lua",
-        "type": "github"
-      }
-    },
-    "visual-explainer": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1777310126,
-        "narHash": "sha256-82RYY9txFLhj24oVyvvcXEm6F1RRyRTIXXf8vAJzeoE=",
-        "owner": "nicobailon",
-        "repo": "visual-explainer",
-        "rev": "8f1d0e38ab0f265632a31d2fd032f7b730c98c15",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nicobailon",
-        "repo": "visual-explainer",
         "type": "github"
       }
     },

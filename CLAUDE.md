@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Cross-platform Nix configuration for macOS (nix-darwin) and NixOS. Manages system and user configurations declaratively using Nix.
 
 **Hosts:**
-- `macbook` — macOS (aarch64-darwin), uses `darwinConfigurations` with nix-darwin + Home Manager
+- `burnedapple` — macOS (aarch64-darwin), uses `darwinConfigurations` with nix-darwin + Home Manager
 - `nixos` — NixOS (aarch64-linux), uses `nixosConfigurations` with NixOS + Home Manager (shell-only VM)
 
 ## Essential Commands

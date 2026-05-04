@@ -11,6 +11,7 @@
 in {
   imports = [
     ./sandboxed.nix
+    ../common/qdrant.nix
     inputs.mac-app-util.homeManagerModules.default
   ];
 

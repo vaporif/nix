@@ -68,9 +68,11 @@ in {
           ];
 
         inherit (sec.hooks) Notification SessionStart;
-        UserPromptSubmit = lib.optionals isDarwin [
-          (parryHook // {matcher = "";})
-        ];
+        UserPromptSubmit =
+          sec.hooks.UserPromptSubmit
+          ++ lib.optionals isDarwin [
+            (parryHook // {matcher = "";})
+          ];
       };
       permissions = {
         inherit (sec.permissions) allow deny;

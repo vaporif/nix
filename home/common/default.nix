@@ -1,6 +1,7 @@
 {
   config,
   inputs,
+  lib,
   pkgs,
   ...
 }: let
@@ -11,7 +12,6 @@ in {
     ./git.nix
     ./ssh.nix
     ./mcp.nix
-    ./qdrant.nix
     ./xdg.nix
     ./packages.nix
     ./shell.nix
@@ -64,11 +64,14 @@ in {
       prefix = "C-a";
     };
 
-    parry-guard = {
-      enable = pkgs.stdenv.isDarwin;
-      package = inputs.parry-guard.packages.${pkgs.stdenv.hostPlatform.system}.default;
-      hfTokenFile = config.custom.secrets.hf-token-scan-injection;
-      ignoreDirs = ["${cfg.homeDir}/Repos/"];
-    };
+    parry-guard =
+      {
+        enable = pkgs.stdenv.isDarwin;
+        package = inputs.parry-guard.packages.${pkgs.stdenv.hostPlatform.system}.default;
+        ignoreDirs = ["${cfg.homeDir}/Repos/"];
+      }
+      // lib.optionalAttrs (cfg.secrets.hf-token-scan-injection != null) {
+        hfTokenFile = cfg.secrets.hf-token-scan-injection;
+      };
   };
 }

@@ -99,37 +99,40 @@
   };
 
   # Shared custom servers used by both Desktop and Code
-  commonServers = {
-    github = {
-      command = "${pkgs.writeShellScript "github-mcp-wrapper" ''
-        export GITHUB_PERSONAL_ACCESS_TOKEN="''${GITHUB_PERSONAL_ACCESS_TOKEN:-$(${lib.getExe pkgs.gh} auth token)}"
-        exec ${lib.getExe pkgs.github-mcp-server} stdio
-      ''}";
+  commonServers =
+    {
+      github = {
+        command = "${pkgs.writeShellScript "github-mcp-wrapper" ''
+          export GITHUB_PERSONAL_ACCESS_TOKEN="''${GITHUB_PERSONAL_ACCESS_TOKEN:-$(${lib.getExe pkgs.gh} auth token)}"
+          exec ${lib.getExe pkgs.github-mcp-server} stdio
+        ''}";
+      };
+      nixos = {
+        command = lib.getExe mcp-nixos-package;
+      };
+      ferrex = {
+        command = "${pkgs.writeShellScript "ferrex-mcp-wrapper" ''
+          export FERREX_LOG=debug
+          export FERREX_LOG_FILE="${homeDir}/.ferrex/ferrex.log"
+          exec ${lib.getExe' ferrex-package "ferrex"} \
+            --qdrant-url "${
+            if pkgs.stdenv.isDarwin
+            then "http://localhost:6334"
+            else "http://${cfg.utmGatewayIp}:6334"
+          }" \
+            --db-path "${homeDir}/.ferrex/ferrex.db"
+        ''}";
+      };
+      serena.args = lib.mkAfter ["--project-from-cwd"];
+    }
+    // lib.optionalAttrs (cfg.secrets.tavily-key != null) {
+      tavily = {
+        command = "${pkgs.writeShellScript "tavily-mcp-wrapper" ''
+          export TAVILY_API_KEY="''${TAVILY_API_KEY:-$(cat ${cfg.secrets.tavily-key})}"
+          exec ${lib.getExe inputs.mcp-servers-nix.packages.${pkgs.stdenv.hostPlatform.system}.tavily-mcp}
+        ''}";
+      };
     };
-    tavily = {
-      command = "${pkgs.writeShellScript "tavily-mcp-wrapper" ''
-        export TAVILY_API_KEY="''${TAVILY_API_KEY:-$(cat ${cfg.secrets.tavily-key})}"
-        exec ${lib.getExe inputs.mcp-servers-nix.packages.${pkgs.stdenv.hostPlatform.system}.tavily-mcp}
-      ''}";
-    };
-    nixos = {
-      command = lib.getExe mcp-nixos-package;
-    };
-    ferrex = {
-      command = "${pkgs.writeShellScript "ferrex-mcp-wrapper" ''
-        export FERREX_LOG=debug
-        export FERREX_LOG_FILE="${homeDir}/.ferrex/ferrex.log"
-        exec ${lib.getExe' ferrex-package "ferrex"} \
-          --qdrant-url "${
-          if pkgs.stdenv.isDarwin
-          then "http://localhost:6334"
-          else "http://${cfg.utmGatewayIp}:6334"
-        }" \
-          --db-path "${homeDir}/.ferrex/ferrex.db"
-      ''}";
-    };
-    serena.args = lib.mkAfter ["--project-from-cwd"];
-  };
 
   # Desktop-only programs
   desktopOnlyPrograms = {
@@ -153,7 +156,7 @@
   };
 
   # Desktop-only custom servers
-  desktopOnlyServers = {
+  desktopOnlyServers = lib.optionalAttrs (cfg.secrets.youtube-key != null) {
     youtube = {
       command = "${pkgs.writeShellScript "youtube-mcp-wrapper" ''
         export YOUTUBE_API_KEY="$(cat ${cfg.secrets.youtube-key})"

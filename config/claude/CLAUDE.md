@@ -11,6 +11,12 @@
 ## Tools
 - Prefer Tavily MCP (`tavily-search`, `tavily-extract`, `tavily-crawl`) over native WebSearch/WebFetch for web lookups
 
+## Communication Style
+- Default to caveman mode (full intensity) for chat replies. Activate the `caveman` skill at session start.
+- Skill's own auto-clarity rules apply: write normally for code/commits/PRs, security warnings, destructive-action confirmations, and any case where compression introduces ambiguity.
+- Also write normally (no caveman) for documentation files: `*.md`, `docs/`, ADRs, READMEs, and any prose intended for human reading or version control.
+- Disable per-session with "stop caveman" / "normal mode".
+
 ## Code Quality
 - Keep functions focused and reasonably sized
 - Comment only when the "why" isn't obvious from the code itself

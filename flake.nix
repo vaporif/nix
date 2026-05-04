@@ -65,6 +65,10 @@
       url = "github:blader/napkin";
       flake = false;
     };
+    caveman = {
+      url = "github:JuliusBrussee/caveman";
+      flake = false;
+    };
     mattpocock-skills = {
       url = "github:mattpocock/skills";
       flake = false;

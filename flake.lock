@@ -84,6 +84,22 @@
         "type": "github"
       }
     },
+    "caveman": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777595274,
+        "narHash": "sha256-LlyBlFsKUHKzsOXEwENoVSsZHtKENVY4vFMRf08vzoU=",
+        "owner": "JuliusBrussee",
+        "repo": "caveman",
+        "rev": "ef6050c5e1848b6880ff47c32ade1a608a64f85e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "JuliusBrussee",
+        "repo": "caveman",
+        "type": "github"
+      }
+    },
     "cl-nix-lite": {
       "inputs": {
         "flake-parts": "flake-parts",
@@ -899,6 +915,7 @@
     "root": {
       "inputs": {
         "augment-command-yazi": "augment-command-yazi",
+        "caveman": "caveman",
         "claude-code-plugins": "claude-code-plugins",
         "difftastic-nvim": "difftastic-nvim",
         "difftastic-src": "difftastic-src",

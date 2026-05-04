@@ -34,7 +34,15 @@
   mkConfirmHook = entry: {
     hooks = [
       {
-        command = ''${pkgs.jq}/bin/jq -nc --arg reason ${lib.escapeShellArg entry.reason} '{ hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "ask", permissionDecisionReason: $reason } }' '';
+        command = ''
+          ${pkgs.jq}/bin/jq -nc --arg reason ${lib.escapeShellArg entry.reason} '{
+            hookSpecificOutput: {
+              hookEventName: "PreToolUse",
+              permissionDecision: "ask",
+              permissionDecisionReason: $reason
+            }
+          }'
+        '';
         type = "command";
       }
     ];

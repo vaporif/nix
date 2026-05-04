@@ -47,9 +47,10 @@
 | `<leader>fr` | n | [r]esume |
 | `<leader>fb` | n | [b]uffers |
 | `<leader>fc` | n | buffer [c]ommits |
+| `<leader>fs` | n | git [s]tatus |
 | `<leader>fm` | n | [m]essages |
 | `<leader>fi` | n | type def[i]nition |
-| `<leader>fs` | n | document [s]ymbols |
+| `<leader>fS` | n | document [S]ymbols |
 | `<leader>fw` | n | [w]orkspace symbols |
 | `<leader>ft` | n | work[t]rees |
 | `<leader>fT` | n | [T]odos |
@@ -161,17 +162,17 @@
 
 | Key | Mode | Action |
 |-----|------|--------|
+| `<C-y>` | i | select_and_accept |
+| `<C-p>` | i | select_prev |
+| `<C-n>` | i | select_next |
+| `<C-space>` | i | show |
+| `<C-e>` | i | hide |
 | `<Tab>` | i | snippet_forward |
 | `<S-Tab>` | i | snippet_backward |
 | `<Up>` | i | select_prev |
 | `<Down>` | i | select_next |
 | `<S-j>` | i | scroll_documentation_up |
 | `<S-k>` | i | scroll_documentation_down |
-| `<C-y>` | i | select_and_accept |
-| `<C-p>` | i | select_prev |
-| `<C-n>` | i | select_next |
-| `<C-space>` | i | show |
-| `<C-e>` | i | hide |
 
 ### Other
 
@@ -212,7 +213,6 @@
 
 | Key | App |
 |-----|-----|
-| `hyper + r` | Librewolf |
 | `hyper + t` | wezterm |
 | `hyper + c` | Claude |
 | `hyper + s` | Slack |
@@ -286,14 +286,21 @@
 
 | Key | Action |
 |-----|--------|
-| `<Enter>` | Open in Neovim |
+| `<Enter>` | Smart enter (open file or enter dir) |
+| `o` | Smart open |
+| `l` | Smart enter (arrow right) |
+| `h` | Smart leave (arrow left) |
+| `F` | Fuzzy find and grep (fzf+rg) |
+| `/` | Filter files (smart-case) |
 | `b r` | Go to [r]epos |
-| `b q` | Go to [q]uarry |
-| `b v` | Go to qui[v]er |
+| `b g` | Go to [g]lint |
+| `b a` | Go to nephil[a] |
+| `b p` | Go to [p]arry-guard |
 | `b m` | Go to [m]ercury |
+| `b f` | Go to [f]ungai |
+| `b c` | Go to [c]ommonware |
 | `b n` | Go to [n]ix |
 | `b l` | Go to [l]ogos |
-| `b e` | Go to [e]ureka solana-ibc |
 | `u a` | Add bookmark |
 | `u g` | Jump bookmark by key |
 | `u G` | Jump bookmark by fzf |

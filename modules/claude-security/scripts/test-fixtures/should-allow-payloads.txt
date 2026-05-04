@@ -10,3 +10,12 @@ ls "some dir"
 ls 'some dir'
 echo a"b"c
 echo a'b'c
+echo $HOME
+echo "$HOME"
+cd $WORK_DIR && cargo test
+find . -name \*.rs
+find . -name "*.rs" -print
+git diff "$(git merge-base HEAD main)"
+RUST_LOG=debug cargo test
+cargo test -- --nocapture
+ls "$HOME/Documents"

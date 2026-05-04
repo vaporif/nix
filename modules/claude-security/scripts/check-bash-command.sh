@@ -74,12 +74,14 @@ CMDS=$(jq -c '
   ]
 ' <<<"$AST")
 
-# Any opaque token anywhere in any CallExpr → ask. Broad on purpose: a
-# non-literal arg can mask a deny rule (e.g. `git "$(echo push)" --force`
-# wouldn't match the "git push" prefix because the middle token is null).
-# Cost: also asks on benign quoted args like `echo "hello"`.
-if echo "$CMDS" | jq -e 'flatten | any(. == null)' >/dev/null; then
-  ask "command contains non-literal tokens (variable, substitution, or quoted) — review manually"
+# Token 0 (the command itself) being opaque means we cannot identify what
+# is about to run — always ask. Nulls in arg positions are NOT a global
+# ask anymore: the prefix matcher below treats them as wildcards, so a
+# rule whose tokens are pinned by literals on either side of a null still
+# downgrades to ask. This keeps `git "$(echo push)" --force` caught while
+# letting `echo $HOME`, `find -name \*.rs`, etc. through.
+if echo "$CMDS" | jq -e 'any(.[]; length > 0 and .[0] == null)' >/dev/null; then
+  ask "command name is non-literal (variable, substitution, or escape) — review manually"
 fi
 
 # blockedCommands: match by the basename of the first token in each CallExpr.
@@ -91,29 +93,51 @@ while IFS= read -r cmd; do
   fi
 done < <(echo "$CMDS" | jq -r '.[][0] // empty')
 
-# Subcommand prefix match. Each rule "git push" splits into tokens ["git" "push"]
-# and matches a CallExpr whose first 2 args are exactly those. Whitespace in the
-# input collapses cleanly; env-var prefixes don't fool us because shfmt parses
-# them as Assigns, not Args.
+# Subcommand prefix match. Each rule "git push" splits into tokens
+# ["git" "push"] and matches a CallExpr whose first N args are exactly those
+# (exactMatch), or whose literal tokens match and rule-covered positions
+# contain only nulls or matching literals (couldMatch). Whitespace in the
+# input collapses cleanly; env-var prefixes don't fool us because shfmt
+# parses them as Assigns, not Args.
 #
-# One jq pass per command: emit "deny <rule>" / "ask <rule>" for the first match
-# per CallExpr. Deny lines come first so the bash loop hits them first.
+# Lines: "deny <rule>" (definite deny), "ask <rule>" (definite ask),
+# "wildcard <rule>" (rule could be smuggled via expansion → ask).
+# Order in the output is the order we want the bash loop to hit them.
 MATCHES=$(jq -nr \
   --argjson cmds "$CMDS" \
   --argjson denyRules "$DENIED_SUBCMDS_JSON" \
   --argjson askRules "$BLOCKED_SUBCMDS_JSON" '
   def tokenize: split(" ");
-  def matchPrefix($rules; $prefix):
+  def exactMatch($rule; $prefix):
+    ($rule | length) as $n |
+    ($prefix | length) >= $n
+    and ($prefix[:$n]) == $rule;
+  # Nulls in rule-covered positions are wildcards. Only used to downgrade
+  # to ask, never to deny — we are not certain the rule actually matches.
+  def couldMatch($rule; $prefix):
+    ($rule | length) as $n |
+    ($prefix | length) >= $n
+    and all(range($n); $prefix[.] == null or $prefix[.] == $rule[.]);
+  def firstExact($rules; $prefix):
     first(
       $rules[] as $r |
-      ($r | tokenize) as $rt |
-      select(($prefix | length) >= ($rt | length) and ($prefix[:($rt | length)]) == $rt) |
+      select(exactMatch($r | tokenize; $prefix)) |
+      $r
+    ) // empty;
+  def firstCould($rules; $prefix):
+    first(
+      $rules[] as $r |
+      select(couldMatch($r | tokenize; $prefix)) |
       $r
     ) // empty;
   $cmds[] |
-    select(length > 0 and (any(.[]; . == null) | not)) as $prefix |
-    (matchPrefix($denyRules; $prefix) | "deny " + .),
-    (matchPrefix($askRules; $prefix) | "ask " + .)
+    select(length > 0 and .[0] != null) as $prefix |
+    # $prefix[0] is guaranteed literal — the global guard asks upstream
+    # when it is null, so rule[0] comparisons here are sound.
+    (firstExact($denyRules; $prefix) | "deny " + .),
+    (firstExact($askRules; $prefix) | "ask " + .),
+    (firstCould($denyRules; $prefix) | "wildcard " + .),
+    (firstCould($askRules; $prefix) | "wildcard " + .)
 ')
 
 while IFS= read -r line; do
@@ -123,6 +147,7 @@ while IFS= read -r line; do
   case $action in
     deny) deny "Command '$rule' is denied." ;;
     ask) ask "Command '$rule' requires confirmation." ;;
+    wildcard) ask "Command may match '$rule' (contains expansion or escape) — review." ;;
   esac
 done <<<"$MATCHES"
 

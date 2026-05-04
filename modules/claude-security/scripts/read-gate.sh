@@ -51,6 +51,5 @@ if [[ -f "$CACHE_FILE" ]]; then
   fi
 fi
 
-# Cache miss or content changed — allow and update.
 echo -n "$CURRENT_HASH" > "$CACHE_FILE"
 exit 0

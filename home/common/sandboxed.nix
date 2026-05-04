@@ -114,7 +114,6 @@
     ++ secretEnvNames;
 
   # GitHub token: load from sops secret before sandbox (existing env wins).
-  # No sops? Skip the file read entirely.
   ghTokenPreload = ''
     ${lib.optionalString (cfg.secrets.github-token != null) ''
       if [ -z "''${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ] && [ -r ${cfg.secrets.github-token} ]; then

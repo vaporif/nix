@@ -303,12 +303,12 @@ Run: `git commit -am "claude-security: blockedPatterns → blockedPipePatterns (
 **Files:**
 - Modify: `modules/claude-security/default.nix:34-50`
 
-- [ ] **Step 1: Verify the apostrophe regression test exists**
+- [x] **Step 1: Verify the apostrophe regression test exists**
 
 Run: `grep -n "confirmHookApostrophe" tests/claude-settings.nix`
 Expected: matches around line 162 — the test that asserts the rendered hook still emits `Don't allow this` literally. This test will guard the refactor.
 
-- [ ] **Step 2: Inline the jq call**
+- [x] **Step 2: Inline the jq call**
 
 Edit `modules/claude-security/default.nix:34-50` from:
 
@@ -348,17 +348,17 @@ mkConfirmHook = entry: {
 };
 ```
 
-- [ ] **Step 3: Run the apostrophe regression test**
+- [x] **Step 3: Run the apostrophe regression test**
 
 Run: `nix build .#checks.aarch64-linux.claude-settings`
 Expected: PASS — `confirmHookApostropheTest` runs the inline command and asserts the reason is preserved verbatim.
 
-- [ ] **Step 4: Run statix and deadnix**
+- [x] **Step 4: Run statix and deadnix**
 
 Run: `statix check && deadnix --fail`
 Expected: no warnings (the `let … in` block is gone).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run: `git commit -am "claude-security: inline mkConfirmHook jq call (drop per-entry script derivation)"`
 

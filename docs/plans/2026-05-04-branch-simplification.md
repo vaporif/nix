@@ -50,22 +50,22 @@ The two `docs/plans/2026-05-03-*.md` files (1922 lines combined) are session pla
 - Delete: `docs/plans/2026-05-03-fix-review-findings.md`
 - Delete: `docs/plans/2026-05-03-claude-security-deny-coverage.md`
 
-- [ ] **Step 1: Confirm no inbound references**
+- [x] **Step 1: Confirm no inbound references**
 
 Run: `grep -rn "2026-05-03-fix-review-findings\|2026-05-03-claude-security-deny-coverage" --include="*.md" --include="*.nix" --include="*.sh" --include="*.txt" .`
 Expected: matches only inside the two doomed files themselves; nothing under `modules/`, `home/`, `tests/`, `flake.nix`, `CLAUDE.md`, `README.md`.
 
-- [ ] **Step 2: Remove the files**
+- [x] **Step 2: Remove the files**
 
 Run: `git rm docs/plans/2026-05-03-fix-review-findings.md docs/plans/2026-05-03-claude-security-deny-coverage.md`
 Expected: two files staged for deletion.
 
-- [ ] **Step 3: Verify the directory cleanup**
+- [x] **Step 3: Verify the directory cleanup**
 
 Run: `ls docs/plans/`
 Expected: only the new `2026-05-04-branch-simplification.md` remains. No `2026-05-03-*` files.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Run: `git commit -m "drop superseded plan docs from fix-review-findings"`
 Expected: one commit, two files deleted.

@@ -436,7 +436,7 @@ Two basename steps now exist: bash `basename -- "$cmd"` at line 90 (one fork per
 **Files:**
 - Modify: `modules/claude-security/scripts/check-bash-command.sh:88-94` (basename in the blocked-commands loop)
 
-- [ ] **Step 1: Replace the bash basename loop**
+- [x] **Step 1: Replace the bash basename loop**
 
 Edit `modules/claude-security/scripts/check-bash-command.sh:88-94` from:
 
@@ -467,17 +467,17 @@ done <<<"$ALL_BASES"
 
 Then remove the redundant `ALL_BASES=$(...)` recomputation that Task 2 added inside the pipe-fetch block (the variable is now available from the top of the script).
 
-- [ ] **Step 2: Run the matcher fixture test**
+- [x] **Step 2: Run the matcher fixture test**
 
 Run: `nix build .#checks.aarch64-linux.check-bash-matcher`
 Expected: PASS — every bypass payload still produces deny/ask, every allow payload still produces empty.
 
-- [ ] **Step 3: Run the full claude-settings tests**
+- [x] **Step 3: Run the full claude-settings tests**
 
 Run: `nix build .#checks.aarch64-linux.claude-settings`
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Run: `git commit -am "check-bash-command: hoist ALL_BASES; drop redundant basename fork"`
 

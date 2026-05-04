@@ -86,13 +86,16 @@ if echo "$CMDS" | jq -e 'any(.[]; length > 0 and .[0] == null)' >/dev/null; then
 fi
 
 # blockedCommands: match by the basename of the first token in each CallExpr.
-while IFS= read -r cmd; do
-  [ -z "$cmd" ] && continue
-  base=$(basename -- "$cmd")
+# Compute basenames of every CallExpr's first token once. Reused by
+# the blocked-commands loop and the pipe-fetch check below.
+ALL_BASES=$(echo "$CMDS" | jq -r '.[][0] // empty | split("/") | last')
+
+while IFS= read -r base; do
+  [ -z "$base" ] && continue
   if echo "$BLOCKED_CMDS_JSON" | jq -e --arg b "$base" 'any(. == $b)' >/dev/null; then
     ask "$base detected. Confirm with user before proceeding."
   fi
-done < <(echo "$CMDS" | jq -r '.[][0] // empty')
+done <<<"$ALL_BASES"
 
 # Subcommand prefix match. Each rule "git push" splits into tokens
 # ["git" "push"] and matches a CallExpr whose first N args are exactly those
@@ -155,8 +158,6 @@ done <<<"$MATCHES"
 # Pipe-fetch detection. Deny if any source command and any sink interpreter
 # both appear as CallExpr basenames in the same command sequence —
 # catches `curl x | sh`, `curl x; bash /tmp/x`, `wget x && python3 /tmp/x`.
-ALL_BASES=$(echo "$CMDS" | jq -r '.[][0] // empty | split("/") | last')
-
 src_hit=""
 while IFS= read -r src; do
   [ -z "$src" ] && continue

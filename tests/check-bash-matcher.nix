@@ -20,7 +20,10 @@
         "git update-ref -d"
         "git update-ref --stdin"
       ];
-      blockedPatterns = ["curl|sh" "curl|bash"];
+      blockedPipePatterns = {
+        sources = ["curl" "wget"];
+        sinks = ["sh" "bash" "python" "python3"];
+      };
       notificationSound = "Glass";
       ntfyServerUrl = "";
       ntfyTopicFile = null;

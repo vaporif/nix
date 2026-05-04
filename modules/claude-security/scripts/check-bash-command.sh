@@ -37,7 +37,8 @@ COMMAND=$(jq -r '.tool_input.command // empty' <<<"$input" 2>/dev/null) \
 BLOCKED_CMDS_JSON='@blockedCommandsJson@'
 BLOCKED_SUBCMDS_JSON='@blockedSubcommandsJson@'
 DENIED_SUBCMDS_JSON='@deniedSubcommandsJson@'
-BLOCKED_PATTERNS_JSON='@blockedPatternsJson@'
+PIPE_SOURCES_JSON='@pipeSourcesJson@'
+PIPE_SINKS_JSON='@pipeSinksJson@'
 
 # Per CallExpr we want a list of arg tokens. A token is a known string when
 # every Part is one of:
@@ -151,17 +152,24 @@ while IFS= read -r line; do
   esac
 done <<<"$MATCHES"
 
-# blockedPatterns are "src|sink" pairs. Deny if both names appear as
-# CallExpr basenames anywhere in the command. Structural, not regex —
-# catches `curl x | sh`, `curl x; sh /tmp/x`, `curl x > /tmp/x && sh /tmp/x`.
+# Pipe-fetch detection. Deny if any source command and any sink interpreter
+# both appear as CallExpr basenames in the same command sequence —
+# catches `curl x | sh`, `curl x; bash /tmp/x`, `wget x && python3 /tmp/x`.
 ALL_BASES=$(echo "$CMDS" | jq -r '.[][0] // empty | split("/") | last')
-while IFS= read -r pattern; do
-  [ -z "$pattern" ] && continue
-  src=${pattern%%|*}
-  sink=${pattern##*|}
-  if grep -qFx "$src" <<<"$ALL_BASES" && grep -qFx "$sink" <<<"$ALL_BASES"; then
-    deny "Pattern '$pattern' detected (source and sink both present in command sequence)."
-  fi
-done < <(echo "$BLOCKED_PATTERNS_JSON" | jq -r '.[]')
+
+src_hit=""
+while IFS= read -r src; do
+  [ -z "$src" ] && continue
+  if grep -qFx "$src" <<<"$ALL_BASES"; then src_hit=$src; break; fi
+done < <(echo "$PIPE_SOURCES_JSON" | jq -r '.[]')
+
+if [ -n "$src_hit" ]; then
+  while IFS= read -r sink; do
+    [ -z "$sink" ] && continue
+    if grep -qFx "$sink" <<<"$ALL_BASES"; then
+      deny "Pipe-fetch detected ($src_hit + $sink in command sequence)."
+    fi
+  done < <(echo "$PIPE_SINKS_JSON" | jq -r '.[]')
+fi
 
 allow

@@ -24,7 +24,7 @@
 
   scripts = import ./scripts/wrap.nix {
     inherit pkgs lib;
-    inherit (cfg.hooks.bashValidation) blockedCommands blockedSubcommands deniedSubcommands blockedPatterns;
+    inherit (cfg.hooks.bashValidation) blockedCommands blockedSubcommands deniedSubcommands blockedPipePatterns;
     notificationSound = cfg.hooks.notification.sound;
     ntfyServerUrl = cfg.hooks.notification.ntfy.serverUrl;
     ntfyTopicFile = cfg.hooks.notification.ntfy.topicFile;
@@ -153,10 +153,26 @@ in {
             combinations at the cost of also blocking the rare safe forms.
           '';
         };
-        blockedPatterns = lib.mkOption {
-          type = lib.types.listOf lib.types.str;
-          default = ["curl|sh" "curl|bash" "wget|sh" "wget|bash" "wget|python"];
-          description = "Pipe patterns (source|sink) that trigger confirmation";
+        blockedPipePatterns = lib.mkOption {
+          type = lib.types.submodule {
+            options = {
+              sources = lib.mkOption {
+                type = lib.types.listOf lib.types.str;
+                default = ["curl" "wget"];
+                description = "Commands that fetch remote content.";
+              };
+              sinks = lib.mkOption {
+                type = lib.types.listOf lib.types.str;
+                default = ["sh" "bash" "python" "python3"];
+                description = "Interpreters that execute fetched content.";
+              };
+            };
+          };
+          default = {};
+          description = ''
+            Deny when any source command and any sink interpreter both appear as
+            CallExpr basenames in the same command sequence (curl … | bash, curl … ; sh /tmp/x, …).
+          '';
         };
       };
 

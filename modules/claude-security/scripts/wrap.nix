@@ -4,7 +4,7 @@
   blockedCommands,
   blockedSubcommands,
   deniedSubcommands,
-  blockedPatterns,
+  blockedPipePatterns,
   notificationSound,
   ntfyServerUrl,
   ntfyTopicFile,
@@ -16,13 +16,15 @@
       "@blockedCommandsJson@"
       "@blockedSubcommandsJson@"
       "@deniedSubcommandsJson@"
-      "@blockedPatternsJson@"
+      "@pipeSourcesJson@"
+      "@pipeSinksJson@"
     ]
     [
       (builtins.toJSON blockedCommands)
       (builtins.toJSON blockedSubcommands)
       (builtins.toJSON deniedSubcommands)
-      (builtins.toJSON blockedPatterns)
+      (builtins.toJSON blockedPipePatterns.sources)
+      (builtins.toJSON blockedPipePatterns.sinks)
     ]
     (builtins.readFile ./check-bash-command.sh);
 in {

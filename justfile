@@ -14,14 +14,11 @@ lint-lua:
 fmt-lua:
     stylua config/
 
-# Lint nix files (fast — no flake check)
-lint-nix-fast:
+# Lint nix files
+lint-nix:
     alejandra --check .
     statix check
     deadnix --fail
-
-# Lint nix files (full — runs flake checks including tests)
-lint-nix: lint-nix-fast
     nix flake check
 
 # Format nix files

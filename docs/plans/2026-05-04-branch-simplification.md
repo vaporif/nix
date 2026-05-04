@@ -381,7 +381,7 @@ Auto-selecting one recipe — if the user wants the quick path, they can run `al
 **Files:**
 - Modify: `justfile:17-25`
 
-- [ ] **Step 1: Replace the two recipes with one**
+- [x] **Step 1: Replace the two recipes with one**
 
 Edit `justfile:17-25` from:
 
@@ -408,22 +408,22 @@ lint-nix:
     nix flake check
 ```
 
-- [ ] **Step 2: Search for residual `lint-nix-fast` references**
+- [x] **Step 2: Search for residual `lint-nix-fast` references**
 
 Run: `grep -rn "lint-nix-fast" --include="*.yml" --include="*.yaml" --include="*.sh" --include="justfile" --include="*.md" .`
 Expected: no matches.
 
-- [ ] **Step 3: Run the full lint**
+- [x] **Step 3: Run the full lint**
 
 Run: `just lint-nix`
 Expected: PASS.
 
-- [ ] **Step 4: Run the aggregate check**
+- [x] **Step 4: Run the aggregate check**
 
 Run: `just check`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run: `git commit -am "justfile: drop lint-nix-fast split (one lint-nix recipe)"`
 

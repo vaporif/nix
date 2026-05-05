@@ -1,4 +1,18 @@
-_: {
+{
+  inputs,
+  pkgs,
+  ...
+}: let
+  bevyEngineerAgent = pkgs.runCommand "bevy-engineer.md" {} ''
+    cat ${../../../config/claude/agents/bevy-engineer.md} > $out
+    {
+      printf '\n\n---\n\n'
+      printf '## Appendix: Bevy 0.18 migration case study (source)\n\n'
+      printf 'Pinned via the `bevy-migration-gist` flake input. Update with `nix flake update bevy-migration-gist`.\n\n'
+      cat ${inputs.bevy-migration-gist}/gistfile1.txt
+    } >> $out
+  '';
+in {
   home.file = {
     # Central rules store — not auto-loaded by Claude Code
     # Use `use claude_rules` in .envrc to symlink into project
@@ -23,6 +37,7 @@ _: {
 
     # Standalone agents
     ".claude/agents/rust-engineer.md".source = ../../../config/claude/agents/rust-engineer.md;
+    ".claude/agents/bevy-engineer.md".source = bevyEngineerAgent;
     ".claude/agents/solana-developer.md".source = ../../../config/claude/agents/solana-developer.md;
 
     ".claude/CLAUDE.md".source = ../../../config/claude/CLAUDE.md;

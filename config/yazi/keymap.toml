@@ -54,9 +54,9 @@ run = "cd ~/Repos/mercury"
 desc = "Go to [m]ercury"
 
 [[mgr.prepend_keymap]]
-on = ["b", "f"]
-run = "cd ~/Repos/fungai"
-desc = "Go to [f]ungai"
+on = ["b", "k"]
+run = "cd ~/Repos/kingdom"
+desc = "Go to [k]ingdom"
 
 [[mgr.prepend_keymap]]
 on = ["b", "c"]

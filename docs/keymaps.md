@@ -297,7 +297,7 @@
 | `b a` | Go to nephil[a] |
 | `b p` | Go to [p]arry-guard |
 | `b m` | Go to [m]ercury |
-| `b f` | Go to [f]ungai |
+| `b k` | Go to [k]ingdom |
 | `b c` | Go to [c]ommonware |
 | `b n` | Go to [n]ix |
 | `b l` | Go to [l]ogos |

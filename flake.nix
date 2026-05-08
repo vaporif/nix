@@ -28,6 +28,10 @@
       url = "github:vaporif/parry-guard";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    codex-cli-nix = {
+      url = "github:sadjow/codex-cli-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     mcp-servers-nix = {
       url = "github:natsukium/mcp-servers-nix";
@@ -149,7 +153,7 @@
       inherit (inputs) vim-tidal difftastic-src;
     };
 
-    sharedOverlays = [inputs.mcp-nixos.overlays.default inputs.earthtone-nvim.overlays.default localPackages];
+    sharedOverlays = [inputs.mcp-nixos.overlays.default inputs.earthtone-nvim.overlays.default inputs.codex-cli-nix.overlays.default localPackages];
 
     mkPkgs = system:
       import nixpkgs {

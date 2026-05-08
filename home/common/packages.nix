@@ -67,6 +67,7 @@
       pkgs.shfmt
 
       pkgs.claude-code
+      pkgs.codex
       pkgs.mcp-nixos
       pkgs.qdrant
       pkgs.qdrant-web-ui

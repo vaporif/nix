@@ -4,6 +4,7 @@
   pkgs,
   ...
 }: let
+  cfg = config.custom;
   inherit (pkgs.stdenv) isDarwin;
 
   sec = config.programs.claude-code.security.settingsFragment;
@@ -30,63 +31,65 @@
     ];
   };
 in {
-  home.file = {
-    ".claude/settings.json".text = builtins.toJSON {
-      "$schema" = "https://json.schemastore.org/claude-code-settings.json";
-      alwaysThinkingEnabled = true;
-      skipDangerousModePermissionPrompt = true;
-      teammateMode = "tmux";
-      inherit (config.custom.claude) enabledPlugins;
-      statusLine = {
-        type = "command";
-        command = "${statuslineScript}/bin/claude-statusline";
-      };
-      env = {
-        CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
-      };
-      hooks = {
-        PreToolUse =
-          sec.hooks.PreToolUse
-          ++ lib.optionals isDarwin [
-            (parryHook // {matcher = "Bash|Read|Write|Edit|Glob|Grep|WebFetch|WebSearch|NotebookEdit|Task|mcp__.*";})
-          ];
-        PostToolUse =
-          sec.hooks.PostToolUse
-          ++ [
-            {
-              hooks = [
-                {
-                  command = "claude-formatter";
-                  type = "command";
-                }
-              ];
-              matcher = "Edit|Write";
-            }
-          ]
-          ++ lib.optionals isDarwin [
-            (parryHook // {matcher = "Read|WebFetch|Bash|mcp__github__get_file_contents|mcp__filesystem__read_file|mcp__filesystem__read_text_file";})
-          ];
+  config = lib.mkIf cfg.claude.enable {
+    home.file = {
+      ".claude/settings.json".text = builtins.toJSON {
+        "$schema" = "https://json.schemastore.org/claude-code-settings.json";
+        alwaysThinkingEnabled = true;
+        skipDangerousModePermissionPrompt = true;
+        teammateMode = "tmux";
+        inherit (cfg.claude) enabledPlugins;
+        statusLine = {
+          type = "command";
+          command = "${statuslineScript}/bin/claude-statusline";
+        };
+        env = {
+          CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
+        };
+        hooks = {
+          PreToolUse =
+            sec.hooks.PreToolUse
+            ++ lib.optionals isDarwin [
+              (parryHook // {matcher = "Bash|Read|Write|Edit|Glob|Grep|WebFetch|WebSearch|NotebookEdit|Task|mcp__.*";})
+            ];
+          PostToolUse =
+            sec.hooks.PostToolUse
+            ++ [
+              {
+                hooks = [
+                  {
+                    command = "claude-formatter";
+                    type = "command";
+                  }
+                ];
+                matcher = "Edit|Write";
+              }
+            ]
+            ++ lib.optionals isDarwin [
+              (parryHook // {matcher = "Read|WebFetch|Bash|mcp__github__get_file_contents|mcp__filesystem__read_file|mcp__filesystem__read_text_file";})
+            ];
 
-        inherit (sec.hooks) Notification SessionStart;
-        UserPromptSubmit =
-          sec.hooks.UserPromptSubmit
-          ++ lib.optionals isDarwin [
-            (parryHook // {matcher = "";})
-          ];
-      };
-      permissions = {
-        inherit (sec.permissions) allow deny;
-      };
-      sandbox = {
-        filesystem = {
-          allowWrite = ["~/.cache/vulnix"];
+          inherit (sec.hooks) Notification SessionStart;
+          UserPromptSubmit =
+            sec.hooks.UserPromptSubmit
+            ++ lib.optionals isDarwin [
+              (parryHook // {matcher = "";})
+            ];
+        };
+        permissions = {
+          inherit (sec.permissions) allow deny;
+        };
+        sandbox = {
+          filesystem = {
+            allowWrite = ["~/.cache/vulnix"];
+          };
         };
       };
-    };
-    ".claude/settings.local.json".text = builtins.toJSON {
-      permissions = {
-        allow = [];
-        deny = [];
+      ".claude/settings.local.json".text = builtins.toJSON {
+        permissions = {
+          allow = [];
+          deny = [];
+        };
       };
     };
   };

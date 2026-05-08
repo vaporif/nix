@@ -1,19 +1,20 @@
 {
-  inputs,
-  pkgs,
+  config,
+  lib,
   ...
 }: let
-  patchedMattpocockSkills = pkgs.applyPatches {
-    name = "mattpocock-skills-patched";
-    src = inputs.mattpocock-skills;
-    patches = [../../../patches/mattpocock-skills-customizations.patch];
-  };
+  claudeCfg = config.custom.claude;
+  llm = config.custom.llm;
 in {
-  home.file = {
-    ".claude/skills/humanizer/SKILL.md".source = "${inputs.humanizer}/SKILL.md";
-    ".claude/skills/napkin/SKILL.md".source = "${inputs.napkin}/SKILL.md";
-    ".claude/skills/concise/SKILL.md".source = ../../../config/claude/skills/concise.md;
-    ".claude/skills/post-implementation-polish/SKILL.md".source = ../../../config/claude/skills/post-implementation-polish.md;
-    ".claude/skills/improve-codebase-architecture".source = "${patchedMattpocockSkills}/skills/engineering/improve-codebase-architecture";
+  config = lib.mkIf claudeCfg.enable {
+    home.file =
+      lib.mapAttrs' (name: entry: {
+        name =
+          if entry.kind == "directory"
+          then ".claude/skills/${name}"
+          else ".claude/skills/${name}/SKILL.md";
+        value.source = entry.source;
+      })
+      llm.skills;
   };
 }

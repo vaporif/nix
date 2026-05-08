@@ -8,6 +8,7 @@
   cfg = config.custom;
 in {
   imports = [
+    ./llm
     ./claude
     ./git.nix
     ./ssh.nix

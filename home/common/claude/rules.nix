@@ -1,45 +1,25 @@
 {
-  inputs,
-  pkgs,
+  config,
+  lib,
   ...
 }: let
-  bevyEngineerAgent = pkgs.runCommand "bevy-engineer.md" {} ''
-    cat ${../../../config/claude/agents/bevy-engineer.md} > $out
-    {
-      printf '\n\n---\n\n'
-      printf '## Appendix: Bevy 0.18 migration case study (source)\n\n'
-      printf 'Pinned via the `bevy-migration-gist` flake input. Update with `nix flake update bevy-migration-gist`.\n\n'
-      cat ${inputs.bevy-migration-gist}/gistfile1.txt
-    } >> $out
-  '';
+  claudeCfg = config.custom.claude;
+  llm = config.custom.llm;
+  ruleFiles =
+    lib.mapAttrs' (name: entry: {
+      name = ".config/claude-rules/${name}.md";
+      value.source = entry.source;
+    })
+    llm.rules;
 in {
-  home.file = {
-    # Central rules store — not auto-loaded by Claude Code
-    # Use `use claude_rules` in .envrc to symlink into project
-    ".config/claude-rules/nix.md".source = ../../../config/claude-rules/nix.md;
-    ".config/claude-rules/lua.md".source = ../../../config/claude-rules/lua.md;
-    ".config/claude-rules/rust.md".source = ../../../config/claude-rules/rust.md;
-    ".config/claude-rules/go.md".source = ../../../config/claude-rules/go.md;
-    ".config/claude-rules/solidity.md".source = ../../../config/claude-rules/solidity.md;
+  config = lib.mkIf claudeCfg.enable {
+    home.file =
+      ruleFiles
+      // {
+        # Direnv custom function for claude rules
+        ".config/direnv/lib/claude-rules.sh".source = ../../../config/direnv/claude-rules.sh;
 
-    # Direnv custom function for claude rules
-    ".config/direnv/lib/claude-rules.sh".source = ../../../config/direnv/claude-rules.sh;
-
-    # Custom commands
-    ".claude/commands/remember.md".source = ../../../config/claude-commands/remember.md;
-    ".claude/commands/recall.md".source = ../../../config/claude-commands/recall.md;
-    ".claude/commands/cleanup.md".source = ../../../config/claude-commands/cleanup.md;
-    ".claude/commands/commit.md".source = ../../../config/claude-commands/commit.md;
-    ".claude/commands/pr.md".source = ../../../config/claude-commands/pr.md;
-    ".claude/commands/docs.md".source = ../../../config/claude-commands/docs.md;
-    ".claude/commands/vulnix-triage.md".source = ../../../config/claude-commands/vulnix-triage.md;
-    ".claude/commands/checkpoint.md".source = ../../../config/claude-commands/checkpoint.md;
-
-    # Standalone agents
-    ".claude/agents/rust-engineer.md".source = ../../../config/claude/agents/rust-engineer.md;
-    ".claude/agents/bevy-engineer.md".source = bevyEngineerAgent;
-    ".claude/agents/solana-developer.md".source = ../../../config/claude/agents/solana-developer.md;
-
-    ".claude/CLAUDE.md".source = ../../../config/claude/CLAUDE.md;
+        ".claude/CLAUDE.md".source = ../../../config/claude/CLAUDE.md;
+      };
   };
 }

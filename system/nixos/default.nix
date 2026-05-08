@@ -1,6 +1,7 @@
 {
   pkgs,
   config,
+  lib,
   ...
 }: let
   cfg = config.custom;
@@ -37,7 +38,9 @@ in {
     ];
   };
 
-  environment.etc."claude-code/managed-mcp.json".source = hmCfg.codeMcpServersConfig;
+  environment.etc = lib.mkIf hmCfg.claude.enable {
+    "claude-code/managed-mcp.json".source = hmCfg.codeMcpServersConfig;
+  };
 
   system.stateVersion = "25.11";
 }

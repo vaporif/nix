@@ -197,6 +197,5 @@ in {
     custom = {
       inherit desktopMcpServersConfig codeMcpServersConfig;
     };
-    home.file."${config.xdg.configHome}/mcphub/servers.json".source = codeMcpServersConfig;
   };
 }

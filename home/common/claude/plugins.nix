@@ -192,7 +192,7 @@ in {
     description = "Map of enabled plugin names for settings.json";
   };
 
-  config = {
+  config = lib.mkIf config.custom.claude.enable {
     custom.claude.enabledPlugins = enabledPlugins;
 
     home.file =

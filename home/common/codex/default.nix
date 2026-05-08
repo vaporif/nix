@@ -5,7 +5,7 @@
   ...
 }: let
   cfg = config.custom;
-  llm = cfg.llm;
+  inherit (cfg) llm;
   toml = pkgs.formats.toml {};
 
   codexConfig = {

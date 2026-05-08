@@ -12,12 +12,12 @@
   mkSandboxed = name: modules:
     sandnixLib.makeSandnix {inherit name modules;};
 
-  darwinExtras = {
+  darwinExtras = sandboxEnv: {
     preHook = ''
       ${sandboxShared.secretPreload}
       ${sandboxShared.ghTokenPreload}
-      CLAUDE_SANDBOX=1
-      export CLAUDE_SANDBOX
+      ${sandboxEnv}=1
+      export ${sandboxEnv}
       CARGO_NET_GIT_FETCH_WITH_CLI=true
       export CARGO_NET_GIT_FETCH_WITH_CLI
       LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
@@ -56,6 +56,8 @@
       (allow file-read* file-write* (regex #"^$HOME/\\.CFUserTextEncoding"))
       ;; Keychain database access (token storage/refresh)
       (allow file-read* file-write* (subpath "$HOME/Library/Keychains"))
+      ;; Codex can store auth state under Application Support on macOS.
+      (allow file-read* file-write* (subpath "$HOME/Library/Application Support/Codex"))
       ;; Security framework MDS shared memory
       (allow file-read* (subpath "/private/var/db/mds"))
 
@@ -103,10 +105,54 @@
         env = sandboxShared.sharedEnvNames;
       };
     }
-    darwinExtras
+    (darwinExtras "CLAUDE_SANDBOX")
+  ];
+
+  codexDarwin = mkSandboxed "codex" [
+    inputs.sandnix.sandnixModules.git
+    inputs.sandnix.sandnixModules.gh
+    {
+      program = lib.getExe pkgs.codex;
+      features = {
+        tty = true;
+        nix = true;
+        network = true;
+        tmp = true;
+      };
+      cli = {
+        rwx = ["." "$HOME/.codex" "$HOME/Repos" "$HOME/.cargo"];
+        rw = [
+          "$HOME/.cache/nix"
+          "$HOME/.cache/huggingface"
+          "$HOME/.cache/gh"
+          "$HOME/.serena"
+          "$HOME/.ferrex"
+          "$HOME/Library/Application Support/Codex"
+          "$HOME/Library/Caches/go-build"
+          "$HOME/go/pkg/mod"
+        ];
+        rox = [
+          "/Applications/OrbStack.app/Contents/MacOS/xbin"
+        ];
+        ro = [
+          "$HOME/.config/nix-darwin"
+          "$HOME/.ssh/known_hosts"
+          "$HOME/.ssh/config"
+          "$HOME/.docker/config.json"
+          "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
+        ];
+        env = sandboxShared.sharedEnvNames;
+      };
+    }
+    (darwinExtras "CODEX_SANDBOX")
   ];
 in {
-  config.custom.sandboxedPackages = lib.mkIf cfg.claude.enable {
-    claude = claudeDarwin;
-  };
+  config.custom.sandboxedPackages = lib.mkMerge [
+    (lib.mkIf cfg.claude.enable {
+      claude = claudeDarwin;
+    })
+    (lib.mkIf cfg.codex.enable {
+      codex = codexDarwin;
+    })
+  ];
 }

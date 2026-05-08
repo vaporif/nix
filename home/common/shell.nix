@@ -161,24 +161,29 @@
         // lib.optionalAttrs config.custom.claude.enable (let
           claudeSandboxed = lib.getExe config.custom.sandboxedPackages.claude;
         in {
-          a = "${claudeSandboxed} --dangerously-skip-permissions";
-          ap = "${claudeSandboxed} --dangerously-skip-permissions --print";
-          ar = "${claudeSandboxed} --dangerously-skip-permissions --resume";
+          a = claudeSandboxed;
+          ai = "${claudeSandboxed} --dangerously-skip-permissions";
+          ap = "${claudeSandboxed} --print";
+          ar = "${claudeSandboxed} --resume";
           au = "claude";
           aup = "claude --print";
           aur = "claude --resume";
         })
-        // lib.optionalAttrs config.custom.codex.enable {
-          cx = "codex";
-          cxe = "codex exec";
-          cxr = "codex resume";
-        };
+        // lib.optionalAttrs config.custom.codex.enable (let
+          codexSandboxed = lib.getExe config.custom.sandboxedPackages.codex;
+        in {
+          o = codexSandboxed;
+          oi = "${codexSandboxed} --dangerously-bypass-approvals-and-sandbox";
+          cx = codexSandboxed;
+          cxe = "${codexSandboxed} exec";
+          cxr = "${codexSandboxed} resume";
+        });
       initContent = ''
         ulimit -Sn 4096
         ulimit -Sl unlimited
 
-        # Only set sensitive vars outside Claude sandbox
-        if [[ -z "''${CLAUDE_SANDBOX:-}" ]]; then
+        # Only set sensitive vars outside agent sandboxes
+        if [[ -z "''${CLAUDE_SANDBOX:-}" && -z "''${CODEX_SANDBOX:-}" ]]; then
           export SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/key.txt"
         fi
 

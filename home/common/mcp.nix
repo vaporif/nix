@@ -179,6 +179,14 @@
 
   desktopMcpServersConfig = inputs.mcp-servers-nix.lib.mkConfig pkgs desktopMcpConfig;
   codeMcpServersConfig = inputs.mcp-servers-nix.lib.mkConfig pkgs codeMcpConfig;
+  codeMcpServers = (builtins.fromJSON (builtins.unsafeDiscardStringContext (builtins.readFile codeMcpServersConfig))).mcpServers;
+  codexMcpServers = lib.mapAttrs (_: server:
+    lib.filterAttrs (_: value: value != null && value != {}) {
+      command = server.command or null;
+      args = server.args or [];
+      env = server.env or {};
+    })
+  codeMcpServers;
 in {
   options.custom = {
     desktopMcpServersConfig = lib.mkOption {
@@ -191,11 +199,16 @@ in {
       readOnly = true;
       description = "Generated MCP servers config for Claude Code (dev-focused servers)";
     };
+    codexMcpServers = lib.mkOption {
+      type = lib.types.attrsOf lib.types.anything;
+      readOnly = true;
+      description = "Generated MCP server definitions for Codex config.toml (dev-focused servers)";
+    };
   };
 
   config = {
     custom = {
-      inherit desktopMcpServersConfig codeMcpServersConfig;
+      inherit desktopMcpServersConfig codeMcpServersConfig codexMcpServers;
     };
   };
 }

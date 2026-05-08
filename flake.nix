@@ -208,6 +208,10 @@
         formatting = chkPkgs.runCommand "check-formatting" {} ''
           ${chkPkgs.alejandra}/bin/alejandra -c ${./.} && touch $out
         '';
+        codex = import ./tests/codex.nix {
+          pkgs = chkPkgs;
+          inherit home-manager inputs;
+        };
       }
       // lib.optionalAttrs chkPkgs.stdenv.isDarwin (
         chkPkgs.unclog.passthru.tests

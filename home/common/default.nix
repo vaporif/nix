@@ -10,6 +10,7 @@ in {
   imports = [
     ./llm
     ./claude
+    ./codex
     ./git.nix
     ./ssh.nix
     ./mcp.nix

@@ -167,7 +167,12 @@
           au = "claude";
           aup = "claude --print";
           aur = "claude --resume";
-        });
+        })
+        // lib.optionalAttrs config.custom.codex.enable {
+          cx = "codex";
+          cxe = "codex exec";
+          cxr = "codex resume";
+        };
       initContent = ''
         ulimit -Sn 4096
         ulimit -Sl unlimited

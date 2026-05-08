@@ -1,6 +1,7 @@
 _: {
   custom = {
     claude.enable = true;
+    codex.enable = true;
     user = "vaporif";
     git = {
       name = "Dmytro Onypko";

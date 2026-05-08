@@ -3,9 +3,10 @@
   lib,
   ...
 }: let
-  cfg = config.custom;
+  claudeCfg = config.custom.claude;
+  llm = config.custom.llm;
 in {
-  config = lib.mkIf cfg.claude.enable {
+  config = lib.mkIf claudeCfg.enable {
     home.file =
       lib.mapAttrs' (name: entry: {
         name =
@@ -14,6 +15,6 @@ in {
           else ".claude/skills/${name}/SKILL.md";
         value.source = entry.source;
       })
-      cfg.llm.skills;
+      llm.skills;
   };
 }

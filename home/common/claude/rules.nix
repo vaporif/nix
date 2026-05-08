@@ -3,15 +3,16 @@
   lib,
   ...
 }: let
-  cfg = config.custom;
+  claudeCfg = config.custom.claude;
+  llm = config.custom.llm;
   ruleFiles =
     lib.mapAttrs' (name: entry: {
       name = ".config/claude-rules/${name}.md";
       value.source = entry.source;
     })
-    cfg.llm.rules;
+    llm.rules;
 in {
-  config = lib.mkIf cfg.claude.enable {
+  config = lib.mkIf claudeCfg.enable {
     home.file =
       ruleFiles
       // {

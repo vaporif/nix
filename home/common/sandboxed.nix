@@ -102,6 +102,7 @@
       "HOME"
       "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS"
       "CLAUDE_SANDBOX"
+      "CODEX_SANDBOX"
       "EDITOR"
       "VISUAL"
       "ENABLE_LSP_TOOL"
@@ -109,6 +110,9 @@
       "DFT_BYTE_LIMIT"
       "GITHUB_PERSONAL_ACCESS_TOKEN"
       "GH_TOKEN"
+      "OPENAI_API_KEY"
+      "OPENAI_ORG_ID"
+      "OPENAI_PROJECT_ID"
     ]
     ++ nixDevshellEnvNames
     ++ secretEnvNames;

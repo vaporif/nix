@@ -69,7 +69,6 @@ in {
 
       pkgs.shfmt
 
-      pkgs.codex
       pkgs.mcp-nixos
       pkgs.qdrant
       pkgs.qdrant-web-ui
@@ -84,6 +83,9 @@ in {
     ++ lib.optionals cfg.claude.enable [
       pkgs.claude-code
       pkgs.claude_formatter
+    ]
+    ++ lib.optionals cfg.codex.enable [
+      pkgs.codex
     ]
     ++ lib.optionals pkgs.stdenv.isDarwin [
       pkgs.gnused

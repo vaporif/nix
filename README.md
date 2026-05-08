@@ -79,7 +79,7 @@ To add a secret: put it in `secrets/secrets.yaml`, define it in nix (`sops.secre
 
 ## AI sandboxing
 
-AI coding agents get filesystem and network access by default. That means they can read your dotfiles, tokens, SSH keys, whatever. This config wraps Claude Code in OS-level sandboxes so it can only touch what you allow.
+AI coding agents get filesystem and network access by default. That means they can read your dotfiles, tokens, SSH keys, whatever. This config wraps Claude Code and Codex in OS-level sandboxes so they can only touch what you allow.
 
 ### Why SOPS matters here
 
@@ -87,7 +87,7 @@ Without SOPS, API tokens live in plaintext dotfiles, readable by any process. Wi
 
 ### macOS: sandnix
 
-[sandnix](https://github.com/srid/sandnix) wraps Claude Code in Apple's `sandbox-exec`. Filesystem is locked to `$PWD`, `~/.claude`, and `~/Repos`. Mach services are scoped down to DNS, keychain, and notifications. Network is open (Claude needs API access).
+[sandnix](https://github.com/srid/sandnix) wraps Claude Code and Codex in Apple's `sandbox-exec`. Filesystem is locked to `$PWD`, the agent's state directory, and `~/Repos`. Mach services are scoped down to DNS, keychain, and notifications. Network is open because the agents need API access.
 
 See `home/darwin/sandboxed.nix`.
 
@@ -99,7 +99,7 @@ See `home/linux/sandboxed.nix`.
 
 ### Aliases
 
-The AI aliases (`a`, `ap`, `ar`, `ai`) all go through the sandboxed wrapper. Unwrapped binary isn't on `$PATH`.
+The AI aliases (`a`, `ap`, `ar`, `ai`, `o`, `oi`) all go through the sandboxed wrappers.
 
 ## Development
 
@@ -137,6 +137,8 @@ just cache
 | `ap` | `claude --print` | Claude print mode |
 | `ai` | `claude --dangerously-skip-permissions` | Claude autonomous mode |
 | `ar` | `claude --resume` | Resume last session |
+| `o` | `codex` | Codex CLI (sandboxed) |
+| `oi` | `codex --dangerously-bypass-approvals-and-sandbox` | Codex autonomous mode inside the OS sandbox |
 | `e` | `nvim` | Neovim |
 | `g` | `lazygit` | Git TUI |
 | `t` | `yy` | Yazi file manager |

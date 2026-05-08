@@ -109,6 +109,7 @@ in {
         });
 
     claude.enable = lib.mkEnableOption "Claude Code (CLI, plugins, settings, security, sandbox, aliases, MCP integration)";
+    codex.enable = lib.mkEnableOption "Codex CLI (CLI, settings, skills, agents, aliases, MCP integration)";
 
     llm = {
       skills = lib.mkOption {

@@ -4,7 +4,7 @@
   inputs,
   ...
 }: let
-  lib = pkgs.lib;
+  inherit (pkgs) lib;
   testSystem =
     if pkgs.stdenv.isDarwin
     then "aarch64-darwin"

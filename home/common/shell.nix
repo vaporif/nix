@@ -173,7 +173,7 @@
           codexSandboxed = lib.getExe config.custom.sandboxedPackages.codex;
         in {
           o = codexSandboxed;
-          oi = "${codexSandboxed} --dangerously-bypass-approvals-and-sandbox";
+          oi = "${codexSandboxed} --yolo";
           cx = codexSandboxed;
           cxe = "${codexSandboxed} exec";
           cxr = "${codexSandboxed} resume";

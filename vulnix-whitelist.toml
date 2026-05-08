@@ -361,7 +361,7 @@ comment = "Sass compiler, build-time dep for stylesheets"
 comment = "Apple Swift compiler, build-time dep; CVE-2023-26154 is for swift-corelibs-foundation"
 
 [thrift]
-comment = "Apache Thrift serialization, build-time transitive dep; CVE-2021-24028 is for Facebook fbthrift (false positive); 2026 CVEs affect Thrift servers/Go-TFramedTransport/c_glib bindings, fixed in 0.23.0; awaiting upstream"
+comment = "Apache Thrift serialization, build-time transitive dep (only tree-sitter-thrift parser in runtime closure, not Apache Thrift); CVE-2021-24028 is for Facebook fbthrift (false positive); 2026 CVEs affect Thrift servers/Go-TFramedTransport/c_glib bindings/HTTP transport/TLS hostname validation, fixed in 0.23.0; awaiting upstream"
 cve = [
   "CVE-2021-24028",
   "CVE-2025-48431",
@@ -372,6 +372,9 @@ cve = [
   "CVE-2026-41606",
   "CVE-2026-41607",
   "CVE-2026-41636",
+  "CVE-2026-43868",
+  "CVE-2026-43869",
+  "CVE-2026-43870",
 ]
 
 # New findings (2026-05-01)
@@ -390,6 +393,12 @@ comment = "RAW image parsing library, transitive build dep (image processing sta
 [xz]
 comment = "CVE-2026-34743: heap overflow in lzma_index_decoder/append (5.3 CVSS), requires processing crafted xz data; fixed in 5.8.3, awaiting upstream nixpkgs bump"
 cve = ["CVE-2026-34743"]
+
+# New findings (2026-05-08)
+
+[libssh2]
+comment = "CVE-2026-7598: integer overflow in userauth_password (client-side, requires attacker-controlled username/password length values to a malicious SSH server); runtime via curl + libgit2 (nix/git SSH fetches); upstream patch merged, awaiting 1.11.2 release in nixpkgs"
+cve = ["CVE-2026-7598"]
 
 # New findings (2026-05-02)
 

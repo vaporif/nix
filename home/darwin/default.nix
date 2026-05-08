@@ -33,9 +33,11 @@ in {
         CFLAGS = "-DMDBX_ENABLE_NON_READONLY_EXPORT=1";
       };
     # Claude Desktop reads from ~/Library/, Claude Code from /Library/ (system activation)
-    file."Library/Application Support/Claude/claude_desktop_config.json" = {
-      source = cfg.desktopMcpServersConfig;
-      force = true;
+    file = lib.mkIf cfg.claude.enable {
+      "Library/Application Support/Claude/claude_desktop_config.json" = {
+        source = cfg.desktopMcpServersConfig;
+        force = true;
+      };
     };
   };
 

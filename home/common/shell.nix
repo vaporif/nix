@@ -3,9 +3,7 @@
   config,
   lib,
   ...
-}: let
-  claudeSandboxed = lib.getExe config.custom.sandboxedPackages.claude;
-in {
+}: {
   programs = {
     ripgrep.enable = true;
     fd.enable = true;
@@ -148,23 +146,28 @@ in {
         extended = true;
         expireDuplicatesFirst = true;
       };
-      shellAliases = {
-        t = "y";
-        g = "lazygit";
-        a = "${claudeSandboxed} --dangerously-skip-permissions";
-        ap = "${claudeSandboxed} --dangerously-skip-permissions --print";
-        ar = "${claudeSandboxed} --dangerously-skip-permissions --resume";
-        au = "claude";
-        aup = "claude --print";
-        aur = "claude --resume";
-        ls = "eza -a";
-        cat = "bat";
-        e = "nvim";
-        x = "exit";
-        mcp-scan = "${lib.getExe pkgs.uv} tool run mcp-scan@latest";
-        init-solana = "nix flake init -t github:vaporif/nix-devshells#solana";
-        init-rust = "nix flake init -t github:vaporif/nix-devshells#rust";
-      };
+      shellAliases =
+        {
+          t = "y";
+          g = "lazygit";
+          ls = "eza -a";
+          cat = "bat";
+          e = "nvim";
+          x = "exit";
+          mcp-scan = "${lib.getExe pkgs.uv} tool run mcp-scan@latest";
+          init-solana = "nix flake init -t github:vaporif/nix-devshells#solana";
+          init-rust = "nix flake init -t github:vaporif/nix-devshells#rust";
+        }
+        // lib.optionalAttrs config.custom.claude.enable (let
+          claudeSandboxed = lib.getExe config.custom.sandboxedPackages.claude;
+        in {
+          a = "${claudeSandboxed} --dangerously-skip-permissions";
+          ap = "${claudeSandboxed} --dangerously-skip-permissions --print";
+          ar = "${claudeSandboxed} --dangerously-skip-permissions --resume";
+          au = "claude";
+          aup = "claude --print";
+          aur = "claude --resume";
+        });
       initContent = ''
         ulimit -Sn 4096
         ulimit -Sl unlimited

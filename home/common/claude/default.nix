@@ -2,23 +2,26 @@
   config,
   lib,
   ...
-}: {
+}: let
+  cfg = config.custom;
+in {
   imports = [
     ../../../modules/claude-security
     ./plugins.nix
     ./settings.nix
     ./rules.nix
     ./skills.nix
+    ./agents.nix
   ];
 
-  programs.claude-code.security = {
+  programs.claude-code.security = lib.mkIf cfg.claude.enable {
     enable = true;
     hooks.readOnce.enable = false;
     # No sops, no topicFile, no ntfy — keeps the (enable -> topicFile != null)
     # assertion happy on a fresh fork.
-    hooks.notification.ntfy = lib.mkIf (config.custom.secrets.ntfy-topic != null) {
+    hooks.notification.ntfy = lib.mkIf (cfg.secrets.ntfy-topic != null) {
       enable = true;
-      topicFile = config.custom.secrets.ntfy-topic;
+      topicFile = cfg.secrets.ntfy-topic;
     };
     permissions.confirmBeforeWrite = [
       {

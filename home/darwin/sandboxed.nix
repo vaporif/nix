@@ -1,10 +1,12 @@
 {
+  config,
   lib,
   pkgs,
   inputs,
   sandboxShared,
   ...
 }: let
+  cfg = config.custom;
   sandnixLib = import inputs.sandnix.lib {inherit pkgs;};
 
   mkSandboxed = name: modules:
@@ -104,7 +106,7 @@
     darwinExtras
   ];
 in {
-  config.custom.sandboxedPackages = {
+  config.custom.sandboxedPackages = lib.mkIf cfg.claude.enable {
     claude = claudeDarwin;
   };
 }

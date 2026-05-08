@@ -1,8 +1,11 @@
 {
+  config,
   lib,
   pkgs,
   ...
-}: {
+}: let
+  cfg = config.custom;
+in {
   home.packages =
     [
       pkgs.nixd
@@ -66,7 +69,6 @@
 
       pkgs.shfmt
 
-      pkgs.claude-code
       pkgs.codex
       pkgs.mcp-nixos
       pkgs.qdrant
@@ -75,10 +77,13 @@
       pkgs.tidal_script
       pkgs.unclog
       pkgs.nomicfoundation_solidity_language_server
-      pkgs.claude_formatter
 
       (pkgs.writeShellScriptBin "git-bare-clone" (builtins.readFile ../../scripts/git-bare-clone.sh))
       (pkgs.writeShellScriptBin "git-meta" (builtins.readFile ../../scripts/git-meta.sh))
+    ]
+    ++ lib.optionals cfg.claude.enable [
+      pkgs.claude-code
+      pkgs.claude_formatter
     ]
     ++ lib.optionals pkgs.stdenv.isDarwin [
       pkgs.gnused

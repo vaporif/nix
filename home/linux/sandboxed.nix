@@ -1,9 +1,11 @@
 {
+  config,
   pkgs,
   lib,
   sandboxShared,
   ...
 }: let
+  cfg = config.custom;
   bwrap = lib.getExe pkgs.bubblewrap;
   claude = lib.getExe pkgs.claude-code;
 
@@ -82,7 +84,6 @@
     bind_ro "$HOME/.config/claude-rules"
     bind_ro "$HOME/.config/nix-darwin"
     bind_ro "$HOME/.config/git"
-    bind_ro "$HOME/.config/mcphub"
     bind_ro "$HOME/.config/direnv"
     # SSH: copy config files so they're owned by current user (nix store files
     # are root-owned, which appears as nobody in the user namespace — OpenSSH rejects that)
@@ -123,7 +124,7 @@
     exec ${bwrap} "''${args[@]}" ${claude} "$@"
   '';
 in {
-  config.custom.sandboxedPackages = {
+  config.custom.sandboxedPackages = lib.mkIf cfg.claude.enable {
     claude = claudeLinux;
   };
 }

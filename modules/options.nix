@@ -5,6 +5,20 @@
 }: let
   secretsPath = ../secrets/secrets.yaml;
   secretsExist = builtins.pathExists secretsPath;
+
+  llmContentEntry = lib.types.submodule {
+    options = {
+      source = lib.mkOption {
+        type = lib.types.either lib.types.path lib.types.str;
+        description = "Path (literal or store-path string) to the content.";
+      };
+      kind = lib.mkOption {
+        type = lib.types.enum ["file" "directory"];
+        default = "file";
+        description = "'file' = single markdown file. 'directory' = multi-file content tree (e.g. SKILL.md plus helpers).";
+      };
+    };
+  };
 in {
   options.custom = {
     homeDir = lib.mkOption {
@@ -93,6 +107,36 @@ in {
           default = null;
           description = "Path to ${name} secret file. null when sops is not configured.";
         });
+
+    claude.enable = lib.mkEnableOption "Claude Code (CLI, plugins, settings, security, sandbox, aliases, MCP integration)";
+
+    llm = {
+      skills = lib.mkOption {
+        type = lib.types.attrsOf llmContentEntry;
+        default = {};
+        description = "Tool-neutral skill content. Per-client consumers (claude, codex, gemini) read this and deliver to their own paths.";
+      };
+      agents = lib.mkOption {
+        type = lib.types.attrsOf llmContentEntry;
+        default = {};
+        description = "Tool-neutral agent content.";
+      };
+      commands = lib.mkOption {
+        type = lib.types.attrsOf llmContentEntry;
+        default = {};
+        description = "Tool-neutral slash-command content.";
+      };
+      rules = lib.mkOption {
+        type = lib.types.attrsOf llmContentEntry;
+        default = {};
+        description = "Tool-neutral language/usage rules.";
+      };
+      mcpServers = lib.mkOption {
+        type = lib.types.attrsOf lib.types.anything;
+        default = {};
+        description = "Tool-neutral MCP server definitions. Per-client configs (claude desktop/code, codex, gemini) read this and transform.";
+      };
+    };
   };
 
   config.custom = {

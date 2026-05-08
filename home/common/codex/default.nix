@@ -10,6 +10,18 @@
 
   codexConfig = {
     projects.${cfg.configPath}.trust_level = "trusted";
+    tui.status_line = [
+      "model-with-reasoning"
+      "used-tokens"
+      "context-window-size"
+      "context-used"
+      "five-hour-limit"
+      "weekly-limit"
+      "git-branch"
+      "branch-changes"
+      "permissions"
+      "approval-mode"
+    ];
     tui.model_availability_nux."gpt-5.5" = 1;
     mcp_servers = cfg.codexMcpServers;
   };

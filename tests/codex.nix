@@ -55,6 +55,12 @@ in
       grep -q '^\[mcp_servers.nixos\]$' ${codexConfig}
       grep -q '^\[mcp_servers.ferrex\]$' ${codexConfig}
       grep -q '^\[projects."/home/testuser/.config/nix-darwin"\]$' ${codexConfig}
+      grep -q '^\[tui\]$' ${codexConfig}
+      grep -q '^status_line = \[$' ${codexConfig}
+      grep -q '^    "model-with-reasoning",$' ${codexConfig}
+      grep -q '^    "context-used",$' ${codexConfig}
+      grep -q '^    "branch-changes",$' ${codexConfig}
+      grep -q '^    "approval-mode",$' ${codexConfig}
 
       test -f ${conciseSkill}
       test -f ${rustAgent}

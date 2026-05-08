@@ -43,11 +43,9 @@
   rustAgent = hm.config.home.file.".codex/agents/rust-engineer.md".source;
   codexBin = lib.getExe codexSandboxed;
 in
-  assert hm.config.programs.zsh.shellAliases.o == codexBin;
-  assert hm.config.programs.zsh.shellAliases.oi == "${codexBin} --dangerously-bypass-approvals-and-sandbox";
-  assert hm.config.programs.zsh.shellAliases.cx == codexBin;
-  assert hm.config.programs.zsh.shellAliases.cxe == "${codexBin} exec";
-  assert hm.config.programs.zsh.shellAliases.cxr == "${codexBin} resume";
+  assert hm.config.programs.zsh.shellAliases.o == "${codexBin} --dangerously-bypass-approvals-and-sandbox";
+  assert hm.config.programs.zsh.shellAliases.oi == "${codexBin} resume --dangerously-bypass-approvals-and-sandbox";
+  assert hm.config.programs.zsh.shellAliases.ox == "${codexBin} exec";
     pkgs.runCommand "codex-config" {} ''
       grep -q '^\[mcp_servers.context7\]$' ${codexConfig}
       grep -q '^\[mcp_servers.serena\]$' ${codexConfig}

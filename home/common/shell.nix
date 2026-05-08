@@ -165,18 +165,13 @@
           ai = "${claudeSandboxed} --dangerously-skip-permissions";
           ap = "${claudeSandboxed} --print";
           ar = "${claudeSandboxed} --resume";
-          au = "claude";
-          aup = "claude --print";
-          aur = "claude --resume";
         })
         // lib.optionalAttrs config.custom.codex.enable (let
           codexSandboxed = lib.getExe config.custom.sandboxedPackages.codex;
         in {
-          o = codexSandboxed;
-          oi = "${codexSandboxed} --dangerously-bypass-approvals-and-sandbox";
-          cx = codexSandboxed;
-          cxe = "${codexSandboxed} exec";
-          cxr = "${codexSandboxed} resume";
+          o = "${codexSandboxed} --dangerously-bypass-approvals-and-sandbox";
+          oi = "${codexSandboxed} resume --dangerously-bypass-approvals-and-sandbox";
+          ox = "${codexSandboxed} exec";
         });
       initContent = ''
         ulimit -Sn 4096

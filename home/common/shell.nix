@@ -161,16 +161,14 @@
         // lib.optionalAttrs config.custom.claude.enable (let
           claudeSandboxed = lib.getExe config.custom.sandboxedPackages.claude;
         in {
-          a = claudeSandboxed;
-          ai = "${claudeSandboxed} --dangerously-skip-permissions";
-          ap = "${claudeSandboxed} --print";
+          a = "${claudeSandboxed} --dangerously-skip-permissions";
           ar = "${claudeSandboxed} --resume";
         })
         // lib.optionalAttrs config.custom.codex.enable (let
           codexSandboxed = lib.getExe config.custom.sandboxedPackages.codex;
         in {
           o = "${codexSandboxed} --dangerously-bypass-approvals-and-sandbox";
-          oi = "${codexSandboxed} resume --dangerously-bypass-approvals-and-sandbox";
+          "or" = "${codexSandboxed} resume --dangerously-bypass-approvals-and-sandbox";
           ox = "${codexSandboxed} exec";
         });
       initContent = ''

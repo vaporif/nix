@@ -58,7 +58,8 @@ in
       grep -q '^    "model-with-reasoning",$' ${codexConfig}
       grep -q '^    "context-used",$' ${codexConfig}
       grep -q '^    "branch-changes",$' ${codexConfig}
-      grep -q '^    "approval-mode",$' ${codexConfig}
+      ! grep -q '^    "permissions",$' ${codexConfig}
+      ! grep -q '^    "approval-mode",$' ${codexConfig}
 
       test -f ${conciseSkill}
       test -f ${rustAgent}

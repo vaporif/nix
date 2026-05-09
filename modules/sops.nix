@@ -6,9 +6,8 @@
 }: let
   cfg = config.custom;
   secretsPath = ../secrets/secrets.yaml;
-  secretsExist = builtins.pathExists secretsPath;
 in {
-  sops = lib.mkIf secretsExist {
+  sops = lib.mkIf cfg.secrets.enable {
     defaultSopsFile = secretsPath;
     age = {
       keyFile = "${cfg.homeDir}/.config/sops/age/key.txt";

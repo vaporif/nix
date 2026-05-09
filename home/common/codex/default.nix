@@ -19,8 +19,6 @@
       "weekly-limit"
       "git-branch"
       "branch-changes"
-      "permissions"
-      "approval-mode"
     ];
     tui.model_availability_nux."gpt-5.5" = 1;
     mcp_servers = cfg.codexMcpServers;

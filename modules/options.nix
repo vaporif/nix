@@ -3,9 +3,6 @@
   config,
   ...
 }: let
-  secretsPath = ../secrets/secrets.yaml;
-  secretsExist = builtins.pathExists secretsPath;
-
   llmContentEntry = lib.types.submodule {
     options = {
       source = lib.mkOption {
@@ -99,7 +96,10 @@ in {
       description = "Sandboxed package wrappers (populated on darwin only)";
     };
     secrets =
-      lib.genAttrs
+      {
+        enable = lib.mkEnableOption "sops-managed secrets";
+      }
+      // lib.genAttrs
       (import ./secrets.nix)
       (name:
         lib.mkOption {
@@ -146,11 +146,11 @@ in {
       then "/Users/${config.custom.user}"
       else "/home/${config.custom.user}";
 
-    # Populate /run/secrets paths when sops is configured; otherwise leave
+    # Populate /run/secrets paths when sops is enabled; otherwise leave
     # everything null. Consumers gate on the value (see modules/nix.nix etc).
     # Lives here, not in modules/sops.nix, because both system and HM modules
     # consume custom.secrets.* and only options.nix is in both scopes.
-    secrets = lib.mkIf secretsExist (
+    secrets = lib.mkIf config.custom.secrets.enable (
       lib.genAttrs (import ./secrets.nix) (name: "/run/secrets/${name}")
     );
   };

@@ -177,16 +177,17 @@
     settings.servers = commonServers;
   };
 
-  desktopMcpServersConfig = inputs.mcp-servers-nix.lib.mkConfig pkgs desktopMcpConfig;
-  codeMcpServersConfig = inputs.mcp-servers-nix.lib.mkConfig pkgs codeMcpConfig;
-  codeMcpServers = (builtins.fromJSON (builtins.unsafeDiscardStringContext (builtins.readFile codeMcpServersConfig))).mcpServers;
+  desktopMcpModule = inputs.mcp-servers-nix.lib.evalModule pkgs desktopMcpConfig;
+  codeMcpModule = inputs.mcp-servers-nix.lib.evalModule pkgs codeMcpConfig;
+  desktopMcpServersConfig = desktopMcpModule.config.configFile;
+  codeMcpServersConfig = codeMcpModule.config.configFile;
   codexMcpServers = lib.mapAttrs (_: server:
     lib.filterAttrs (_: value: value != null && value != {}) {
       command = server.command or null;
       args = server.args or [];
       env = server.env or {};
     })
-  codeMcpServers;
+  codeMcpModule.config.settings.servers;
 in {
   options.custom = {
     desktopMcpServersConfig = lib.mkOption {

@@ -71,6 +71,8 @@ fmt: fmt-lua fmt-nix fmt-toml
 switch:
     #!/usr/bin/env bash
     set -euo pipefail
+    bash scripts/update-claude-code.sh --check || true
+    bash scripts/update-codex.sh --check || true
     if [[ "$(uname)" == "Darwin" ]]; then
         nom build ".#darwinConfigurations.burnedapple.system"
         [[ -e /run/current-system ]] && nvd diff /run/current-system ./result || true
@@ -82,6 +84,17 @@ switch:
         sudo -H nix-env --profile /nix/var/nix/profiles/system --set ./result
         sudo ./result/bin/switch-to-configuration switch
     fi
+
+# Bump pkgs/claude-code/package.nix to the latest Anthropic release
+update-claude:
+    bash scripts/update-claude-code.sh
+
+# Bump pkgs/codex/package.nix to the latest openai/codex release
+update-codex:
+    bash scripts/update-codex.sh
+
+# Bump all vendored LLM tools (claude-code + codex)
+llm-update: update-claude update-codex
 
 # Update neovim plugins
 lazy-update:

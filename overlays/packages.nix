@@ -8,6 +8,10 @@
       touch $out
     '';
 in {
+  claude-code = final.callPackage ../pkgs/claude-code/package.nix {};
+
+  codex = final.callPackage ../pkgs/codex/package.nix {};
+
   difftastic = final.callPackage ../pkgs/difftastic.nix {inherit difftastic-src;};
 
   unclog = (final.callPackage ../pkgs/unclog.nix {}).overrideAttrs (_: {

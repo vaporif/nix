@@ -162,7 +162,7 @@
           claudeSandboxed = lib.getExe config.custom.sandboxedPackages.claude;
         in {
           a = "${claudeSandboxed} --dangerously-skip-permissions";
-          ar = "${claudeSandboxed} --resume";
+          ar = "${claudeSandboxed} --dangerously-skip-permissions --resume";
         })
         // lib.optionalAttrs config.custom.codex.enable (let
           codexSandboxed = lib.getExe config.custom.sandboxedPackages.codex;

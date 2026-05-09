@@ -45,7 +45,7 @@
   codexBin = lib.getExe codexSandboxed;
 in
   assert hm.config.programs.zsh.shellAliases.o == "${codexBin} --dangerously-bypass-approvals-and-sandbox";
-  assert hm.config.programs.zsh.shellAliases.oi == "${codexBin} resume --dangerously-bypass-approvals-and-sandbox";
+  assert hm.config.programs.zsh.shellAliases."or" == "${codexBin} resume --dangerously-bypass-approvals-and-sandbox";
   assert hm.config.programs.zsh.shellAliases.ox == "${codexBin} exec";
     pkgs.runCommand "codex-config" {} ''
       grep -q '^\[mcp_servers.context7\]$' ${codexConfig}

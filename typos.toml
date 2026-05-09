@@ -9,6 +9,12 @@ extend-exclude = [
   "pkgs/codex/package.nix",
 ]
 
+[default]
+# which-key descriptions highlight a keystroke with bracket notation —
+# either as a prefix ([k]eymaps) or suffix (ove[r]). Match the whole token
+# as one span so we don't have to allowlist each stripped form.
+extend-ignore-re = ['[a-zA-Z]*\[[A-Za-z]\][a-zA-Z]*']
+
 [default.extend-identifiers]
 # Ruff lint rule codes
 CPY001 = "CPY001"
@@ -23,28 +29,5 @@ substituters = "substituters"
 # Plugin names
 noice = "noice"
 Noice = "Noice"
-# [x]word patterns for which-key descriptions
-ist = "ist"
-nstall = "nstall"
-nto = "nto"
-ove = "ove"
-reakpoint = "reakpoint"
-uffer = "uffer"
-eferences = "eferences"
-ymbols = "ymbols"
-ocation = "ocation"
-uffers = "uffers"
-ommits = "ommits"
-efinition = "efinition"
-tage = "tage"
+# Neovim builtins
 enew = "enew"
-mplement = "mplement"
-truct = "truct"
-taged = "taged"
-ags = "ags"
-elete = "elete"
-nly = "nly"
-revious = "revious"
-arry = "arry"
-tatus = "tatus"
-ingdom = "ingdom"

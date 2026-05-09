@@ -1,5 +1,13 @@
 [files]
-extend-exclude = ["*.lock", "lazy-lock.json", "secrets/*"]
+extend-exclude = [
+  "*.lock",
+  "lazy-lock.json",
+  "secrets/*",
+  # Vendored binaries — hashes are auto-generated nix32 base32 strings
+  # and frequently match real words by chance.
+  "pkgs/claude-code/package.nix",
+  "pkgs/codex/package.nix",
+]
 
 [default.extend-identifiers]
 # Ruff lint rule codes

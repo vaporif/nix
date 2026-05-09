@@ -55,6 +55,7 @@ if [[ "${OS}" == "Darwin" ]]; then
         NIX_SYSTEM="x86_64-darwin"
     fi
     HOST_FILE="hosts/macbook.nix"
+    FLAKE_OUTPUT="burnedapple"
     PLATFORM="macOS"
 else
     CURRENT_HOSTNAME=$(hostname -s)
@@ -64,6 +65,7 @@ else
         NIX_SYSTEM="x86_64-linux"
     fi
     HOST_FILE="hosts/nixos.nix"
+    FLAKE_OUTPUT="nixos"
     PLATFORM="Linux"
 fi
 
@@ -213,11 +215,11 @@ echo "  1. Review hosts/common.nix and ${HOST_FILE} for any additional changes"
 echo "  2. Create and encrypt secrets: sops secrets/secrets.yaml"
 if [[ "${OS}" == "Darwin" ]]; then
     echo "  3. First build (just isn't available yet):"
-    echo "       nix build \".#darwinConfigurations.${HOSTNAME}.system\""
+    echo "       nix build \".#darwinConfigurations.${FLAKE_OUTPUT}.system\""
     echo "       sudo ./result/activate"
 else
     echo "  3. First build (just isn't available yet):"
-    echo "       nix build \".#nixosConfigurations.${HOSTNAME}.config.system.build.toplevel\""
+    echo "       nix build \".#nixosConfigurations.${FLAKE_OUTPUT}.config.system.build.toplevel\""
     echo "       sudo ./result/bin/switch-to-configuration switch"
 fi
 echo "  4. After first build, use: just switch"

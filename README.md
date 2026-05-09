@@ -97,6 +97,12 @@ See `home/darwin/sandboxed.nix`.
 
 See `home/linux/sandboxed.nix`.
 
+### Install-time: vendored binaries
+
+Runtime sandboxing covers what an installed agent can do. Install-time is separate: a flake input is arbitrary Nix that runs at build time. So `claude-code` and `codex` live under `pkgs/` here instead of behind a third-party flake. Each `package.nix` is a short `fetchurl` of the upstream binary (Anthropic's CDN, openai/codex releases) with a sha256 pin.
+
+`just llm-update` recomputes the hashes locally. Version comes from npm or `gh release list`, hashes from `nix-prefetch-url`. `just switch` warns when a newer release exists; bumping stays manual.
+
 ### Aliases
 
 The AI aliases (`a`, `ap`, `ar`, `ai`, `o`, `oi`) all go through the sandboxed wrappers.
@@ -113,6 +119,7 @@ Run `just` to list everything. The ones you'll use most:
 | `just check-vulns` | Scan for vulnerabilities |
 | `just gc 30d` | Clean up old generations |
 | `just lazy-update` | Update neovim plugins |
+| `just llm-update` | Bump vendored claude-code + codex to latest |
 | `just cache` | Build and push to Cachix |
 
 ### Git hooks

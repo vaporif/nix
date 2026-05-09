@@ -181,11 +181,12 @@
   codeMcpModule = inputs.mcp-servers-nix.lib.evalModule pkgs codeMcpConfig;
   desktopMcpServersConfig = desktopMcpModule.config.configFile;
   codeMcpServersConfig = codeMcpModule.config.configFile;
-  codexMcpServers = lib.mapAttrs (_: server:
+  codexMcpServers = lib.mapAttrs (name: server:
     lib.filterAttrs (_: value: value != null && value != {}) {
       command = server.command or null;
       args = server.args or [];
       env = server.env or {};
+      env_vars = lib.optionals (name == "tavily") ["TAVILY_API_KEY"];
     })
   codeMcpModule.config.settings.servers;
 in {

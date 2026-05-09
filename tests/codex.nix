@@ -32,6 +32,7 @@
           system = testSystem;
           configPath = "/home/testuser/.config/nix-darwin";
           codex.enable = true;
+          secrets.tavily-key = toString (pkgs.writeText "tavily-key" "test-tavily-key");
           sandboxedPackages.codex = codexSandboxed;
         };
       }
@@ -52,6 +53,8 @@ in
       grep -q '^\[mcp_servers.github\]$' ${codexConfig}
       grep -q '^\[mcp_servers.nixos\]$' ${codexConfig}
       grep -q '^\[mcp_servers.ferrex\]$' ${codexConfig}
+      grep -q '^\[mcp_servers.tavily\]$' ${codexConfig}
+      grep -q '^env_vars = \["TAVILY_API_KEY"\]$' ${codexConfig}
       grep -q '^\[projects."/home/testuser/.config/nix-darwin"\]$' ${codexConfig}
       grep -q '^\[tui\]$' ${codexConfig}
       grep -q '^status_line = \[$' ${codexConfig}

@@ -56,13 +56,7 @@ in
       grep -q '^\[mcp_servers.tavily\]$' ${codexConfig}
       grep -q '^env_vars = \["TAVILY_API_KEY"\]$' ${codexConfig}
       grep -q '^\[projects."/home/testuser/.config/nix-darwin"\]$' ${codexConfig}
-      ${lib.optionalString pkgs.stdenv.isDarwin ''
-        grep -q '^\[\[hooks.PreToolUse\]\]$' ${codexConfig}
-        grep -q '^matcher = "Bash|Read|Write|Edit|Glob|Grep|WebFetch|WebSearch|apply_patch|mcp__\.\*"$' ${codexConfig}
-        grep -q '^\[\[hooks.PostToolUse\]\]$' ${codexConfig}
-        grep -q '^\[\[hooks.UserPromptSubmit\]\]$' ${codexConfig}
-        grep -q '^command = "parry-guard hook"$' ${codexConfig}
-      ''}
+      ! grep -q '^\[\[hooks\.' ${codexConfig}
       grep -q '^\[tui\]$' ${codexConfig}
       grep -q '^status_line = \[$' ${codexConfig}
       grep -q '^    "model-with-reasoning",$' ${codexConfig}

@@ -139,6 +139,8 @@
           "$HOME/.ssh/known_hosts"
           "$HOME/.ssh/config"
           "$HOME/.docker/config.json"
+          "/etc/codex"
+          "/etc/static/codex"
           "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
         ];
         env = sandboxShared.sharedEnvNames;

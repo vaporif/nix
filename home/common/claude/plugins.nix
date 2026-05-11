@@ -41,13 +41,13 @@
     chmod -R u+w $out
     rm -f $out/agents/django-pro.md $out/agents/fastapi-pro.md
     rm -rf $out/skills $out/commands
-    cp ${../../../config/claude/agent-overrides/python-pro.md} $out/agents/python-pro.md
+    cp ${../../../assistants/claude/agent-overrides/python-pro.md} $out/agents/python-pro.md
   '';
 
   systemsProgrammingPlugin = pkgs.runCommand "claude-plugin-systems-programming" {} ''
     cp -r ${patchedWshobsonAgents}/plugins/systems-programming $out
     chmod -R u+w $out
-    cp ${../../../config/claude/agent-overrides/golang-pro.md} $out/agents/golang-pro.md
+    cp ${../../../assistants/claude/agent-overrides/golang-pro.md} $out/agents/golang-pro.md
   '';
 
   plugins = [

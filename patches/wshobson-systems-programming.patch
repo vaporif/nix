@@ -6,7 +6,7 @@ Subject: [PATCH] wshobson-agents systems-programming customizations
 Remove C, C++, and Rust agents plus the memory-safety skill. Rust is
 handled by the standalone rust-engineer agent; C/C++ aren't used.
 The python-development plugin's python-pro.md is overridden locally
-in config/claude/agents/python-pro.md (no patch needed for it).
+in assistants/claude/agent-overrides/python-pro.md (no patch needed for it).
 ---
  .../.claude-plugin/plugin.json                |   2 +-
  plugins/systems-programming/agents/c-pro.md   |  35 -
@@ -902,4 +902,3 @@ index b8aea29..0000000
 -```
 -- 
 2.53.0
-

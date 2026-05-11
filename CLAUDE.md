@@ -32,6 +32,7 @@ flake.nix                    # Entry point (inputs + module composition)
 ├── system/{darwin,nixos}/   # Platform system configs
 ├── home/{common,darwin,linux}/ # Home Manager configs
 ├── config/                  # Dotfiles: nvim/, wezterm/, yazi/, karabiner/
+├── assistants/              # Assistant content: shared/, claude/
 ├── scripts/                 # Helper scripts (setup, git-meta, git-bare-clone, keymaps)
 ├── tests/                   # Integration tests (claude-security.nix)
 ├── overlays/                # Custom package overlays

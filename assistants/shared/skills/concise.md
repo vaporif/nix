@@ -85,12 +85,13 @@ Examples:
 **Tree** (config layout):
 
 ```
-config/claude/
-├── CLAUDE.md
-├── skills/
-│   ├── concise.md
-│   └── post-implementation-polish.md
-└── settings.json
+assistants/
+├── claude/
+│   └── CLAUDE.md
+└── shared/
+    └── skills/
+        ├── concise.md
+        └── post-implementation-polish.md
 ```
 
 Code blocks, function names, error strings unchanged.

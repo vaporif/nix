@@ -1,14 +1,14 @@
 {...}: {
   custom.llm.commands = {
-    checkpoint.source = ../../../config/llm/commands/checkpoint.md;
-    cleanup.source = ../../../config/llm/commands/cleanup.md;
-    commit.source = ../../../config/llm/commands/commit.md;
-    docs.source = ../../../config/llm/commands/docs.md;
-    forget.source = ../../../config/llm/commands/forget.md;
-    pr.source = ../../../config/llm/commands/pr.md;
-    recall.source = ../../../config/llm/commands/recall.md;
-    reflect.source = ../../../config/llm/commands/reflect.md;
-    remember.source = ../../../config/llm/commands/remember.md;
-    vulnix-triage.source = ../../../config/llm/commands/vulnix-triage.md;
+    checkpoint.source = ../../../assistants/shared/commands/checkpoint.md;
+    cleanup.source = ../../../assistants/shared/commands/cleanup.md;
+    commit.source = ../../../assistants/shared/commands/commit.md;
+    docs.source = ../../../assistants/shared/commands/docs.md;
+    forget.source = ../../../assistants/shared/commands/forget.md;
+    pr.source = ../../../assistants/shared/commands/pr.md;
+    recall.source = ../../../assistants/shared/commands/recall.md;
+    reflect.source = ../../../assistants/shared/commands/reflect.md;
+    remember.source = ../../../assistants/shared/commands/remember.md;
+    vulnix-triage.source = ../../../assistants/shared/commands/vulnix-triage.md;
   };
 }

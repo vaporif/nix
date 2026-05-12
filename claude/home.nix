@@ -6,12 +6,12 @@
   cfg = config.custom;
 in {
   imports = [
-    ../../../modules/claude-security
-    ./plugins.nix
-    ./settings.nix
-    ./rules.nix
-    ./skills.nix
-    ./agents.nix
+    ./security
+    ./home/plugins.nix
+    ./home/settings.nix
+    ./home/rules.nix
+    ./home/skills.nix
+    ./home/agents.nix
   ];
 
   programs.claude-code.security = lib.mkIf cfg.claude.enable {

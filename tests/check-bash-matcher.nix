@@ -1,6 +1,6 @@
 {pkgs}: let
   hookScript =
-    (import ../modules/claude-security/scripts/wrap.nix {
+    (import ../claude/security/scripts/wrap.nix {
       inherit pkgs;
       inherit (pkgs) lib;
       blockedCommands = ["sudo" "doas" "eval" "dd" "mkfs" "shred"];
@@ -45,7 +45,7 @@ in
         echo "BYPASS: payload=[$payload] decision=[$decision] out=[$result]" >&2
         fail=1
       fi
-    done < ${../modules/claude-security/scripts/test-fixtures/bypass-payloads.txt}
+    done < ${../claude/security/scripts/test-fixtures/bypass-payloads.txt}
 
     # Should-allow payloads: every entry must produce empty output (allow path).
     # Catches false-positive opacity-asks on benign quoted args.
@@ -58,7 +58,7 @@ in
         echo "FRICTION: payload=[$payload] decision=[$decision] out=[$result]" >&2
         fail=1
       fi
-    done < ${../modules/claude-security/scripts/test-fixtures/should-allow-payloads.txt}
+    done < ${../claude/security/scripts/test-fixtures/should-allow-payloads.txt}
 
     [ "$fail" = "0" ] || exit 1
     touch $out

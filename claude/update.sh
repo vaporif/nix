@@ -9,8 +9,8 @@
 # plus the npm registry (for version discovery only — never for the binary itself).
 #
 # Usage:
-#   update-claude-code.sh           # bump pkgs/claude-code/package.nix in place
-#   update-claude-code.sh --check   # exit 1 (with hint on stderr) if a newer version exists
+#   update.sh           # bump claude/package.nix in place
+#   update.sh --check   # exit 1 (with hint on stderr) if a newer version exists
 
 set -euo pipefail
 
@@ -20,7 +20,7 @@ readonly PLATFORMS=("darwin-arm64" "darwin-x64" "linux-x64" "linux-arm64")
 
 REPO_ROOT="$(git -C "$(dirname -- "$0")" rev-parse --show-toplevel)"
 readonly REPO_ROOT
-readonly PACKAGE_FILE="${REPO_ROOT}/pkgs/claude-code/package.nix"
+readonly PACKAGE_FILE="${REPO_ROOT}/claude/package.nix"
 
 die() {
     echo "error: $*" >&2

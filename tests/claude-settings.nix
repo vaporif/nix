@@ -22,7 +22,7 @@
         users.testuser = {config, ...}: let
           sec = config.programs.claude-code.security.settingsFragment;
         in {
-          imports = [../modules/claude-security];
+          imports = [../claude/security];
 
           home.stateVersion = "24.11";
 
@@ -34,7 +34,7 @@
             };
           };
 
-          # Replicate the merge logic from home/common/claude.nix
+          # Replicate the merge logic from claude/home.nix
           home.file.".claude/settings.json".text = builtins.toJSON {
             "$schema" = "https://json.schemastore.org/claude-code-settings.json";
             hooks = {
@@ -131,7 +131,7 @@
   # generated script emits valid JSON with the reason preserved verbatim.
   evaluatedSecurity = pkgs.lib.evalModules {
     modules = [
-      ../modules/claude-security
+      ../claude/security
       # evalModules has no host schema, so stub the minimum HM/NixOS
       # surface the module reads (homeDirectory) or writes (assertions).
       ({lib, ...}: {
@@ -182,10 +182,10 @@
   # Fragment → settings splice contract: every hook key declared in
   # settingsFragment.hooks must appear in the rendered settings.json.
   # Catches the case where someone adds a new hook key to the fragment
-  # but forgets to splice it in home/common/claude/settings.nix.
+  # but forgets to splice it in claude/home/settings.nix.
   fragmentCoverageTest = let
     sec = evaluatedSecurity.config.programs.claude-code.security.settingsFragment;
-    # Mirrors the splice in home/common/claude/settings.nix (both darwin
+    # Mirrors the splice in claude/home/settings.nix (both darwin
     # and linux branches) so the test exercises real-config output.
     parryHook = {
       hooks = [

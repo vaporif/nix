@@ -619,7 +619,7 @@ in {
         SessionStart = lib.optional cfg.hooks.readOnce.enable readOnceCleanupHook;
         Notification = lib.optional cfg.hooks.notification.enable notificationHook;
         # Declared empty so the fragment-coverage test in tests/claude-settings.nix
-        # forces the splice in home/common/claude/settings.nix to keep handling
+        # forces the splice in claude/home/settings.nix to keep handling
         # this key — adding entries here will land in settings.json automatically.
         UserPromptSubmit = [];
       };

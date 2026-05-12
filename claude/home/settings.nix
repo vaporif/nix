@@ -10,7 +10,7 @@
   sec = config.programs.claude-code.security.settingsFragment;
 
   statuslineScript = let
-    script = pkgs.writeShellScriptBin "claude-statusline" (builtins.readFile ../../../scripts/statusline.sh);
+    script = pkgs.writeShellScriptBin "claude-statusline" (builtins.readFile ../statusline.sh);
   in
     pkgs.symlinkJoin {
       name = "claude-statusline";

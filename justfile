@@ -71,7 +71,7 @@ fmt: fmt-lua fmt-nix fmt-toml
 switch:
     #!/usr/bin/env bash
     set -euo pipefail
-    bash scripts/update-claude-code.sh --check || true
+    bash claude/update.sh --check || true
     bash scripts/update-codex.sh --check || true
     if [[ "$(uname)" == "Darwin" ]]; then
         nom build ".#darwinConfigurations.burnedapple.system"
@@ -85,9 +85,9 @@ switch:
         sudo ./result/bin/switch-to-configuration switch
     fi
 
-# Bump pkgs/claude-code/package.nix to the latest Anthropic release
+# Bump claude/package.nix to the latest Anthropic release
 update-claude:
-    bash scripts/update-claude-code.sh
+    bash claude/update.sh
 
 # Bump pkgs/codex/package.nix to the latest openai/codex release
 update-codex:

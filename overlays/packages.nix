@@ -8,7 +8,7 @@
       touch $out
     '';
 in {
-  claude-code = final.callPackage ../pkgs/claude-code/package.nix {};
+  claude-code = final.callPackage ../claude/package.nix {};
 
   codex = final.callPackage ../pkgs/codex/package.nix {};
 

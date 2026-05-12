@@ -19,13 +19,13 @@
   patchedSuperpowers = pkgs.applyPatches {
     name = "superpowers-patched";
     src = inputs.superpowers;
-    patches = [../../../patches/superpowers-customizations.patch];
+    patches = [../../patches/superpowers-customizations.patch];
   };
 
   patchedWshobsonAgents = pkgs.applyPatches {
     name = "wshobson-agents-patched";
     src = inputs.wshobson-agents;
-    patches = [../../../patches/wshobson-systems-programming.patch];
+    patches = [../../patches/wshobson-systems-programming.patch];
   };
 
   readPluginVersion = src: let
@@ -41,13 +41,13 @@
     chmod -R u+w $out
     rm -f $out/agents/django-pro.md $out/agents/fastapi-pro.md
     rm -rf $out/skills $out/commands
-    cp ${../../../assistants/claude/agent-overrides/python-pro.md} $out/agents/python-pro.md
+    cp ${../overrides/agent-overrides/python-pro.md} $out/agents/python-pro.md
   '';
 
   systemsProgrammingPlugin = pkgs.runCommand "claude-plugin-systems-programming" {} ''
     cp -r ${patchedWshobsonAgents}/plugins/systems-programming $out
     chmod -R u+w $out
-    cp ${../../../assistants/claude/agent-overrides/golang-pro.md} $out/agents/golang-pro.md
+    cp ${../overrides/agent-overrides/golang-pro.md} $out/agents/golang-pro.md
   '';
 
   plugins = [

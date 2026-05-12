@@ -18,7 +18,7 @@ pkgs.testers.nixosTest {
       useGlobalPkgs = true;
       useUserPackages = true;
       users.testuser = {config, ...}: {
-        imports = [../modules/claude-security];
+        imports = [../claude/security];
 
         home.stateVersion = "24.11";
 
@@ -104,7 +104,7 @@ pkgs.testers.nixosTest {
     # We invoke the hook by absolute store path; the test user has no PATH
     # for the wrapper.
     machine.copy_from_host(
-      "${../modules/claude-security/scripts/test-fixtures/bypass-payloads.txt}",
+      "${../claude/security/scripts/test-fixtures/bypass-payloads.txt}",
       "/tmp/payloads.txt",
     )
     machine.succeed(rf'''

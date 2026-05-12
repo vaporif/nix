@@ -9,7 +9,7 @@
 in {
   imports = [
     ./llm
-    ./claude
+    ../../claude/home.nix
     ./codex
     ./git.nix
     ./ssh.nix

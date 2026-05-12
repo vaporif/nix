@@ -17,9 +17,9 @@ in {
       ruleFiles
       // {
         # Direnv custom function for claude rules
-        ".config/direnv/lib/claude-rules.sh".source = ../../../config/direnv/claude-rules.sh;
+        ".config/direnv/lib/claude-rules.sh".source = ../direnv-rules.sh;
 
-        ".claude/CLAUDE.md".source = ../../../assistants/claude/CLAUDE.md;
+        ".claude/CLAUDE.md".source = ../overrides/CLAUDE.md;
       };
   };
 }

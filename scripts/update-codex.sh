@@ -9,7 +9,7 @@
 # release artifacts plus the GitHub release metadata for version discovery.
 #
 # Usage:
-#   update-codex.sh           # bump pkgs/codex/package.nix in place
+#   update-codex.sh           # bump pkgs/codex.nix in place
 #   update-codex.sh --check   # exit 1 (with hint on stderr) if a newer version exists
 
 set -euo pipefail
@@ -25,7 +25,7 @@ readonly PLATFORMS=(
 
 REPO_ROOT="$(git -C "$(dirname -- "$0")" rev-parse --show-toplevel)"
 readonly REPO_ROOT
-readonly PACKAGE_FILE="${REPO_ROOT}/pkgs/codex/package.nix"
+readonly PACKAGE_FILE="${REPO_ROOT}/pkgs/codex.nix"
 
 die() {
     echo "error: $*" >&2

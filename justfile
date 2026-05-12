@@ -89,7 +89,7 @@ switch:
 update-claude:
     bash claude/update.sh
 
-# Bump pkgs/codex/package.nix to the latest openai/codex release
+# Bump pkgs/codex.nix to the latest openai/codex release
 update-codex:
     bash scripts/update-codex.sh
 

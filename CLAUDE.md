@@ -34,7 +34,7 @@ flake.nix                    # Entry point (inputs + module composition)
 ├── claude/                  # Everything Claude: home/, security/, overrides/, package.nix, update.sh, statusline.sh, direnv-rules.sh
 ├── config/                  # Dotfiles: nvim/, wezterm/, yazi/, karabiner/
 ├── assistants/              # Shared assistant content (rules/skills/agents/commands consumed by claude + codex)
-├── scripts/                 # Helper scripts (setup, git-meta, git-bare-clone, keymaps, codex)
+├── scripts/                 # Helper scripts (setup, git-meta, git-bare-clone, keymaps, update-codex)
 ├── tests/                   # Integration tests (claude-security.nix, claude-settings.nix, codex.nix)
 ├── overlays/                # Custom package overlays
 ├── patches/                 # Custom patches for packages
@@ -51,7 +51,7 @@ flake.nix                    # Entry point (inputs + module composition)
 - **`config.custom.*`**: Typed NixOS options in `modules/options.nix`. All modules consume these instead of `extraSpecialArgs`. Options defined in `hosts/common.nix`, overridden per-host.
 - **lze plugin loading**: Uses `on_require`, `dep_of`, `on_plugin`. Does NOT have a `dep` field. Library deps in `config/nvim/lua/plugins/deps.lua`.
 - **`allowUnfreePredicate`**: Shared unfree allowlist in `flake.nix`, applied to both platforms.
-- **Claude consolidation**: All Claude code lives under `claude/` — `claude/home.nix` is the HM entry, `claude/security/` is the security module generating `settingsFragment` (hooks + permissions), `claude/home/settings.nix` merges it into `~/.claude/settings.json`, `claude/package.nix` is the vendored binary, `claude/overrides/` holds CLAUDE.md and agent overrides.
+- **Claude consolidation**: All Claude code lives under `claude/` — `claude/home.nix` is the HM entry, `claude/security/` is the security module generating `settingsFragment` (hooks + permissions), `claude/home/settings.nix` merges it into `~/.claude/settings.json`, `claude/package.nix` is the vendored binary, `claude/overrides/` holds CLAUDE.md and agent overrides. Codex follows the conventional split (`pkgs/codex.nix` + `home/common/codex/` + `scripts/update-codex.sh`) since it lacks the custom surface area that justifies a top-level dir.
 - **Git worktree tools**: `git bclone` (bare clone) and `git meta` (sync .meta/ configs) installed via `home/packages.nix`.
 - **Claude rules (direnv)**: Language rules stored in `~/.config/claude-rules/` (nix-managed). Use `use claude_rules` in `.envrc` to symlink relevant rules into project-local `.claude/rules/`. Auto-detects languages when called without args. Explicit: `use claude_rules go nix`. See `claude/direnv-rules.sh`.
 

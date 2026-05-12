@@ -10,7 +10,7 @@
 in {
   claude-code = final.callPackage ../claude/package.nix {};
 
-  codex = final.callPackage ../pkgs/codex/package.nix {};
+  codex = final.callPackage ../pkgs/codex.nix {};
 
   difftastic = final.callPackage ../pkgs/difftastic.nix {inherit difftastic-src;};
 

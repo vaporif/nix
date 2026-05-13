@@ -12,6 +12,8 @@ in {
 
   codex = final.callPackage ../pkgs/codex.nix {};
 
+  rote = final.callPackage ../pkgs/rote.nix {};
+
   difftastic = final.callPackage ../pkgs/difftastic.nix {inherit difftastic-src;};
 
   unclog = (final.callPackage ../pkgs/unclog.nix {}).overrideAttrs (_: {

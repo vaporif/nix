@@ -159,6 +159,7 @@
     allowUnfreePredicate = pkg:
       builtins.elem (lib.getName pkg) [
         "claude-code"
+        "rote"
         # nixpkgs bug: upstream auto-updater couldn't detect the upstream
         # license and defaulted meta.license to unfree in generated.nix.
         # Both plugins are actually permissively licensed.

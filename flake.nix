@@ -165,6 +165,11 @@
         # Both plugins are actually permissively licensed.
         "neotest-vitest"
         "neotest-foundry"
+        # TODO: drop once nix-wrapper-modules stops eagerly interpolating
+        # pkgs.replace in the neovim node-host symlinkScript (upstream:
+        # BirdeeHub/nix-wrapper-modules modules/symlinkScript/module.nix).
+        # `replace` was marked unfree in nixpkgs 748036a3df1a (2026-05-05).
+        "replace"
       ];
 
     nixpkgsConfig = {

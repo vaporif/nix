@@ -14,6 +14,12 @@ in {
 
   difftastic = final.callPackage ../pkgs/difftastic.nix {inherit difftastic-src;};
 
+  lean-ctx = (final.callPackage ../pkgs/lean-ctx.nix {}).overrideAttrs (_: {
+    passthru.tests.lean-ctx = mkTest "lean-ctx" ''
+      ${final.lean-ctx}/bin/lean-ctx --version > /dev/null
+    '';
+  });
+
   unclog = (final.callPackage ../pkgs/unclog.nix {}).overrideAttrs (_: {
     passthru.tests.unclog = mkTest "unclog" ''
       ${final.unclog}/bin/unclog --help > /dev/null

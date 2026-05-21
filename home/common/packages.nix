@@ -74,6 +74,7 @@ in {
       pkgs.qdrant-web-ui
 
       pkgs.tidal_script
+      pkgs.lean-ctx
       pkgs.unclog
       pkgs.nomicfoundation_solidity_language_server
 

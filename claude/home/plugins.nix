@@ -22,11 +22,22 @@
     patches = [../../patches/superpowers-customizations.patch];
   };
 
-  patchedWshobsonAgents = pkgs.applyPatches {
-    name = "wshobson-agents-patched";
-    src = inputs.wshobson-agents;
-    patches = [../../patches/wshobson-systems-programming.patch];
-  };
+  # Removes Rust/C/C++ agents + memory-safety skill from systems-programming
+  # (Rust handled by standalone rust-engineer agent; C/C++ unused).
+  # Uses runCommand instead of applyPatches so it survives upstream churn —
+  # only file presence and the description string are touched.
+  patchedWshobsonAgents = pkgs.runCommand "wshobson-agents-patched" {nativeBuildInputs = [pkgs.jq];} ''
+    cp -r ${inputs.wshobson-agents} $out
+    chmod -R u+w $out
+    rm -f $out/plugins/systems-programming/agents/c-pro.md
+    rm -f $out/plugins/systems-programming/agents/cpp-pro.md
+    rm -f $out/plugins/systems-programming/agents/rust-pro.md
+    rm -rf $out/plugins/systems-programming/skills/memory-safety-patterns
+    plugin_json=$out/plugins/systems-programming/.claude-plugin/plugin.json
+    jq '.description = "Go systems programming with concurrency patterns"' \
+      "$plugin_json" > "$plugin_json.new"
+    mv "$plugin_json.new" "$plugin_json"
+  '';
 
   readPluginVersion = src: let
     json = builtins.fromJSON (builtins.readFile "${src}/.claude-plugin/plugin.json");

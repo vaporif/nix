@@ -10,10 +10,10 @@ _: {
       Ciphers = "aes256-gcm@openssh.com,chacha20-poly1305@openssh.com";
       MACs = "hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com";
     };
-    matchBlocks."*" = {
-      addKeysToAgent = "yes";
-      serverAliveInterval = 60;
-      serverAliveCountMax = 3;
+    settings."*" = {
+      AddKeysToAgent = "yes";
+      ServerAliveInterval = 60;
+      ServerAliveCountMax = 3;
     };
   };
 }

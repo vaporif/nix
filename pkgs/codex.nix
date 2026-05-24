@@ -11,7 +11,7 @@
   bubblewrap,
   binName ? "codex",
 }: let
-  version = "0.132.0";
+  version = "0.133.0";
 
   platformMap = {
     "aarch64-darwin" = "aarch64-apple-darwin";
@@ -25,10 +25,10 @@
     or (throw "codex is not supported on ${stdenv.hostPlatform.system}. Supported: aarch64-darwin, x86_64-darwin, x86_64-linux, aarch64-linux");
 
   nativeHashes = {
-    "aarch64-apple-darwin" = "1kpxax1c4h0k87ym8dw07s6xvzzjmwfviywapchir512q40qw9bk";
-    "x86_64-apple-darwin" = "18cyz5rcqwlpi6l192wd405k3113mjp5n9d1ysmxpdpkyjdavb2q";
-    "x86_64-unknown-linux-musl" = "1cl3m36ia40fkiv66haf7wi8bg3nl8slbbbs35yisnzgwhp46r4b";
-    "aarch64-unknown-linux-musl" = "0h7lv458jq7man2ddg5x09xxa0q4m4xwsilpp97cmgqsnkzsi05f";
+    "aarch64-apple-darwin" = "0lv8vw03arrjs95y9pb9k1k7frr3fripbv8nvrylp0gzpri87iqk";
+    "x86_64-apple-darwin" = "14bv4kicisi4z5axsdfvgwi1qkzrh297c8n3nnacj3ajy1abv49b";
+    "x86_64-unknown-linux-musl" = "1vrl03dyv473mwmlazxz27m9gfy2anpb5sy2invq3limkjmijq6h";
+    "aarch64-unknown-linux-musl" = "04qlp8lgyxizmd2wv33c3v3s0m0w8k6pbpsnlbz40j8mz26gx2r6";
   };
 
   nativeBinary = fetchurl {

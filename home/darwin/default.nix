@@ -56,11 +56,11 @@ in {
     extraOptionOverrides = lib.optionalAttrs (cfg.sshAgent == "secretive") {
       IdentityAgent = "${homeDir}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";
     };
-    matchBlocks = lib.optionalAttrs (cfg.utmHostIp != null) {
+    settings = lib.optionalAttrs (cfg.utmHostIp != null) {
       "utm-nixos" = {
-        hostname = cfg.utmHostIp;
-        inherit (cfg) user;
-        forwardAgent = true;
+        HostName = cfg.utmHostIp;
+        User = cfg.user;
+        ForwardAgent = true;
       };
     };
   };

@@ -50,9 +50,17 @@ jobs:
           sudo rm -rf /opt/hostedtoolcache
           df -h /
 
-      - name: Check nix flake
+      - name: Check nix flake (eval)
         if: matrix.lint || matrix.check
-        run: nix flake check
+        run: nix flake check --no-build
+
+      - name: Build non-VM checks (linux)
+        if: matrix.check
+        run: |
+          nix build --no-link \
+            '.#checks.aarch64-linux.formatting' \
+            '.#checks.aarch64-linux.codex' \
+            '.#checks.aarch64-linux.check-bash-matcher'
 
       - name: Check nix formatting
         if: matrix.lint

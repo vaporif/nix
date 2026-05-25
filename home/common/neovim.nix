@@ -64,14 +64,14 @@ in {
       info.configPath = cfg.configPath;
 
       specMods = _: {
-        options.extraPackages = lib.mkOption {
+        options.runtimePkgs = lib.mkOption {
           type = lib.types.listOf wlib.types.stringable;
           default = [];
           description = "extra packages to add to PATH";
         };
       };
 
-      extraPackages = config.specCollect (acc: v: acc ++ (v.extraPackages or [])) [];
+      runtimePkgs = config.specCollect (acc: v: acc ++ (v.runtimePkgs or [])) [];
 
       specs = {
         colorscheme = {
@@ -213,7 +213,7 @@ in {
 
         tools = {
           data = null;
-          extraPackages =
+          runtimePkgs =
             cfg.lspPackages
             ++ (with pkgs; [
               lua51Packages.luarocks

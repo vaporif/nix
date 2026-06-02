@@ -58,12 +58,7 @@ in
       grep -q '^\[projects."/home/testuser/.config/nix-darwin"\]$' ${codexConfig}
       ! grep -q '^\[\[hooks\.' ${codexConfig}
       grep -q '^\[tui\]$' ${codexConfig}
-      grep -q '^status_line = \[$' ${codexConfig}
-      grep -q '^    "model-with-reasoning",$' ${codexConfig}
-      grep -q '^    "context-used",$' ${codexConfig}
-      grep -q '^    "branch-changes",$' ${codexConfig}
-      ! grep -q '^    "permissions",$' ${codexConfig}
-      ! grep -q '^    "approval-mode",$' ${codexConfig}
+      grep -Fqx 'status_line = ["model-with-reasoning", "used-tokens", "context-window-size", "context-used", "five-hour-limit", "weekly-limit", "git-branch", "branch-changes"]' ${codexConfig}
 
       test -f ${conciseSkill}
       test -f ${rustAgent}

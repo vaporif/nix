@@ -8,7 +8,17 @@
   cfg = config.custom;
   bwrap = lib.getExe pkgs.bubblewrap;
   claude = lib.getExe pkgs.claude-code;
-  codex = lib.getExe pkgs.codex;
+  codexTrustedRepos = pkgs.writeShellScriptBin "codex" ''
+    case "$PWD/" in
+      "$HOME/Repos/"*)
+        trust_root="$(${lib.getExe pkgs.git} -C "$PWD" rev-parse --show-toplevel 2>/dev/null || printf '%s' "$PWD")"
+        exec ${lib.getExe pkgs.codex} -c "projects.\"$trust_root\".trust_level=\"trusted\"" "$@"
+        ;;
+    esac
+
+    exec ${lib.getExe pkgs.codex} "$@"
+  '';
+  codex = lib.getExe codexTrustedRepos;
 
   claudeLinux = pkgs.writeShellScriptBin "claude" ''
     bind_ro() { [[ -e "$1" ]] && args+=(--ro-bind "$1" "$1"); }

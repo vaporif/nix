@@ -116,7 +116,6 @@ Run `just` to list everything. The ones you'll use most:
 | `just switch` | Apply config (auto-detects platform) |
 | `just check` | Lint everything |
 | `just fmt` | Format all files |
-| `just check-vulns` | Scan for vulnerabilities |
 | `just gc 30d` | Clean up old generations |
 | `just lazy-update` | Update neovim plugins |
 | `just llm-update` | Bump vendored claude-code + codex to latest |

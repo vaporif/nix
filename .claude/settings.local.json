@@ -3,7 +3,6 @@
     "allow": [
       "Bash(nix-store:*)",
       "mcp__ferrex__store",
-      "Bash(vulnix:*)",
       "Bash(nix flake:*)",
       "mcp__nixos__nix",
       "Bash(/nix/store/hqvlcvpq2axlj530disvbazbzfzv2pf3-claude/bin/claude --version 2>&1)"

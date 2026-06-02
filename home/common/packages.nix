@@ -26,7 +26,6 @@ in {
       pkgs.shellcheck
       pkgs.actionlint
       pkgs.cachix
-      pkgs.vulnix
 
       pkgs.bacon
       pkgs.cargo-info

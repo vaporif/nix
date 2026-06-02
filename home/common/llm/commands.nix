@@ -9,6 +9,5 @@
     recall.source = ../../../assistants/shared/commands/recall.md;
     reflect.source = ../../../assistants/shared/commands/reflect.md;
     remember.source = ../../../assistants/shared/commands/remember.md;
-    vulnix-triage.source = ../../../assistants/shared/commands/vulnix-triage.md;
   };
 }

@@ -49,10 +49,6 @@ lint-actions:
 check-typos:
     typos
 
-# Scan for vulnerabilities (with whitelist)
-check-vulns:
-    vulnix --system --whitelist vulnix-whitelist.toml
-
 # Verify inputs are pinned
 check-pinned:
     @echo "Checking all inputs are pinned..."

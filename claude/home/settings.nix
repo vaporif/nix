@@ -79,11 +79,6 @@ in {
         permissions = {
           inherit (sec.permissions) allow deny;
         };
-        sandbox = {
-          filesystem = {
-            allowWrite = ["~/.cache/vulnix"];
-          };
-        };
       };
       ".claude/settings.local.json".text = builtins.toJSON {
         permissions = {

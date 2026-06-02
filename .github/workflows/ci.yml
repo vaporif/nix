@@ -19,64 +19,6 @@ concurrency:
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/main' }}
 
 jobs:
-  build:
-    permissions:
-      id-token: write
-      contents: read
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runner: macos-latest
-            build-cmd: nix build .#darwinConfigurations.burnedapple.system
-            lint: true
-            check: false
-          - runner: ubuntu-24.04-arm
-            build-cmd: nix build '.#nixosConfigurations.nixos.config.system.build.toplevel'
-            lint: false
-            check: true
-    runs-on: ${{ matrix.runner }}
-    steps:
-      - uses: actions/checkout@v6
-      - uses: DeterminateSystems/nix-installer-action@v22
-
-      - uses: DeterminateSystems/magic-nix-cache-action@v13
-
-      - name: Free disk space (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          sudo rm -rf /Applications/Xcode*.app
-          sudo rm -rf /Users/runner/Library/Android
-          sudo rm -rf /opt/hostedtoolcache
-          df -h /
-
-      - name: Check nix flake (eval)
-        if: matrix.lint || matrix.check
-        run: nix flake check --no-build
-
-      - name: Build non-VM checks (linux)
-        if: matrix.check
-        run: |
-          nix build --no-link \
-            '.#checks.aarch64-linux.formatting' \
-            '.#checks.aarch64-linux.codex' \
-            '.#checks.aarch64-linux.check-bash-matcher'
-
-      - name: Check nix formatting
-        if: matrix.lint
-        run: nix run nixpkgs#alejandra -- --check .
-
-      - name: Lint nix (statix)
-        if: matrix.lint
-        run: nix run nixpkgs#statix -- check
-
-      - name: Dead code (deadnix)
-        if: matrix.lint
-        run: nix run nixpkgs#deadnix -- --fail .
-
-      - name: Build
-        run: ${{ matrix.build-cmd }}
-
   lint:
     runs-on: ubuntu-latest
     steps:

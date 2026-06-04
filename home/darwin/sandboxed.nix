@@ -12,17 +12,6 @@
   mkSandboxed = name: modules:
     sandnixLib.makeSandnix {inherit name modules;};
 
-  codexTrustedRepos = pkgs.writeShellScriptBin "codex" ''
-    case "$PWD/" in
-      "$HOME/Repos/"*)
-        trust_root="$(${lib.getExe pkgs.git} -C "$PWD" rev-parse --show-toplevel 2>/dev/null || printf '%s' "$PWD")"
-        exec ${lib.getExe pkgs.codex} -c "projects.\"$trust_root\".trust_level=\"trusted\"" "$@"
-        ;;
-    esac
-
-    exec ${lib.getExe pkgs.codex} "$@"
-  '';
-
   darwinExtras = sandboxEnv: {
     preHook = ''
       ${sandboxShared.secretPreload}
@@ -123,7 +112,7 @@
     inputs.sandnix.sandnixModules.git
     inputs.sandnix.sandnixModules.gh
     {
-      program = lib.getExe codexTrustedRepos;
+      program = lib.getExe pkgs.codex;
       features = {
         tty = true;
         nix = true;

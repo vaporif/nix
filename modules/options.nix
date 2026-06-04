@@ -109,7 +109,14 @@ in {
         });
 
     claude.enable = lib.mkEnableOption "Claude Code (CLI, plugins, settings, security, sandbox, aliases, MCP integration)";
-    codex.enable = lib.mkEnableOption "Codex CLI (CLI, settings, skills, agents, aliases, MCP integration)";
+    codex = {
+      enable = lib.mkEnableOption "Codex CLI (CLI, settings, skills, agents, aliases, MCP integration)";
+      trustedRepoNames = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [];
+        description = "Directory names under custom.homeDir/Repos to trust in Codex config.toml.";
+      };
+    };
 
     llm = {
       skills = lib.mkOption {

@@ -7,9 +7,17 @@
   cfg = config.custom;
   inherit (cfg) llm;
   toml = pkgs.formats.toml {};
+  trustedProjectPaths =
+    [
+      cfg.configPath
+      "${cfg.homeDir}/Repos"
+    ]
+    ++ map (repoName: "${cfg.homeDir}/Repos/${repoName}") cfg.codex.trustedRepoNames;
 
   codexConfig = {
-    projects.${cfg.configPath}.trust_level = "trusted";
+    projects = lib.genAttrs trustedProjectPaths (_: {
+      trust_level = "trusted";
+    });
     tui.status_line = [
       "model-with-reasoning"
       "used-tokens"

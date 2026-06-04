@@ -9,6 +9,10 @@
     if pkgs.stdenv.isDarwin
     then "aarch64-darwin"
     else "aarch64-linux";
+  testHomeDir =
+    if pkgs.stdenv.isDarwin
+    then "/Users/testuser"
+    else "/home/testuser";
   codexSandboxed = pkgs.writeShellScriptBin "codex" "";
 
   hm = home-manager.lib.homeManagerConfiguration {
@@ -23,15 +27,18 @@
       {
         home = {
           username = "testuser";
-          homeDirectory = "/home/testuser";
+          homeDirectory = testHomeDir;
           stateVersion = "24.05";
         };
 
         custom = {
           user = "testuser";
           system = testSystem;
-          configPath = "/home/testuser/.config/nix-darwin";
-          codex.enable = true;
+          configPath = "${testHomeDir}/.config/nix-darwin";
+          codex = {
+            enable = true;
+            trustedRepoNames = ["ibc-attestor" "kingdom"];
+          };
           secrets.tavily-key = toString (pkgs.writeText "tavily-key" "test-tavily-key");
           sandboxedPackages.codex = codexSandboxed;
         };
@@ -55,7 +62,10 @@ in
       grep -q '^\[mcp_servers.ferrex\]$' ${codexConfig}
       grep -q '^\[mcp_servers.tavily\]$' ${codexConfig}
       grep -q '^env_vars = \["TAVILY_API_KEY"\]$' ${codexConfig}
-      grep -q '^\[projects."/home/testuser/.config/nix-darwin"\]$' ${codexConfig}
+      grep -q '^\[projects."${testHomeDir}/.config/nix-darwin"\]$' ${codexConfig}
+      grep -q '^\[projects."${testHomeDir}/Repos"\]$' ${codexConfig}
+      grep -q '^\[projects."${testHomeDir}/Repos/ibc-attestor"\]$' ${codexConfig}
+      grep -q '^\[projects."${testHomeDir}/Repos/kingdom"\]$' ${codexConfig}
       ! grep -q '^\[\[hooks\.' ${codexConfig}
       grep -q '^\[tui\]$' ${codexConfig}
       grep -Fqx 'status_line = ["model-with-reasoning", "used-tokens", "context-window-size", "context-used", "five-hour-limit", "weekly-limit", "git-branch", "branch-changes"]' ${codexConfig}

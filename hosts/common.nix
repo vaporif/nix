@@ -1,7 +1,29 @@
 _: {
   custom = {
     claude.enable = true;
-    codex.enable = true;
+    codex = {
+      enable = true;
+      trustedRepoNames = [
+        "Zikkaron"
+        "advanced"
+        "agave"
+        "go"
+        "ibc-attestor"
+        "justmarkets"
+        "kingdom"
+        "learning"
+        "leetcode"
+        "monorepo"
+        "nearcore"
+        "remix-mcp"
+        "tidal"
+        "tikv"
+        "tokyo"
+        "vim-tidal-lua"
+        "zair"
+        "zmk-config"
+      ];
+    };
     user = "vaporif";
     git = {
       name = "Dmytro Onypko";

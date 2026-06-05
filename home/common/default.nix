@@ -29,8 +29,6 @@ in {
     pkgs.nixd
   ];
 
-  gtk.gtk4.theme = null;
-
   manual = {
     manpages.enable = false;
     html.enable = false;

@@ -1,44 +1,7 @@
 _: prev: let
   inherit (prev) lib;
-
-  # TODO: Remove once nixpkgs ships vimPlugins.blink-pairs >= 0.5.0.
-  # v0.4.1 uses std::simd::{LaneCount, SupportedLaneCount}, which were
-  # removed from the std::simd API. Upstream v0.5.0 switched to Select.
-  # See https://github.com/Saghen/blink.pairs/releases/tag/v0.5.0
-  blinkPairsVersion = "0.5.0";
-  blinkPairsSrc = prev.fetchFromGitHub {
-    owner = "Saghen";
-    repo = "blink.pairs";
-    tag = "v${blinkPairsVersion}";
-    hash = "sha256-PTbj6jlXNRUOmwFSplvRDDiyyGqkBzUKtuBrvZm9kzM=";
-  };
-  # v0.5.0's vendored cargo deps hash matches v0.4.1's, so the parent
-  # derivation's cargoHash carries over unchanged via overrideAttrs (which
-  # can't reach buildRustPackage's internal FOD anyway).
-  blinkPairsLib = prev.vimPlugins.blink-pairs.passthru.blink-pairs-lib.overrideAttrs (_: {
-    version = blinkPairsVersion;
-    src = blinkPairsSrc;
-  });
-  blinkPairsExt = prev.stdenv.hostPlatform.extensions.sharedLibrary;
 in
   {
-    vimPlugins =
-      prev.vimPlugins
-      // {
-        blink-pairs = prev.vimPlugins.blink-pairs.overrideAttrs (old: {
-          version = blinkPairsVersion;
-          src = blinkPairsSrc;
-          # v0.5.0 ships a repro.lua at the project root that loads plugin
-          # internals; the neovim require-check can't resolve it standalone.
-          nvimSkipModules = (old.nvimSkipModules or []) ++ ["repro"];
-          preInstall = ''
-            mkdir -p target/release
-            ln -s ${blinkPairsLib}/lib/libblink_pairs${blinkPairsExt} target/release/
-          '';
-          passthru = (old.passthru or {}) // {blink-pairs-lib = blinkPairsLib;};
-        });
-      };
-
     pythonPackagesExtensions =
       prev.pythonPackagesExtensions
       # Skip aioboto3 tests (moto mock server sends duplicate Server header, rejected by newer aiohttp)

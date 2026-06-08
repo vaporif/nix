@@ -5,11 +5,10 @@
 }: let
   cfg = config.custom;
 in {
-  environment.etc."nix/nix.custom.conf" = lib.mkIf (cfg.secrets.nix-access-tokens != null) {
-    text = lib.mkAfter ''
-      !include ${cfg.secrets.nix-access-tokens}
-    '';
-  };
+  nix.extraOptions = lib.mkIf (cfg.secrets.nix-access-tokens != null) ''
+    !include ${cfg.secrets.nix-access-tokens}
+  '';
+
   nix.settings = {
     experimental-features = ["nix-command" "flakes"];
     auto-optimise-store = true;

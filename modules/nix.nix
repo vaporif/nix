@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }: let
   cfg = config.custom;
@@ -17,7 +18,8 @@ in {
     # Determinate Nix 3.21.1's parallel evaluator crashes with
     # "polling file descriptor: Invalid argument" on the full-system eval.
     # Pin to a single eval core until the upstream bug is fixed.
-    eval-cores = 1;
+    # eval-cores is a Determinate Nix extension — not recognized on standard NixOS Nix.
+    eval-cores = lib.mkIf pkgs.stdenv.isDarwin 1;
     substituters =
       [
         "https://cache.nixos.org"

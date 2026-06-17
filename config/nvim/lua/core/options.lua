@@ -39,3 +39,8 @@ opt.ignorecase = true
 opt.smartcase = true
 
 vim.lsp.inlay_hint.enable(true)
+
+-- Setup clipboard (deferred to avoid startup issues)
+vim.schedule(function()
+  opt.clipboard = 'unnamedplus'
+end)

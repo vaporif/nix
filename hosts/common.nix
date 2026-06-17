@@ -1,4 +1,4 @@
-_: {
+{lib, ...}: {
   custom = {
     claude.enable = true;
     codex = {
@@ -35,7 +35,8 @@ _: {
       name = "vaporif";
       publicKey = "vaporif.cachix.org-1:y/fKd8ILM10UJCdXFFYn/n8+AqXnRLzwHjX+BikcUf8=";
     };
-    secrets.enable = true;
+    # mkDefault so a host can opt out (e.g. work-nixos has no age key).
+    secrets.enable = lib.mkDefault true;
     timezone = "Europe/Lisbon";
   };
 }

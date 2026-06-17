@@ -63,8 +63,9 @@ check-pinned:
 # Format all
 fmt: fmt-lua fmt-nix fmt-toml
 
-# Apply configuration with pretty output
-switch:
+# Apply configuration with pretty output. On NixOS pass the host
+# (personal-nixos | work-nixos); defaults to the current hostname.
+switch host="":
     #!/usr/bin/env bash
     set -euo pipefail
     bash claude/update.sh --check || true
@@ -75,7 +76,9 @@ switch:
         sudo -H nix-env --profile /nix/var/nix/profiles/system --set ./result
         sudo ./result/activate
     else
-        nom build ".#nixosConfigurations.nixos.config.system.build.toplevel"
+        host="{{host}}"
+        [[ -z "$host" ]] && host="$(hostname -s)"
+        nom build ".#nixosConfigurations.${host}.config.system.build.toplevel"
         [[ -e /run/current-system ]] && nvd diff /run/current-system ./result || true
         sudo -H nix-env --profile /nix/var/nix/profiles/system --set ./result
         sudo ./result/bin/switch-to-configuration switch
@@ -104,16 +107,19 @@ setup-hooks:
 keymaps:
     nvim -l scripts/dump-keymaps.lua config/nvim/lua > docs/keymaps.md
 
-# Build and push to cachix
-cache:
+# Build and push to cachix. On NixOS pass the host (personal-nixos | work-nixos);
+# defaults to the current hostname.
+cache host="":
     #!/usr/bin/env bash
     set -euo pipefail
     if [[ "$(uname)" == "Darwin" ]]; then
         cachix_name=$(nix eval --raw ".#darwinConfigurations.burnedapple.config.custom.cachix.name")
         nix build ".#darwinConfigurations.burnedapple.system"
     else
-        cachix_name=$(nix eval --raw ".#nixosConfigurations.nixos.config.custom.cachix.name")
-        nix build ".#nixosConfigurations.nixos.config.system.build.toplevel"
+        host="{{host}}"
+        [[ -z "$host" ]] && host="$(hostname -s)"
+        cachix_name=$(nix eval --raw ".#nixosConfigurations.${host}.config.custom.cachix.name")
+        nix build ".#nixosConfigurations.${host}.config.system.build.toplevel"
     fi
     [[ -n "$cachix_name" ]] && cachix push "$cachix_name" ./result
 

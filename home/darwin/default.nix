@@ -58,7 +58,7 @@ in {
       IdentityAgent = "${homeDir}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";
     };
     settings = lib.optionalAttrs (cfg.utmHostIp != null) {
-      "utm-nixos" = {
+      "personal-nixos" = {
         HostName = cfg.utmHostIp;
         User = cfg.user;
         ForwardAgent = true;
@@ -71,7 +71,7 @@ in {
   };
 
   launchd.agents.qdrant = {
-    enable = true;
+    enable = cfg.qdrant.enable;
     config = {
       Label = "org.qdrant.server";
       ProgramArguments = [

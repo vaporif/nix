@@ -53,10 +53,10 @@ in {
       default = null;
       description = "IP of UTM VM for SSH config (macOS only)";
     };
-    utmGatewayIp = lib.mkOption {
+    hostGatewayIp = lib.mkOption {
       type = lib.types.str;
       default = "192.168.64.1";
-      description = "IP of macOS host as seen from UTM VM (NixOS only). Default is UTM's shared-network gateway address.";
+      description = "IP of the host Mac as seen from a NixOS guest VM. Default is UTM's shared-network gateway address; override per host for other hypervisors (e.g. VMware Fusion).";
     };
     git = {
       name = lib.mkOption {
@@ -109,6 +109,11 @@ in {
         });
 
     claude.enable = lib.mkEnableOption "Claude Code (CLI, plugins, settings, security, sandbox, aliases, MCP integration)";
+    qdrant.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Qdrant-backed ferrex memory stack: the qdrant launchd agent on macOS plus the ferrex MCP server on every host. Disable on machines with no qdrant reachable (e.g. the work VM).";
+    };
     codex = {
       enable = lib.mkEnableOption "Codex CLI (CLI, settings, skills, agents, aliases, MCP integration)";
       trustedRepoNames = lib.mkOption {

@@ -64,8 +64,13 @@ else
     else
         NIX_SYSTEM="x86_64-linux"
     fi
-    HOST_FILE="hosts/nixos.nix"
-    FLAKE_OUTPUT="nixos"
+    # Two NixOS hosts: personal-nixos (UTM on the personal Mac) and
+    # work-nixos (VMware Fusion on the work Mac). Pick which this machine is.
+    DEFAULT_NIXOS_HOST="personal-nixos"
+    [[ "${CURRENT_HOSTNAME}" == "work-nixos" ]] && DEFAULT_NIXOS_HOST="work-nixos"
+    read -rp "NixOS host (personal-nixos | work-nixos) [${DEFAULT_NIXOS_HOST}]: " INPUT_NIXOS_HOST
+    FLAKE_OUTPUT="${INPUT_NIXOS_HOST:-${DEFAULT_NIXOS_HOST}}"
+    HOST_FILE="hosts/${FLAKE_OUTPUT}.nix"
     PLATFORM="Linux"
 fi
 

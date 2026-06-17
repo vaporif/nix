@@ -27,7 +27,7 @@ sops secrets/secrets.yaml
 
 # First-time build (just/nom/nvd aren't available yet)
 # Replace `<hostname>` with the value of `custom.hostname` from your host file
-# (e.g. `hosts/macbook.nix` or `hosts/nixos.nix`).
+# (e.g. `hosts/macbook.nix`, `hosts/personal-nixos.nix`, or `hosts/work-nixos.nix`).
 
 # macOS:
 nix build ".#darwinConfigurations.<hostname>.system"

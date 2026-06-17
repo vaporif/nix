@@ -110,6 +110,9 @@
       nixos = {
         command = lib.getExe mcp-nixos-package;
       };
+      serena.args = lib.mkAfter ["--project-from-cwd"];
+    }
+    // lib.optionalAttrs cfg.qdrant.enable {
       ferrex = {
         command = "${pkgs.writeShellScript "ferrex-mcp-wrapper" ''
           export FERREX_LOG=debug
@@ -118,12 +121,11 @@
             --qdrant-url "${
             if pkgs.stdenv.isDarwin
             then "http://localhost:6334"
-            else "http://${cfg.utmGatewayIp}:6334"
+            else "http://${cfg.hostGatewayIp}:6334"
           }" \
             --db-path "${homeDir}/.ferrex/ferrex.db"
         ''}";
       };
-      serena.args = lib.mkAfter ["--project-from-cwd"];
     }
     // lib.optionalAttrs (cfg.secrets.tavily-key != null) {
       tavily = {

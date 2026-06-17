@@ -206,6 +206,29 @@
         backupFileExtension = "backup";
       };
     };
+
+    mkNixos = {
+      hostModule,
+      hardwareModule,
+    }:
+      lib.nixosSystem {
+        system = "aarch64-linux";
+        specialArgs = {inherit inputs;};
+        modules = [
+          nixpkgsConfig
+          ./modules/options.nix
+          hostModule
+          hardwareModule
+          stylix.nixosModules.stylix
+          sops-nix.nixosModules.sops
+          ./system/nixos
+          home-manager.nixosModules.home-manager
+          (mkHomeManager {
+            inherit hostModule;
+            platformHome = ./home/linux;
+          })
+        ];
+      };
   in {
     formatter = lib.genAttrs supportedSystems (
       system: (mkPkgs system).alejandra
@@ -266,22 +289,15 @@
       ];
     };
 
-    nixosConfigurations.nixos = lib.nixosSystem {
-      system = "aarch64-linux";
-      specialArgs = {inherit inputs;};
-      modules = [
-        nixpkgsConfig
-        ./modules/options.nix
-        ./hosts/nixos.nix
-        stylix.nixosModules.stylix
-        sops-nix.nixosModules.sops
-        ./system/nixos
-        home-manager.nixosModules.home-manager
-        (mkHomeManager {
-          hostModule = ./hosts/nixos.nix;
-          platformHome = ./home/linux;
-        })
-      ];
+    nixosConfigurations = {
+      personal-nixos = mkNixos {
+        hostModule = ./hosts/personal-nixos.nix;
+        hardwareModule = ./system/nixos/hardware/personal-nixos.nix;
+      };
+      work-nixos = mkNixos {
+        hostModule = ./hosts/work-nixos.nix;
+        hardwareModule = ./system/nixos/hardware/work-nixos.nix;
+      };
     };
   };
 }

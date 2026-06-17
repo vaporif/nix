@@ -21,6 +21,8 @@ in {
 
   time.timeZone = cfg.timezone;
 
+  console.keyMap = "colemak";
+
   # TODO: Re-enable once Stylix migrates from the removed services.kmscon.fonts
   # and services.kmscon.extraConfig options to services.kmscon.config.
   stylix.targets.kmscon.enable = false;

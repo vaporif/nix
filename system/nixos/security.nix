@@ -19,14 +19,6 @@
       Defaults use_pty
     '';
     loginDefs.settings.UMASK = "077";
-    audit = {
-      enable = true;
-      rules = [
-        "-w /etc/passwd -p wa -k passwd_changes"
-        "-w /etc/shadow -p wa -k shadow_changes"
-        "-w /etc/sudoers -p wa -k sudoers_changes"
-      ];
-    };
   };
 
   # Tmpfs for /tmp (cleared on reboot, prevents sensitive data persistence)

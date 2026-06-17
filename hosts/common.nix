@@ -2,7 +2,7 @@ _: {
   custom = {
     claude.enable = true;
     codex = {
-      enable = true;
+      enable = false;
       trustedRepoNames = [
         "Zikkaron"
         "advanced"
@@ -15,6 +15,7 @@ _: {
         "leetcode"
         "monorepo"
         "nearcore"
+        "chernroot"
         "remix-mcp"
         "tidal"
         "tikv"

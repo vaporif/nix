@@ -22,7 +22,6 @@
     audit = {
       enable = true;
       rules = [
-        "-a exit,always -F arch=b64 -S execve -k exec"
         "-w /etc/passwd -p wa -k passwd_changes"
         "-w /etc/shadow -p wa -k shadow_changes"
         "-w /etc/sudoers -p wa -k sudoers_changes"

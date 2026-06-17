@@ -5,5 +5,6 @@
     system = "aarch64-linux";
     configPath = "${config.custom.homeDir}/.config/nix";
     sshAgent = "";
+    stateVersion = "25.11";
   };
 }

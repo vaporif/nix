@@ -45,5 +45,5 @@ in {
     "claude-code/managed-mcp.json".source = hmCfg.codeMcpServersConfig;
   };
 
-  system.stateVersion = "25.11";
+  system.stateVersion = cfg.stateVersion;
 }

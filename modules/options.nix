@@ -114,6 +114,11 @@ in {
       default = true;
       description = "Qdrant-backed ferrex memory stack: the qdrant launchd agent on macOS plus the ferrex MCP server on every host. Disable on machines with no qdrant reachable (e.g. the work VM).";
     };
+    stateVersion = lib.mkOption {
+      type = lib.types.str;
+      default = "25.11";
+      description = "NixOS system.stateVersion — the release this host was first installed with. Set per host and NEVER change it after install. (NixOS hosts only.)";
+    };
     codex = {
       enable = lib.mkEnableOption "Codex CLI (CLI, settings, skills, agents, aliases, MCP integration)";
       trustedRepoNames = lib.mkOption {

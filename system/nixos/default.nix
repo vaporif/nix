@@ -27,6 +27,11 @@ in {
 
   programs.zsh.enable = true;
 
+  # Register the dconf D-Bus service so home-manager/stylix can apply GTK
+  # theming during activation. Without it, activation fails with
+  # "org.freedesktop.DBus.Error.ServiceUnknown: ca.desrt.dconf not activatable".
+  programs.dconf.enable = true;
+
   environment.systemPackages = [
     pkgs.age
   ];

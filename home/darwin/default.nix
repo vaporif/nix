@@ -12,6 +12,7 @@ in {
   imports = [
     ./sandboxed.nix
     ../common/qdrant.nix
+    ../common/librewolf.nix
     inputs.mac-app-util.homeManagerModules.default
   ];
 

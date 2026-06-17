@@ -18,7 +18,6 @@ in {
     ./packages.nix
     ./shell.nix
     ./neovim.nix
-    ./librewolf.nix
     ./sandboxed.nix
   ];
 

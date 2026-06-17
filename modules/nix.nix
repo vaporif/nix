@@ -10,16 +10,16 @@ in {
     !include ${cfg.secrets.nix-access-tokens}
   '';
 
+  # Determinate Nix 3.21.1's parallel evaluator crashes with
+  # "polling file descriptor: Invalid argument" on the full-system eval.
+  # eval-cores is a Determinate Nix extension not recognized by standard NixOS Nix.
+  nix.settings = lib.mkIf pkgs.stdenv.isDarwin {eval-cores = 1;};
+
   nix.settings = {
     experimental-features = ["nix-command" "flakes"];
     auto-optimise-store = true;
     max-jobs = "auto";
     cores = 0;
-    # Determinate Nix 3.21.1's parallel evaluator crashes with
-    # "polling file descriptor: Invalid argument" on the full-system eval.
-    # Pin to a single eval core until the upstream bug is fixed.
-    # eval-cores is a Determinate Nix extension — not recognized on standard NixOS Nix.
-    eval-cores = lib.mkIf pkgs.stdenv.isDarwin 1;
     substituters =
       [
         "https://cache.nixos.org"

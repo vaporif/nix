@@ -5,6 +5,10 @@
     system = "aarch64-linux";
     configPath = "${config.custom.homeDir}/.config/nix";
     sshAgent = "";
+    # The signing key is the personal Mac's Secretive key, whose private half
+    # isn't on this box — drop it so git signing is off and it isn't an
+    # authorized SSH key here.
+    git.signingKey = "";
     stateVersion = "26.05";
     # No qdrant on the work Mac, so disable the ferrex memory stack here.
     qdrant.enable = false;

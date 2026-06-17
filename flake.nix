@@ -171,15 +171,19 @@
       ];
 
     nixpkgsConfig = {
-      nixpkgs.overlays = sharedOverlays;
-      nixpkgs.config.allowUnfreePredicate = allowUnfreePredicate;
-      # librewolf lacks an active nixpkgs committer, so upstream marks it
-      # insecure. We still want it; allow this specific package by name.
-      nixpkgs.config.allowInsecurePredicate = pkg:
-        builtins.elem (lib.getName pkg) [
-          "librewolf"
-          "librewolf-unwrapped"
-        ];
+      nixpkgs = {
+        overlays = sharedOverlays;
+        config = {
+          inherit allowUnfreePredicate;
+          # librewolf lacks an active nixpkgs committer, so upstream marks it
+          # insecure. We still want it; allow this specific package by name.
+          allowInsecurePredicate = pkg:
+            builtins.elem (lib.getName pkg) [
+              "librewolf"
+              "librewolf-unwrapped"
+            ];
+        };
+      };
     };
 
     mkHomeManager = {

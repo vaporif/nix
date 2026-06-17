@@ -38,9 +38,7 @@ in {
     isNormalUser = true;
     extraGroups = ["wheel"];
     shell = pkgs.zsh;
-    openssh.authorizedKeys.keys = [
-      cfg.git.signingKey
-    ];
+    openssh.authorizedKeys.keys = [cfg.git.signingKey] ++ cfg.sshAuthorizedKeys;
   };
 
   environment.etc = lib.mkIf hmCfg.claude.enable {

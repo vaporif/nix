@@ -119,6 +119,11 @@ in {
       default = "25.11";
       description = "NixOS system.stateVersion — the release this host was first installed with. Set per host and NEVER change it after install. (NixOS hosts only.)";
     };
+    sshAuthorizedKeys = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      description = "Extra SSH public keys authorized to log in as the user, in addition to the git signing key. Set per host (e.g. the work laptop's key on work-nixos).";
+    };
     codex = {
       enable = lib.mkEnableOption "Codex CLI (CLI, settings, skills, agents, aliases, MCP integration)";
       trustedRepoNames = lib.mkOption {

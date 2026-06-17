@@ -10,5 +10,9 @@
     qdrant.enable = false;
     # No age key on the work box — skip sops so activation doesn't need it.
     secrets.enable = false;
+    # Work laptop (the VMware host) SSH key, so it can log into this VM.
+    sshAuthorizedKeys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN9gvaCjdNLEKlUzkpBGtnnO7AjYxHkkueSfj689dkyX dmytro.onypko@Mac-G4F36NXDV4.local"
+    ];
   };
 }

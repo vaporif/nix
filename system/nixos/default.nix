@@ -29,6 +29,11 @@ in {
 
   programs.zsh.enable = true;
 
+  virtualisation.podman = {
+    enable = true;
+    dockerCompat = true;
+  };
+
   environment.systemPackages = [
     pkgs.age
   ];

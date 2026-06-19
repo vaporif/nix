@@ -1,1 +1,2 @@
-exclude = [".direnv/**"]
+include = ["*.toml", "config/**/*.toml"]
+exclude = [".direnv/**", "result/**", "result-*/**"]

@@ -16,14 +16,14 @@ fmt-lua:
 
 # Lint nix files
 lint-nix:
-    alejandra --check .
+    alejandra --check . --exclude ./result --exclude ./.direnv
     statix check
-    deadnix --fail
+    deadnix --fail --exclude result .
     nix flake check
 
 # Format nix files
 fmt-nix:
-    alejandra .
+    alejandra . --exclude ./result --exclude ./.direnv
 
 # Validate JSON configs
 lint-json:

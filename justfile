@@ -101,7 +101,7 @@ lazy-update:
 
 # Set up git hooks
 setup-hooks:
-    git config core.hooksPath .githooks
+    lefthook install
 
 # Regenerate docs/keymaps.md from source files
 keymaps:

@@ -1,0 +1,31 @@
+pre-commit:
+  parallel: true
+  commands:
+    fmt-nix:
+      run: alejandra --check .
+    fmt-lua:
+      run: stylua --check config/
+    fmt-toml:
+      run: taplo fmt --check
+
+pre-push:
+  parallel: true
+  commands:
+    lint-lua:
+      run: (cd config/nvim && selene lua after init.lua) && stylua --check config/
+    lint-nix:
+      run: alejandra --check . && statix check && deadnix --fail && nix flake check
+    lint-json:
+      run: jq empty config/karabiner/karabiner.json
+    lint-toml:
+      run: taplo check
+    lint-shell:
+      run: shellcheck -S style -o all scripts/*.sh
+    lint-actions:
+      run: actionlint
+    check-typos:
+      run: typos
+    check-pinned:
+      run: |
+        [ -f flake.lock ] || { echo "ERROR: flake.lock missing" >&2; exit 1; }
+        ! grep -q '"type": "indirect"' flake.lock || { echo "ERROR: indirect inputs found" >&2; exit 1; }

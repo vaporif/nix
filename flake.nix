@@ -230,6 +230,17 @@
         ];
       };
   in {
+    devShells = lib.genAttrs supportedSystems (system: let
+      pkgs = mkPkgs system;
+    in {
+      default = pkgs.mkShell {
+        packages = [pkgs.lefthook];
+        shellHook = ''
+          lefthook install
+        '';
+      };
+    });
+
     formatter = lib.genAttrs supportedSystems (
       system: (mkPkgs system).alejandra
     );

@@ -67,6 +67,7 @@ in {
       pkgs.hyperfine
 
       pkgs.shfmt
+      pkgs.lefthook
 
       pkgs.mcp-nixos
       pkgs.qdrant

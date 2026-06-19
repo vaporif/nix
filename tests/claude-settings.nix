@@ -16,6 +16,8 @@
     nodes.machine = {...}: {
       imports = [home-manager.nixosModules.home-manager];
 
+      environment.systemPackages = [pkgs.jq];
+
       home-manager = {
         useGlobalPkgs = true;
         useUserPackages = true;

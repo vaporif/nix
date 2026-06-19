@@ -14,6 +14,8 @@ pkgs.testers.nixosTest {
   nodes.machine = {...}: {
     imports = [home-manager.nixosModules.home-manager];
 
+    environment.systemPackages = [pkgs.jq];
+
     home-manager = {
       useGlobalPkgs = true;
       useUserPackages = true;
@@ -47,7 +49,37 @@ pkgs.testers.nixosTest {
     };
   };
 
-  testScript = ''
+  # Multi-line shell lives in Nix-defined scripts rather than inline Python
+  # triple-quoted strings: the test driver's `ty` type-checker fails to parse
+  # a `'''` opener at end-of-line. Each script takes the (runtime-discovered)
+  # hook store path as $1.
+  testScript = let
+    bypassCheck = pkgs.writeShellScript "bypass-check" ''
+      set -eu
+      hook="$1"
+      while IFS= read -r p; do
+        [ -z "$p" ] && continue
+        payload_json=$(printf '%s' "$p" | jq -Rs .)
+        out=$(printf '{"tool_name":"Bash","tool_input":{"command":%s}}' "$payload_json" \
+          | "$hook" 2>&1 || true)
+        decision=$(printf '%s' "$out" \
+          | jq -r '.hookSpecificOutput.permissionDecision // empty' 2>/dev/null \
+          || true)
+        if [ "$decision" != "deny" ] && [ "$decision" != "ask" ]; then
+          printf 'BYPASS: payload=[%s] decision=[%s] out=[%s]\n' "$p" "$decision" "$out" >&2
+          exit 1
+        fi
+      done < /tmp/payloads.txt
+    '';
+    notifyCheck = pkgs.writeShellScript "notify-check" ''
+      set -eu
+      notify="$1"
+      rm -f /tmp/PWNED
+      printf '%s' '{"title":"x\" do shell script \"touch /tmp/PWNED\" \"","message":"x"}' \
+        | "$notify" || true
+      test ! -e /tmp/PWNED
+    '';
+  in ''
     machine.wait_for_unit("multi-user.target")
 
     settings = "/home/testuser/.claude/settings.json"
@@ -107,32 +139,15 @@ pkgs.testers.nixosTest {
       "${../claude/security/scripts/test-fixtures/bypass-payloads.txt}",
       "/tmp/payloads.txt",
     )
-    machine.succeed(rf'''
-      while IFS= read -r p; do
-        [ -z "$p" ] && continue
-        payload_json=$(printf '%s' "$p" | jq -Rs .)
-        out=$(printf '{{"tool_name":"Bash","tool_input":{{"command":%s}}}}' "$payload_json" \
-          | {bash_hook_cmd} 2>&1 || true)
-        decision=$(printf '%s' "$out" \
-          | jq -r '.hookSpecificOutput.permissionDecision // empty' 2>/dev/null \
-          || true)
-        if [ "$decision" != "deny" ] && [ "$decision" != "ask" ]; then
-          printf 'BYPASS: payload=[%s] decision=[%s] out=[%s]\n' "$p" "$decision" "$out" >&2
-          exit 1
-        fi
-      done < /tmp/payloads.txt
-    ''')
+    machine.copy_from_host("${bypassCheck}", "/tmp/bypass-check.sh")
+    machine.succeed(f"sh /tmp/bypass-check.sh {bash_hook_cmd}")
 
     # Test 15: notify.sh AppleScript injection smoke test.
     # The malicious title tries to break out of the AppleScript string
     # context and run `do shell script "touch /tmp/PWNED"`. The hook routes
     # title/message via env vars + `system attribute`, so the payload stays
     # a literal and /tmp/PWNED must not appear.
-    machine.succeed(rf'''
-      rm -f /tmp/PWNED
-      printf '%s' '{{"title":"x\" do shell script \"touch /tmp/PWNED\" \"","message":"x"}}' \
-        | {notify_cmd} || true
-      test ! -e /tmp/PWNED
-    ''')
+    machine.copy_from_host("${notifyCheck}", "/tmp/notify-check.sh")
+    machine.succeed(f"sh /tmp/notify-check.sh {notify_cmd}")
   '';
 }

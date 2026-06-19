@@ -14,7 +14,7 @@ pre-push:
     lint-lua:
       run: (cd config/nvim && selene lua after init.lua) && stylua --check config/
     lint-nix:
-      run: alejandra --check . && statix check -i .direnv && deadnix --fail && nix flake check
+      run: alejandra --check . && statix check -i .direnv && deadnix --fail
     lint-json:
       run: jq empty config/karabiner/karabiner.json
     lint-toml:

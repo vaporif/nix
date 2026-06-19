@@ -2,8 +2,11 @@
 default:
     @just --list
 
-# Run all checks
+# Run all fast linters (no flake check)
 check: lint-lua lint-nix lint-json lint-toml lint-shell lint-actions check-typos check-pinned
+
+# Run fast linters + full flake check (slow: evaluates configs, builds VM tests)
+check-all: check flake-check
 
 # Lint nvim lua with selene
 lint-lua:
@@ -14,11 +17,14 @@ lint-lua:
 fmt-lua:
     stylua config/
 
-# Lint nix files
+# Lint nix files (fast: formatting + static analysis only)
 lint-nix:
     alejandra --check . --exclude ./result --exclude ./.direnv
     statix check
     deadnix --fail --exclude result .
+
+# Full flake check (slow: evaluates every config, builds VM tests)
+flake-check:
     nix flake check
 
 # Format nix files

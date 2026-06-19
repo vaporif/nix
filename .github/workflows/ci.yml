@@ -56,3 +56,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  flake-check:
+    # arm64 runner so the aarch64-linux configs and checks actually evaluate
+    # (x86_64 runners would skip every output as an incompatible system).
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: nix flake check
+        run: nix flake check --print-build-logs
+

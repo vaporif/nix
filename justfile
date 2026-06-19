@@ -95,10 +95,6 @@ update-codex:
 # Bump all vendored LLM tools (claude-code + codex)
 llm-update: update-claude update-codex
 
-# Update neovim plugins
-lazy-update:
-    nvim --headless "+Lazy! update" +qa
-
 # Set up git hooks
 setup-hooks:
     lefthook install

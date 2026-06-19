@@ -1,1 +1,1 @@
-exclude = [".direnv/**/*.toml"]
+exclude = [".direnv/**"]

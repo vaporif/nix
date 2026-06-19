@@ -161,8 +161,8 @@
         // lib.optionalAttrs config.custom.claude.enable (let
           claudeSandboxed = lib.getExe config.custom.sandboxedPackages.claude;
         in {
-          a = "${claudeSandboxed} --dangerously-skip-permissions";
-          ar = "${claudeSandboxed} --dangerously-skip-permissions --resume";
+          a = "${claudeSandboxed} --dangerously-skip-permissions --model opus";
+          ar = "${claudeSandboxed} --dangerously-skip-permissions --resume --model opus";
         })
         // lib.optionalAttrs config.custom.codex.enable (let
           codexSandboxed = lib.getExe config.custom.sandboxedPackages.codex;

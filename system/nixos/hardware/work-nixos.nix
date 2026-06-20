@@ -21,7 +21,12 @@
     options = ["fmask=0022" "dmask=0022"];
   };
 
-  swapDevices = [];
+  swapDevices = [
+    {
+      device = "/swapfile";
+      size = 16384; # MiB (~matches 17 GiB RAM)
+    }
+  ];
 
   nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
 }

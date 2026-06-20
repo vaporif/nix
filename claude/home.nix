@@ -17,6 +17,7 @@ in {
   programs.claude-code.security = lib.mkIf cfg.claude.enable {
     enable = true;
     hooks.readOnce.enable = false;
+    hooks.bashValidation.enable = cfg.claude.bashGuard.enable;
     # No sops, no topicFile, no ntfy — keeps the (enable -> topicFile != null)
     # assertion happy on a fresh fork.
     hooks.notification.ntfy = lib.mkIf (cfg.secrets.ntfy-topic != null) {

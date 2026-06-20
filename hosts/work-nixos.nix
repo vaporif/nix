@@ -12,6 +12,7 @@
     stateVersion = "26.05";
     # No qdrant on the work Mac, so disable the ferrex memory stack here.
     qdrant.enable = false;
+    claude.bashGuard.enable = false;
     # No age key on the work box — skip sops so activation doesn't need it.
     secrets.enable = false;
     # Work laptop (the VMware host) SSH key, so it can log into this VM.

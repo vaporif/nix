@@ -109,6 +109,11 @@ in {
         });
 
     claude.enable = lib.mkEnableOption "Claude Code (CLI, plugins, settings, security, sandbox, aliases, MCP integration)";
+    claude.bashGuard.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Bash-command validation hook (the parry guard) that intercepts Bash tool calls. Disable per host (e.g. the work VM) to skip command interception.";
+    };
     qdrant.enable = lib.mkOption {
       type = lib.types.bool;
       default = true;

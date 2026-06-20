@@ -85,7 +85,7 @@
   commonPrograms = {
     context7.enable = true;
     serena = {
-      enable = true;
+      enable = false;
       package = serenaPatched;
       context = "claude-code";
       enableWebDashboard = true;

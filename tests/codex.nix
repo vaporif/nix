@@ -56,7 +56,6 @@ in
   assert hm.config.programs.zsh.shellAliases.ox == "${codexBin} exec";
     pkgs.runCommand "codex-config" {} ''
       grep -q '^\[mcp_servers.context7\]$' ${codexConfig}
-      grep -q '^\[mcp_servers.serena\]$' ${codexConfig}
       grep -q '^\[mcp_servers.github\]$' ${codexConfig}
       grep -q '^\[mcp_servers.nixos\]$' ${codexConfig}
       grep -q '^\[mcp_servers.ferrex\]$' ${codexConfig}

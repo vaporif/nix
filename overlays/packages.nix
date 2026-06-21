@@ -8,6 +8,8 @@
       touch $out
     '';
 in {
+  librewolf-unwrapped = final.callPackage ../pkgs/librewolf-unwrapped/package.nix {};
+
   claude-code = final.callPackage ../claude/package.nix {};
 
   codex = final.callPackage ../pkgs/codex.nix {};

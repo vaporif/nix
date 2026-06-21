@@ -77,6 +77,7 @@ switch host="":
     bash claude/update.sh --check || true
     bash scripts/update-codex.sh --check || true
     if [[ "$(uname)" == "Darwin" ]]; then
+        bash scripts/update-librewolf.sh --check || true
         nom build ".#darwinConfigurations.burnedapple.system"
         [[ -e /run/current-system ]] && nvd diff /run/current-system ./result || true
         sudo -H nix-env --profile /nix/var/nix/profiles/system --set ./result
@@ -97,6 +98,10 @@ update-claude:
 # Bump pkgs/codex.nix to the latest openai/codex release
 update-codex:
     bash scripts/update-codex.sh
+
+# Bump pkgs/librewolf-unwrapped/src.json to the latest LibreWolf release
+update-librewolf:
+    bash scripts/update-librewolf.sh
 
 # Bump all vendored LLM tools (claude-code + codex)
 llm-update: update-claude update-codex

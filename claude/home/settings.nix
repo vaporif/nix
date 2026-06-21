@@ -35,6 +35,7 @@ in {
     home.file = {
       ".claude/settings.json".text = builtins.toJSON {
         "$schema" = "https://json.schemastore.org/claude-code-settings.json";
+        theme = "light";
         alwaysThinkingEnabled = true;
         skipDangerousModePermissionPrompt = true;
         teammateMode = "tmux";

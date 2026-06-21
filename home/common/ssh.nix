@@ -10,10 +10,16 @@ _: {
       Ciphers = "aes256-gcm@openssh.com,chacha20-poly1305@openssh.com";
       MACs = "hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com";
     };
-    settings."*" = {
-      AddKeysToAgent = "yes";
-      ServerAliveInterval = 60;
-      ServerAliveCountMax = 3;
+    settings = {
+      "*" = {
+        AddKeysToAgent = "yes";
+        ServerAliveInterval = 60;
+        ServerAliveCountMax = 3;
+      };
+      "codeberg.org" = {
+        User = "git";
+        HostName = "codeberg.org";
+      };
     };
   };
 }

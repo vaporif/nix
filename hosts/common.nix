@@ -23,6 +23,7 @@
         "vim-tidal-lua"
         "zair"
         "zmk-config"
+        "dereza"
       ];
     };
     user = "vaporif";

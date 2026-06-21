@@ -70,6 +70,7 @@ in {
         help.autocorrect = "prompt";
         branch.sort = "committerdate";
         url."git@github.com:".insteadOf = "https://github.com/";
+        url."git@codeberg.org:".insteadOf = "https://codeberg.org/";
         interactive.diffFilter = "delta --color-only";
         delta = {
           navigate = true;

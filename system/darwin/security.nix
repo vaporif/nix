@@ -1,4 +1,4 @@
-{...}: {
+{config, ...}: {
   imports = [
     ../../modules/sops.nix
   ];
@@ -43,6 +43,13 @@
       # Stricter umask - new files only readable by owner
       umask.text = ''
         launchctl config user umask 077
+      '';
+
+      # Make nix profile bins visible to GUI apps (e.g. Unity) launched
+      # outside a shell. launchd's PATH is otherwise just the system default.
+      # Takes effect after a reboot.
+      guiPath.text = ''
+        launchctl config user path "/etc/profiles/per-user/${config.custom.user}/bin:/run/current-system/sw/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
       '';
 
       # Restrict qdrant ports to localhost + UTM subnet only

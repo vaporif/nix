@@ -39,6 +39,7 @@ in {
         alwaysThinkingEnabled = true;
         skipDangerousModePermissionPrompt = true;
         teammateMode = "tmux";
+        enabledMcpjsonServers = ["unity-mcp"];
         inherit (cfg.claude) enabledPlugins;
         statusLine = {
           type = "command";

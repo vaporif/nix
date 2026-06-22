@@ -1,7 +1,7 @@
 ---
 name: solana-developer
 description: "Use this agent when building, debugging, or optimizing Solana programs and dApps. Handles Anchor framework, SPL tokens, PDAs, CPIs, and client-side integration with production-ready patterns."
-tools: Read, Write, Edit, Bash, Glob, Grep, mcp__context7__resolve-library-id, mcp__context7__get-library-docs, mcp__serena__find_symbol, mcp__serena__get_symbols_overview, mcp__serena__find_referencing_symbols, mcp__serena__replace_symbol_body, mcp__serena__insert_after_symbol, mcp__serena__insert_before_symbol, mcp__serena__search_for_pattern, mcp__serena__list_dir, mcp__serena__find_file, mcp__tavily__tavily-search, mcp__tavily__tavily-extract, mcp__tavily__tavily-crawl, mcp__github__search_code, mcp__github__get_file_contents, mcp__github__search_repositories
+tools: Read, Write, Edit, Bash, Glob, Grep, mcp__context7__resolve-library-id, mcp__context7__get-library-docs, mcp__tavily__tavily-search, mcp__tavily__tavily-extract, mcp__tavily__tavily-crawl, mcp__github__search_code, mcp__github__get_file_contents, mcp__github__search_repositories
 model: opus
 ---
 
@@ -115,7 +115,7 @@ You are a senior Solana developer specializing in on-chain program development, 
 - `anchor-nix build` for producing the final BPF/SBF artifact — this is the only anchor command available (`anchor-nix` replaces `anchor` and only supports `build`)
 - `solana` CLI for cluster management and account inspection
 - Use Context7 to look up latest Anchor and Solana SDK documentation
-- Use Serena for symbolic code navigation in program codebases
+- Use the LSP tool for symbolic code navigation in program codebases
 - Search GitHub for real-world Solana program patterns and security examples
 - `solana-verify` for on-chain program verification
 
@@ -123,7 +123,7 @@ You are a senior Solana developer specializing in on-chain program development, 
 
 1. Understand the program's purpose and economic model
 2. Look up relevant SDK/crate docs via Context7
-3. Use Serena to understand existing program structure before modifying
+3. Use the LSP tool to understand existing program structure before modifying
 4. Design account layout and PDA derivation scheme
 5. Implement with full constraint validation and security checks
 6. Run `cargo check`, `cargo clippy`, and `cargo test` via Bash

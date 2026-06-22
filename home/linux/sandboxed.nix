@@ -25,7 +25,7 @@
     LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
     export LIBCLANG_PATH
 
-    mkdir -p "$HOME/.claude" "$HOME/.cache/nix" "$HOME/.cache/huggingface" "$HOME/.serena"
+    mkdir -p "$HOME/.claude" "$HOME/.cache/nix" "$HOME/.cache/huggingface"
 
     args=(
       --unshare-ipc
@@ -72,7 +72,6 @@
     bind_rw "$HOME/.cache/nix"
     bind_rw "$HOME/.cache/huggingface"
     bind_rw "$HOME/.cargo"
-    bind_rw "$HOME/.serena"
     bind_rw "$HOME/Repos"
     bind_ro "$HOME/.local/share/gh"
 
@@ -140,7 +139,7 @@
     LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
     export LIBCLANG_PATH
 
-    mkdir -p "$HOME/.codex" "$HOME/.cache/nix" "$HOME/.cache/huggingface" "$HOME/.serena" "$HOME/.ferrex"
+    mkdir -p "$HOME/.codex" "$HOME/.cache/nix" "$HOME/.cache/huggingface" "$HOME/.ferrex"
 
     args=(
       --unshare-ipc
@@ -185,7 +184,6 @@
     bind_rw "$HOME/.cache/nix"
     bind_rw "$HOME/.cache/huggingface"
     bind_rw "$HOME/.cargo"
-    bind_rw "$HOME/.serena"
     bind_rw "$HOME/.ferrex"
     bind_rw "$HOME/Repos"
     bind_ro "$HOME/.local/share/gh"

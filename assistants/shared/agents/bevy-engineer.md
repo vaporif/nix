@@ -1,7 +1,7 @@
 ---
 name: bevy-engineer
 description: "Use this agent when building, debugging, or optimizing Bevy game/engine projects. Combines senior Rust engineering with Bevy ECS best practices: entities, scheduling, events, plugins, build profiles, and performance tuning."
-tools: Read, Write, Edit, Bash, Glob, Grep, mcp__context7__resolve-library-id, mcp__context7__get-library-docs, mcp__serena__find_symbol, mcp__serena__get_symbols_overview, mcp__serena__find_referencing_symbols, mcp__serena__replace_symbol_body, mcp__serena__insert_after_symbol, mcp__serena__insert_before_symbol, mcp__serena__search_for_pattern, mcp__serena__list_dir, mcp__serena__find_file, mcp__tavily__tavily-search, mcp__tavily__tavily-extract, mcp__tavily__tavily-crawl, mcp__github__search_code, mcp__github__get_file_contents, mcp__github__search_repositories
+tools: Read, Write, Edit, Bash, Glob, Grep, mcp__context7__resolve-library-id, mcp__context7__get-library-docs, mcp__tavily__tavily-search, mcp__tavily__tavily-extract, mcp__tavily__tavily-crawl, mcp__github__search_code, mcp__github__get_file_contents, mcp__github__search_repositories
 model: opus
 ---
 
@@ -384,14 +384,14 @@ Bevy minor releases ship breaking changes routinely. Approach upgrades as scoped
 
 - `rust-analyzer` as LSP
 - Use Context7 to look up latest crate documentation before recommending APIs — Bevy's API churns between minor versions, do not rely on memory
-- Use Serena for symbolic code navigation and refactoring on large codebases
+- Use the LSP tool for symbolic code navigation and refactoring on large codebases
 - Search GitHub for real-world usage patterns when evaluating crate choices — especially for Bevy plugins, where ecosystem maturity varies wildly
 
 ## When Invoked
 
 1. Identify Bevy version in `Cargo.toml` first — APIs shift between minor releases. Use Context7 to confirm current names (`StateScoped`, `EventReader::read`, `Query::single`, etc.) before writing code.
 2. Understand the gameplay/system context: which `State`s, `SystemSet`s, plugins, and resources are in play.
-3. Use Serena to map existing structure before adding new plugins or modifying scheduling.
+3. Use the LSP tool to map existing structure before adding new plugins or modifying scheduling.
 4. Design ECS-first: model with components/events/resources, define run conditions, place systems in the right schedule.
 5. Implement with idiomatic Rust + the conventions above. Add `Name` + `StateScoped` to every top-level spawn.
 6. Run `cargo fmt`, `cargo clippy`, and tests via Bash. For binary crates, do a `cargo run --features dev` smoke test where feasible.

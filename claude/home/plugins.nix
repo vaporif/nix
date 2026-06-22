@@ -125,6 +125,76 @@
     }
   ];
 
+  # Code-intelligence plugins for the native LSP tool. Each carries no skills/
+  # agents — only an `lspServers` block in the marketplace entry. `command` is
+  # pinned to an absolute store path (via getExe) so the server need not be on
+  # PATH and its version is locked to this flake; the binary is pulled into the
+  # closure by the string reference. Covers rust, go, lua, ts, python; sources
+  # are the upstream LICENSE/README dirs (metadata lives in the marketplace).
+  lspPlugins = map (p:
+    p
+    // {
+      source = officialPlugin p.name;
+      version = "1.0.0";
+    }) [
+    {
+      name = "rust-analyzer-lsp";
+      description = "Rust language server (rust-analyzer) for code intelligence";
+      lspServers."rust-analyzer" = {
+        command = lib.getExe pkgs.rust-analyzer;
+        extensionToLanguage.".rs" = "rust";
+      };
+    }
+    {
+      name = "gopls-lsp";
+      description = "Go language server (gopls) for code intelligence";
+      lspServers.gopls = {
+        command = lib.getExe pkgs.gopls;
+        extensionToLanguage.".go" = "go";
+      };
+    }
+    {
+      name = "lua-lsp";
+      description = "Lua language server for code intelligence";
+      lspServers.lua = {
+        command = lib.getExe pkgs.lua-language-server;
+        extensionToLanguage.".lua" = "lua";
+      };
+    }
+    {
+      name = "typescript-lsp";
+      description = "TypeScript/JavaScript language server for code intelligence";
+      lspServers.typescript = {
+        command = lib.getExe pkgs.typescript-language-server;
+        args = ["--stdio"];
+        extensionToLanguage = {
+          ".ts" = "typescript";
+          ".tsx" = "typescriptreact";
+          ".js" = "javascript";
+          ".jsx" = "javascriptreact";
+          ".mts" = "typescript";
+          ".cts" = "typescript";
+          ".mjs" = "javascript";
+          ".cjs" = "javascript";
+        };
+      };
+    }
+    {
+      name = "pyright-lsp";
+      description = "Python language server (basedpyright) for code intelligence";
+      lspServers.pyright = {
+        command = lib.getExe' pkgs.basedpyright "basedpyright-langserver";
+        args = ["--stdio"];
+        extensionToLanguage = {
+          ".py" = "python";
+          ".pyi" = "python";
+        };
+      };
+    }
+  ];
+
+  allPlugins = plugins ++ lspPlugins;
+
   nixPluginsMarketplace = builtins.toJSON {
     "$schema" = "https://anthropic.com/claude-code/marketplace.schema.json";
     name = "nix-plugins";
@@ -133,12 +203,13 @@
       name = "nix";
       email = "nix@localhost";
     };
-    plugins =
-      map (p: {
+    plugins = map (p:
+      {
         inherit (p) name description;
         source = "./${p.name}";
-      })
-      plugins;
+      }
+      // lib.optionalAttrs (p ? lspServers) {inherit (p) lspServers;})
+    allPlugins;
   };
 
   installedPlugins = builtins.toJSON {
@@ -155,14 +226,14 @@
           }
         ];
       })
-      plugins);
+      allPlugins);
   };
 
   pluginFiles = builtins.listToAttrs (map (p: {
       name = "${nixPluginsPath}/${p.name}";
       value.source = p.source;
     })
-    plugins);
+    allPlugins);
 
   # Plugins to keep installed but disabled (skills/commands/agents not loaded).
   # Toggle by adding/removing names here — no rebuild of plugin sources needed.
@@ -176,7 +247,7 @@
       name = "${p.name}@nix-plugins";
       value = !(builtins.elem p.name disabledPlugins);
     })
-    plugins);
+    allPlugins);
 
   knownMarketplaces = builtins.toJSON {
     "claude-plugins-official" = {

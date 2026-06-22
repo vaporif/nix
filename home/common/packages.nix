@@ -33,7 +33,8 @@ in {
       pkgs.rusty-man
       pkgs.graphviz
 
-      pkgs.python3
+      pkgs.python314
+      pkgs.uv
       pkgs.python3Packages.huggingface-hub
 
       pkgs.presenterm

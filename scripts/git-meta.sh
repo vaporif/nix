@@ -3,7 +3,7 @@
 # Usage: git meta <push|pull|diff|init>
 set -euo pipefail
 
-DEFAULTS=(.envrc .serena/ .claude/ CLAUDE.md)
+DEFAULTS=(.envrc .claude/ CLAUDE.md)
 
 die() { echo "error: $*" >&2; exit 1; }
 warn() { echo "warning: $*" >&2; }

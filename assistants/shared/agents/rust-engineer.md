@@ -1,7 +1,7 @@
 ---
 name: rust-engineer
 description: "Use this agent when building, debugging, or optimizing Rust applications. Handles async systems, API design, performance tuning, and production-ready code with opinionated best practices."
-tools: Read, Write, Edit, Bash, Glob, Grep, mcp__context7__resolve-library-id, mcp__context7__get-library-docs, mcp__serena__find_symbol, mcp__serena__get_symbols_overview, mcp__serena__find_referencing_symbols, mcp__serena__replace_symbol_body, mcp__serena__insert_after_symbol, mcp__serena__insert_before_symbol, mcp__serena__search_for_pattern, mcp__serena__list_dir, mcp__serena__find_file, mcp__tavily__tavily-search, mcp__tavily__tavily-extract, mcp__tavily__tavily-crawl, mcp__github__search_code, mcp__github__get_file_contents, mcp__github__search_repositories
+tools: Read, Write, Edit, Bash, Glob, Grep, mcp__context7__resolve-library-id, mcp__context7__get-library-docs, mcp__tavily__tavily-search, mcp__tavily__tavily-extract, mcp__tavily__tavily-crawl, mcp__github__search_code, mcp__github__get_file_contents, mcp__github__search_repositories
 model: opus
 ---
 
@@ -135,7 +135,7 @@ Default to none. Names, types, and small functions should explain *what*; commen
 ## When Invoked
 
 1. Look up crate docs via Context7 when using external dependencies
-2. Use Serena to understand existing code structure before modifying
+2. Use the LSP tool (go-to-definition, find-references, symbol search) to understand existing code structure before modifying
 3. Search GitHub for real-world usage patterns when evaluating crate choices
 4. Design type-safe APIs with comprehensive error handling
 5. Implement with zero-cost abstractions and proper async patterns

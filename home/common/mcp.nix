@@ -8,73 +8,6 @@
   cfg = config.custom;
   homeDir = config.home.homeDirectory;
 
-  # Strip Serena's ~700-token system prompt template. We use Serena only as an
-  # MCP — each tool description already explains itself, so the agent-role
-  # preamble (and the interactive/editing mode prompts it renders) are dead weight.
-  serenaSystemPrompt = pkgs.writeText "system_prompt.yml" ''
-    prompts:
-      system_prompt: ""
-  '';
-
-  # LSP-only claude-code context: replaces upstream claude-code.yml so only
-  # symbolic / LSP-backed tools are advertised. Keeps Serena from polluting
-  # context with file/memory/onboarding/think tools that Claude Code already
-  # covers natively (or that we cover via ferrex).
-  serenaClaudeCodeContext = pkgs.writeText "claude-code.yml" ''
-    description: Claude Code (LSP-only — symbolic tools only)
-    prompt: ""
-
-    excluded_tools:
-      # already excluded upstream — kept here so the list is self-contained
-      - create_text_file
-      - read_file
-      - execute_shell_command
-      - prepare_for_new_conversation
-      - replace_content
-      # file/dir ops Claude Code handles natively
-      - find_file
-      - list_dir
-      - delete_lines
-      - replace_lines
-      - insert_at_line
-      # memory subsystem — superseded by ferrex
-      - write_memory
-      - read_memory
-      - list_memories
-      - delete_memory
-      - edit_memory
-      # onboarding / meta-prompting / dashboard noise
-      - check_onboarding_performed
-      - onboarding
-      - think_about_collected_information
-      - think_about_task_adherence
-      - think_about_whether_you_are_done
-      - summarize_changes
-      - initial_instructions
-      - open_dashboard
-      - remove_project
-
-    tool_description_overrides: {}
-
-    single_project: true
-  '';
-
-  serenaPatched = inputs.mcp-servers-nix.packages.${pkgs.stdenv.hostPlatform.system}.serena.overrideAttrs (oldAttrs: {
-    version = "0.1.4-unstable-2025-12-28";
-    src = pkgs.fetchFromGitHub {
-      owner = "vaporif";
-      repo = "serena";
-      rev = "16c2124feb9a3cc242cc1583e70cb13f75cb8603";
-      hash = "sha256-nozcdXVBHlHTtnXvJACC2M3Bat9oT1WEgVYP47SfrQ4=";
-    };
-    postPatch =
-      (oldAttrs.postPatch or "")
-      + ''
-        cp ${serenaClaudeCodeContext} src/serena/resources/config/contexts/claude-code.yml
-        cp ${serenaSystemPrompt} src/serena/resources/config/prompt_templates/system_prompt.yml
-      '';
-  });
-
   mcp-nixos-package = pkgs.mcp-nixos;
 
   ferrex-package = inputs.ferrex.packages.${pkgs.stdenv.hostPlatform.system}.default;
@@ -84,18 +17,6 @@
   # Shared programs used by both Desktop and Code
   commonPrograms = {
     context7.enable = true;
-    serena = {
-      enable = false;
-      package = serenaPatched;
-      context = "claude-code";
-      enableWebDashboard = true;
-      extraPackages =
-        cfg.lspPackages
-        ++ [
-          pkgs.rust-analyzer
-          pkgs.gopls
-        ];
-    };
   };
 
   # Shared custom servers used by both Desktop and Code
@@ -110,7 +31,6 @@
       nixos = {
         command = lib.getExe mcp-nixos-package;
       };
-      serena.args = lib.mkAfter ["--project-from-cwd"];
     }
     // lib.optionalAttrs cfg.qdrant.enable {
       ferrex = {

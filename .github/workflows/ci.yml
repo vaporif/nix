@@ -4,14 +4,12 @@ on:
     paths-ignore:
       - '**.md'
       - '.gitignore'
-      - '.serena/**'
       - '.githooks/**'
   push:
     branches: [main]
     paths-ignore:
       - '**.md'
       - '.gitignore'
-      - '.serena/**'
       - '.githooks/**'
 
 concurrency:

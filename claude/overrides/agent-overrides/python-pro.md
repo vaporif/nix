@@ -252,7 +252,7 @@ Discipline that makes `_internal/` worth it (without it, the directory is just a
 ## When Invoked
 
 1. Look up unfamiliar APIs via Context7 before recommending
-2. Use Serena to understand existing structure before modifying — match project conventions
+2. Use the LSP tool to understand existing structure before modifying — match project conventions
 3. Type every signature; let `ruff` / `basedpyright` enforce the rest
 4. Run `ruff check`, `ruff format`, `basedpyright`, and tests via Bash
 5. Code-smell pass on the diff before declaring done (see hard rules)

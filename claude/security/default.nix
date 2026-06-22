@@ -483,26 +483,6 @@ in {
           "mcp__github__search_pull_requests"
           "mcp__github__search_repositories"
           "mcp__github__search_users"
-          "mcp__serena__activate_project"
-          "mcp__serena__check_onboarding_performed"
-          "mcp__serena__get_current_config"
-          "mcp__serena__list_dir"
-          "mcp__serena__read_file"
-          "mcp__serena__read_memory"
-          "mcp__serena__list_memories"
-          "mcp__serena__find_file"
-          "mcp__serena__get_symbols_overview"
-          "mcp__serena__find_symbol"
-          "mcp__serena__find_referencing_symbols"
-          "mcp__serena__search_for_pattern"
-          "mcp__serena__initial_instructions"
-          "mcp__serena__onboarding"
-          "mcp__serena__think_about_collected_information"
-          "mcp__serena__think_about_task_adherence"
-          "mcp__serena__think_about_whether_you_are_done"
-          "mcp__serena__write_memory"
-          "mcp__serena__edit_memory"
-          "mcp__serena__delete_memory"
           "mcp__tavily__tavily-search"
           "mcp__tavily__tavily-extract"
           "mcp__tavily__tavily-crawl"
@@ -576,18 +556,6 @@ in {
           {
             tool = "mcp__ferrex__forget";
             reason = "Deleting from ferrex memory. This is irreversible.";
-          }
-          {
-            tool = "mcp__serena__write_memory";
-            reason = "Writing to persistent Serena memory.";
-          }
-          {
-            tool = "mcp__serena__edit_memory";
-            reason = "Editing persistent Serena memory.";
-          }
-          {
-            tool = "mcp__serena__delete_memory";
-            reason = "Deleting persistent Serena memory.";
           }
         ];
         description = "Tools that require explicit user confirmation via PreToolUse hook, with human-readable reasons";

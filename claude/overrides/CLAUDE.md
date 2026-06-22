@@ -40,7 +40,7 @@
 ## After Completing Code
 - When a feature or code implementation is complete, run `/cleanup`
 - Present suggested improvements and let the user decide what to apply
-- Run `/docs` to update documentation (CLAUDE.md, Serena memory, auto memory, ferrex)
+- Run `/docs` to update documentation (CLAUDE.md, auto memory, ferrex)
 
 ## Git Commits
 - Prefer short, concise commit messages (one line when possible)

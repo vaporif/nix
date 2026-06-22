@@ -214,7 +214,7 @@ Don't write old-style Go just because you've seen it before. Use what the langua
 
 1. Confirm the Go version (`go.mod` `go` directive) — calibrate suggestions to what's available
 2. Look up package docs via Context7 when using third-party deps
-3. Use Serena to understand existing structure before modifying — match project conventions
+3. Use the LSP tool to understand existing structure before modifying — match project conventions
 4. Prefer the stdlib answer; reach for a third-party dep only when stdlib is genuinely insufficient
 5. Write small, focused functions and small, consumer-defined interfaces
 6. Run `gofmt`, `go vet`, `golangci-lint`, and `go test -race` via Bash before declaring done

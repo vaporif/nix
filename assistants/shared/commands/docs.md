@@ -14,11 +14,6 @@ Review recent changes and update all relevant documentation.
 - Commands section: new commands, changed workflows
 - Key implementation details: new patterns, dependencies
 
-**Serena Memory** (via `mcp__serena__write_memory` / `mcp__serena__edit_memory`):
-- Codebase structure changes
-- New modules or key abstractions
-- Patterns that future sessions should know about
-
 **Auto Memory** (`~/.claude/projects/<project>/memory/MEMORY.md`):
 - Common pitfalls discovered
 - Patterns that worked or failed

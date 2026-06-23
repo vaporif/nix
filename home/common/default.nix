@@ -61,6 +61,15 @@ in {
     tmux = {
       enable = true;
       prefix = "C-a";
+      baseIndex = 1;
+      terminal = "tmux-256color";
+      extraConfig = ''
+        set -g pane-base-index 1
+        set -g renumber-windows on
+        set -ga terminal-overrides ",*256col*:Tc"
+        set -ga terminal-features ",*:RGB"
+        set -ga terminal-overrides ',*:Ss=\E[%p1%d q:Se=\E[ q'
+      '';
     };
 
     parry-guard =

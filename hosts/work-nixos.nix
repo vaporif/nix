@@ -12,6 +12,9 @@
     stateVersion = "26.05";
     # No qdrant on the work Mac, so disable the ferrex memory stack here.
     qdrant.enable = false;
+    # Persistent SSH sessions: drop into a tmux session on login so work
+    # survives closing the terminal or losing the connection.
+    tmux.autoAttach = true;
     claude.bashGuard.enable = false;
     # No age key on the work box — skip sops so activation doesn't need it.
     secrets.enable = false;

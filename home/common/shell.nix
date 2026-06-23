@@ -171,18 +171,28 @@
           "or" = "${codexSandboxed} resume --dangerously-bypass-approvals-and-sandbox";
           ox = "${codexSandboxed} exec";
         });
-      initContent = ''
-        ulimit -Sn 4096
-        ulimit -Sl unlimited
+      initContent =
+        ''
+          ulimit -Sn 4096
+          ulimit -Sl unlimited
 
-        # Only set sensitive vars outside agent sandboxes
-        if [[ -z "''${CLAUDE_SANDBOX:-}" && -z "''${CODEX_SANDBOX:-}" ]]; then
-          export SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/key.txt"
-        fi
+          # Only set sensitive vars outside agent sandboxes
+          if [[ -z "''${CLAUDE_SANDBOX:-}" && -z "''${CODEX_SANDBOX:-}" ]]; then
+            export SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/key.txt"
+          fi
 
-        bindkey '^F' fzf-file-widget
-        bindkey -r '^T'
-      '';
+          bindkey '^F' fzf-file-widget
+          bindkey -r '^T'
+        ''
+        + lib.optionalString config.custom.tmux.autoAttach ''
+
+          # Persistent session: on an interactive SSH login, replace the shell
+          # with a tmux session (attach if it exists, else create). Keeps the
+          # shell and running programs alive across disconnects and terminal close.
+          if [[ -n "''${SSH_TTY:-}" && -z "''${TMUX:-}" ]] && command -v tmux >/dev/null; then
+            exec tmux new-session -A -s main
+          fi
+        '';
     };
   };
 }

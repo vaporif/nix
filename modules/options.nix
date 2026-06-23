@@ -114,6 +114,7 @@ in {
       default = true;
       description = "Bash-command validation hook (the parry guard) that intercepts Bash tool calls. Disable per host (e.g. the work VM) to skip command interception.";
     };
+    tmux.autoAttach = lib.mkEnableOption "auto-attach to a persistent tmux session on interactive SSH logins, keeping the shell and running programs alive across disconnects (e.g. the work VM)";
     qdrant.enable = lib.mkOption {
       type = lib.types.bool;
       default = true;

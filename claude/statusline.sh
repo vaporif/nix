@@ -190,6 +190,15 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
   fi
 fi
 
+# --- Current directory ---
+
+CWD=""
+CWD_RAW=$(jq_r '.workspace.current_dir // .cwd // empty')
+if [[ -n "${CWD_RAW}" ]]; then
+  CWD_DISPLAY="${CWD_RAW/#${HOME}/\~}"
+  CWD=" | ${TEAL}${CWD_DISPLAY}${RESET}"
+fi
+
 # --- Worktree ---
 
 WORKTREE=""
@@ -305,7 +314,7 @@ fi
 
 # --- Output ---
 
-echo -e "[${MODEL}${EFFORT_DISPLAY}] ${CTX_COLOR}${TOKEN_DISPLAY}${RESET}${CTX_LIMIT_DISPLAY} ${DIM}(${CTX_COLOR}${PERCENT}%${RESET}${DIM})${RESET}${COMPACT_BADGE}${REAL_CTX_DISPLAY}${VIM_MODE}${GIT_BRANCH}${GIT_DIFF}${WORKTREE}${AGENT}"
+echo -e "[${MODEL}${EFFORT_DISPLAY}] ${CTX_COLOR}${TOKEN_DISPLAY}${RESET}${CTX_LIMIT_DISPLAY} ${DIM}(${CTX_COLOR}${PERCENT}%${RESET}${DIM})${RESET}${COMPACT_BADGE}${REAL_CTX_DISPLAY}${VIM_MODE}${GIT_BRANCH}${GIT_DIFF}${CWD}${WORKTREE}${AGENT}"
 
 [[ -n "${LIMITS_DISPLAY}" ]] && echo -e "${LIMITS_DISPLAY}"
 

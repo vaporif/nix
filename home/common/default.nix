@@ -6,6 +6,7 @@
   ...
 }: let
   cfg = config.custom;
+  c = config.lib.stylix.colors.withHashtag;
 in {
   imports = [
     ./llm
@@ -55,6 +56,9 @@ in {
     };
   };
 
+  # own the tmux layout via extraConfig; still uses stylix's palette via `c`
+  stylix.targets.tmux.enable = false;
+
   programs = {
     home-manager.enable = true;
 
@@ -69,6 +73,49 @@ in {
         set -ga terminal-overrides ",*256col*:Tc"
         set -ga terminal-features ",*:RGB"
         set -ga terminal-overrides ',*:Ss=\E[%p1%d q:Se=\E[ q'
+
+        # ── ultra-minimal status bar (colors from stylix palette) ──
+        set -g status-position bottom
+        set -g status-interval 5
+        set -g status-justify left
+        set -g status-style "bg=default,fg=${c.base04}"
+
+        # small left gap, no session block
+        set -g status-left " "
+        set -g status-left-length 1
+
+        set -g status-right "#[fg=${c.base03}]%H:%M "
+        set -g status-right-length 12
+
+        # tabs: dim inactive, bold accent active, no backgrounds
+        set -g window-status-separator "  "
+        set -g window-status-format "#[fg=${c.base03}]#I #[fg=${c.base04}]#W"
+        set -g window-status-current-format "#[fg=${c.base0C},bold]#I #W"
+        set -g window-status-activity-style "fg=${c.base09}"
+        set -g window-status-bell-style "fg=${c.base08},bold"
+
+        # panes / messages / copy-mode
+        set -g pane-border-style "fg=${c.base02}"
+        set -g pane-active-border-style "fg=${c.base0C}"
+        set -g message-style "bg=${c.base00},fg=${c.base05}"
+        set -g message-command-style "bg=${c.base00},fg=${c.base05}"
+        set -g mode-style "bg=${c.base02},fg=${c.base05}"
+
+        # Alt-1..9 select window 1..9 (no prefix)
+        bind -n M-1 select-window -t 1
+        bind -n M-2 select-window -t 2
+        bind -n M-3 select-window -t 3
+        bind -n M-4 select-window -t 4
+        bind -n M-5 select-window -t 5
+        bind -n M-6 select-window -t 6
+        bind -n M-7 select-window -t 7
+        bind -n M-8 select-window -t 8
+        bind -n M-9 select-window -t 9
+
+        # Ctrl-t: toggle floating scratch terminal
+        bind -n C-t if-shell -F '#{==:#{session_name},scratch}' \
+          'detach-client' \
+          'display-popup -E -w 80% -h 80% "tmux attach -t scratch || tmux new -s scratch"'
       '';
     };
 

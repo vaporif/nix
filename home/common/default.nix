@@ -72,6 +72,11 @@ in {
         set -g renumber-windows on
         set -sg escape-time 0
         set -g mouse on
+        set -g focus-events on
+        set -g history-limit 50000
+        set -g set-clipboard on
+        set -g allow-passthrough on
+        setw -g monitor-activity on
         setw -g mode-keys vi
         bind -T copy-mode-vi v send -X begin-selection
         bind -T copy-mode-vi y send -X copy-selection-and-cancel
@@ -105,6 +110,11 @@ in {
         set -g message-style "bg=${c.base00},fg=${c.base05}"
         set -g message-command-style "bg=${c.base00},fg=${c.base05}"
         set -g mode-style "bg=${c.base02},fg=${c.base05}"
+
+        # new windows / splits inherit the current pane's path
+        bind c new-window -c "#{pane_current_path}"
+        bind '"' split-window -v -c "#{pane_current_path}"
+        bind % split-window -h -c "#{pane_current_path}"
 
         # Alt-1..9 select window 1..9 (no prefix)
         bind -n M-1 select-window -t 1

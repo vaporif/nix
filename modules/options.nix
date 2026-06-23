@@ -3,6 +3,22 @@
   config,
   ...
 }: let
+  yaziBookmark = lib.types.submodule {
+    options = {
+      key = lib.mkOption {
+        type = lib.types.str;
+        description = "Second key pressed after 'b' to trigger the cd.";
+      };
+      path = lib.mkOption {
+        type = lib.types.str;
+        description = "Directory to cd into.";
+      };
+      desc = lib.mkOption {
+        type = lib.types.str;
+        description = "Keymap description shown in yazi.";
+      };
+    };
+  };
   llmContentEntry = lib.types.submodule {
     options = {
       source = lib.mkOption {
@@ -37,6 +53,10 @@ in {
     configPath = lib.mkOption {
       type = lib.types.str;
       description = "Absolute path to this repo on the host";
+    };
+    yaziBookmarks = lib.mkOption {
+      type = lib.types.listOf yaziBookmark;
+      description = "Yazi 'b'-prefixed directory bookmarks (cd hotkeys). Set per host.";
     };
     timezone = lib.mkOption {
       type = lib.types.str;
@@ -173,6 +193,55 @@ in {
       if lib.hasSuffix "darwin" config.custom.system
       then "/Users/${config.custom.user}"
       else "/home/${config.custom.user}";
+
+    # Full bookmark set; hosts override (e.g. work-nixos trims to a subset).
+    yaziBookmarks = lib.mkDefault [
+      {
+        key = "r";
+        path = "~/Repos/";
+        desc = "Go to [r]epos";
+      }
+      {
+        key = "g";
+        path = "~/Repos/quarry/glint";
+        desc = "Go to [g]lint";
+      }
+      {
+        key = "a";
+        path = "~/Repos/nephila";
+        desc = "Go to nephil[a]";
+      }
+      {
+        key = "p";
+        path = "~/Repos/parry-guard";
+        desc = "Go to [p]arry-guard";
+      }
+      {
+        key = "m";
+        path = "~/Repos/mercury";
+        desc = "Go to [m]ercury";
+      }
+      {
+        key = "k";
+        path = "~/Repos/kingdom";
+        desc = "Go to [k]ingdom";
+      }
+      {
+        key = "c";
+        path = "~/Repos/monorepo";
+        desc = "Go to [c]ommonware";
+      }
+      {
+        key = "n";
+        path = config.custom.configPath;
+        desc = "Go to [n]ix";
+      }
+      {
+        key = "l";
+        path = "~/Repos/logos";
+        desc = "Go to [l]ogos";
+      }
+    ];
 
     # Populate /run/secrets paths when sops is enabled; otherwise leave
     # everything null. Consumers gate on the value (see modules/nix.nix etc).

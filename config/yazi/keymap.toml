@@ -28,50 +28,8 @@ on = ["/"]
 run = "filter --smart"
 desc = "Filter files (smart-case)"
 
-[[mgr.prepend_keymap]]
-on = ["b", "r"]
-run = "cd ~/Repos/"
-desc = "Go to [r]epos"
-
-[[mgr.prepend_keymap]]
-on = ["b", "g"]
-run = "cd ~/Repos/quarry/glint"
-desc = "Go to [g]lint"
-
-[[mgr.prepend_keymap]]
-on = ["b", "a"]
-run = "cd ~/Repos/nephila"
-desc = "Go to nephil[a]"
-
-[[mgr.prepend_keymap]]
-on = ["b", "p"]
-run = "cd ~/Repos/parry-guard"
-desc = "Go to [p]arry-guard"
-
-[[mgr.prepend_keymap]]
-on = ["b", "m"]
-run = "cd ~/Repos/mercury"
-desc = "Go to [m]ercury"
-
-[[mgr.prepend_keymap]]
-on = ["b", "k"]
-run = "cd ~/Repos/kingdom"
-desc = "Go to [k]ingdom"
-
-[[mgr.prepend_keymap]]
-on = ["b", "c"]
-run = "cd ~/Repos/monorepo"
-desc = "Go to [c]ommonware"
-
-[[mgr.prepend_keymap]]
-on = ["b", "n"]
-run = "cd @configPath@" # substituted at build time by builtins.replaceStrings
-desc = "Go to [n]ix"
-
-[[mgr.prepend_keymap]]
-on = ["b", "l"]
-run = "cd ~/Repos/logos"
-desc = "Go to [l]ogos"
+# 'b'-prefixed directory bookmarks are generated per host from
+# custom.yaziBookmarks and appended in home/common/xdg.nix.
 
 [[mgr.prepend_keymap]]
 on = ["u", "a"]

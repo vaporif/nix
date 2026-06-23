@@ -1,10 +1,20 @@
 {
   config,
   inputs,
+  lib,
   pkgs,
   ...
 }: let
   cfg = config.custom;
+  yaziBookmarkKeymap =
+    lib.concatMapStrings (b: ''
+
+      [[mgr.prepend_keymap]]
+      on = ["b", "${b.key}"]
+      run = "cd ${b.path}"
+      desc = "${b.desc}"
+    '')
+    cfg.yaziBookmarks;
 in {
   programs.wezterm = {
     enable = true;
@@ -25,7 +35,7 @@ in {
   xdg.configFile = {
     "yazi/yazi.toml".source = ../../config/yazi/yazi.toml;
     "yazi/init.lua".source = ../../config/yazi/init.lua;
-    "yazi/keymap.toml".text = builtins.replaceStrings ["@configPath@"] [cfg.configPath] (builtins.readFile ../../config/yazi/keymap.toml);
+    "yazi/keymap.toml".text = (builtins.readFile ../../config/yazi/keymap.toml) + yaziBookmarkKeymap;
     "yazi/plugins/yamb.yazi" = {
       source = inputs.yamb-yazi;
       recursive = true;

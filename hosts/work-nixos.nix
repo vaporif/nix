@@ -22,5 +22,23 @@
     sshAuthorizedKeys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN9gvaCjdNLEKlUzkpBGtnnO7AjYxHkkueSfj689dkyX dmytro.onypko@Mac-G4F36NXDV4.local"
     ];
+    # This box only needs the repos, nix and justex jumps.
+    yaziBookmarks = [
+      {
+        key = "r";
+        path = "~/repos/";
+        desc = "Go to [r]epos";
+      }
+      {
+        key = "n";
+        path = config.custom.configPath;
+        desc = "Go to [n]ix";
+      }
+      {
+        key = "j";
+        path = "~/repos/justex";
+        desc = "Go to [j]ustex";
+      }
+    ];
   };
 }

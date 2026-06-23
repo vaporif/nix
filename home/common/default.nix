@@ -70,6 +70,11 @@ in {
       extraConfig = ''
         set -g pane-base-index 1
         set -g renumber-windows on
+        set -sg escape-time 0
+        set -g mouse on
+        setw -g mode-keys vi
+        bind -T copy-mode-vi v send -X begin-selection
+        bind -T copy-mode-vi y send -X copy-selection-and-cancel
         set -ga terminal-overrides ",*256col*:Tc"
         set -ga terminal-features ",*:RGB"
         set -ga terminal-overrides ',*:Ss=\E[%p1%d q:Se=\E[ q'

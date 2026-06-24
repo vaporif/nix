@@ -25,10 +25,7 @@
   boot.tmp.useTmpfs = true;
 
   boot.kernel.sysctl = {
-    # Existing
     "net.ipv4.conf.all.forwarding" = false;
-    "net.ipv4.conf.all.accept_redirects" = false;
-    "net.ipv6.conf.all.accept_redirects" = false;
     "net.ipv4.tcp_syncookies" = true;
     "kernel.unprivileged_bpf_disabled" = 1;
 
@@ -40,8 +37,27 @@
     "kernel.core_uses_pid" = 1;
     "fs.suid_dumpable" = 0;
 
-    # Network hardening
-    "net.ipv4.conf.all.rp_filter" = 1;
+    # Network hardening — apply to both .all and .default so interfaces
+    # brought up later inherit the hardened settings.
+    "net.ipv4.conf.all.accept_redirects" = false;
+    "net.ipv4.conf.default.accept_redirects" = false;
+    "net.ipv6.conf.all.accept_redirects" = false;
+    "net.ipv6.conf.default.accept_redirects" = false;
+    "net.ipv4.conf.all.secure_redirects" = false;
+    "net.ipv4.conf.default.secure_redirects" = false;
+    "net.ipv4.conf.all.send_redirects" = false;
+    "net.ipv4.conf.default.send_redirects" = false;
+    "net.ipv4.conf.all.accept_source_route" = false;
+    "net.ipv4.conf.default.accept_source_route" = false;
+    "net.ipv6.conf.all.accept_source_route" = false;
+    "net.ipv6.conf.default.accept_source_route" = false;
+    # Loose reverse-path filtering (2): blocks spoofed packets with no route
+    # back via any interface, while tolerating the asymmetric routing that
+    # podman bridges and VPN split-tunnels produce. Strict (1) would drop them.
+    "net.ipv4.conf.all.rp_filter" = 2;
+    "net.ipv4.conf.default.rp_filter" = 2;
+    "net.ipv4.conf.all.log_martians" = true;
+    "net.ipv4.conf.default.log_martians" = true;
     "net.ipv4.icmp_echo_ignore_broadcasts" = 1;
     "net.ipv4.icmp_ignore_bogus_error_responses" = 1;
   };

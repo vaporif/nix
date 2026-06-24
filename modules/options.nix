@@ -137,8 +137,8 @@ in {
     tmux.autoAttach = lib.mkEnableOption "auto-attach to a persistent tmux session on interactive SSH logins, keeping the shell and running programs alive across disconnects (e.g. the work VM)";
     qdrant.enable = lib.mkOption {
       type = lib.types.bool;
-      default = true;
-      description = "Qdrant-backed ferrex memory stack: the qdrant launchd agent on macOS plus the ferrex MCP server on every host. Disable on machines with no qdrant reachable (e.g. the work VM).";
+      default = false;
+      description = "Qdrant-backed ferrex memory stack: the qdrant launchd agent on macOS plus the ferrex MCP server on every host. Disabled by default after the ferrex WAL OOM; enable per host once the leak is resolved.";
     };
     stateVersion = lib.mkOption {
       type = lib.types.str;

@@ -38,6 +38,20 @@ in {
     dockerCompat = true;
   };
 
+  services.earlyoom = {
+    enable = true;
+    freeMemThreshold = 5;
+    freeSwapThreshold = 5;
+  };
+
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+    memoryPercent = 50;
+  };
+
+  systemd.oomd.enableUserSlices = true;
+
   environment.systemPackages = [
     pkgs.age
   ];

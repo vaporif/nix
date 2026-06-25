@@ -4,12 +4,8 @@ globs: "**/*.rs"
 
 # Rust
 
-- Modern module syntax: `foo.rs` + `foo/bar.rs` — never `foo/mod.rs`
 - `thiserror` for library error types, `anyhow` for application error handling
-- No `.unwrap()` or `.expect()` in production code — propagate with `?` or handle explicitly
-- Prefer `&str` over `&String` in function parameters — more general, zero-cost
 - Prefer `impl Trait` in function args/returns over concrete types or `Box<dyn Trait>` where possible
-- Use `#[must_use]` on functions where ignoring the return value is likely a bug
 - Derive `Debug` on all public types; derive `Clone`, `PartialEq` when semantically appropriate
 - Prefer iterators and combinators (`.map`, `.filter`, `.collect`) over manual loops
 - Enable `clippy::pedantic` and `clippy::nursery` — suppress individual noisy lints with `#[allow]` and justification
@@ -48,6 +44,5 @@ globs: "**/*.rs"
 ## Security
 
 - Validate all input at system boundaries (user input, API responses, file reads) — trust nothing from outside
-- Use parameterized queries with `sqlx`/`diesel` — never format SQL strings with `format!`
 - Use `subtle::ConstantTimeEq` for secret/token comparison — never `==` (timing side-channel)
 - Never disable TLS verification (`danger_accept_invalid_certs`) outside of tests

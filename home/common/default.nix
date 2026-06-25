@@ -62,6 +62,8 @@ in {
   programs = {
     home-manager.enable = true;
 
+    btop.enable = true;
+
     tmux = {
       enable = true;
       prefix = "C-a";

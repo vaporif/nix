@@ -43,7 +43,6 @@ in {
       pkgs.tokei
       pkgs.just
       pkgs.lazydocker
-      pkgs.btop
       pkgs.procs
       pkgs.sops
       pkgs.jqp

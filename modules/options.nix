@@ -202,11 +202,6 @@ in {
         desc = "Go to [r]epos";
       }
       {
-        key = "g";
-        path = "~/Repos/quarry/glint";
-        desc = "Go to [g]lint";
-      }
-      {
         key = "a";
         path = "~/Repos/nephila";
         desc = "Go to nephil[a]";

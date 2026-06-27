@@ -1,4 +1,3 @@
-# macOS services (skhd, openssh)
 _: {
   services = {
     skhd = {

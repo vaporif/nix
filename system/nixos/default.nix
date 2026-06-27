@@ -21,8 +21,6 @@ in {
 
   time.timeZone = cfg.timezone;
 
-  # Persist the journal across reboots so an occasional VM freeze leaves a
-  # trail to read after a forced restart (default volatile logs are lost).
   services.journald.storage = "persistent";
 
   console.keyMap = "colemak";

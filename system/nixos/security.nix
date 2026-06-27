@@ -3,7 +3,6 @@
     ../../modules/sops.nix
   ];
 
-  # Privacy-focused DNS resolvers (Quad9)
   networking = {
     nameservers = ["9.9.9.9" "149.112.112.112"];
     firewall = {
@@ -21,7 +20,6 @@
     loginDefs.settings.UMASK = "077";
   };
 
-  # Tmpfs for /tmp (cleared on reboot, prevents sensitive data persistence)
   boot.tmp.useTmpfs = true;
 
   boot.kernel.sysctl = {

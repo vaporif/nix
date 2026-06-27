@@ -8,6 +8,7 @@
   everforestId = "{39ec6c53-67ca-42cc-9f23-339cca400ef2}";
   greyscaleId = "{44e65aeb-7d24-440c-8710-918d2111d4f1}";
   everforestLightId = "{a017b609-a39f-46a9-82c8-27bdf87b8a62}";
+  ultraZoomId = "{624113da-768c-41ad-aa16-d0668ac46eca}";
 
   extensions = {
     "uBlock0@raymondhill.net" = {
@@ -27,6 +28,7 @@
     ${everforestId} = {slug = "everforest1";};
     ${greyscaleId} = {slug = "greyscale";};
     ${everforestLightId} = {slug = "everforest-light-soft";};
+    ${ultraZoomId} = {slug = "ultra-zoom";};
   };
 
   blockedSearchEngines = [

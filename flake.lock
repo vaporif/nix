@@ -3,11 +3,11 @@
     "augment-command-yazi": {
       "flake": false,
       "locked": {
-        "lastModified": 1781416096,
-        "narHash": "sha256-6eRbn9ph4xOQAga1X2Ouu9XJgJl66Dpfxov/w6x4wPw=",
+        "lastModified": 1782444556,
+        "narHash": "sha256-sB2t3Gg+WdPG6OE8pD6VovD+x9nN21Jn8XydZZdTqCg=",
         "owner": "hankertrix",
         "repo": "augment-command.yazi",
-        "rev": "18ad50f1fce7ced7a4db104d954a649128e6c31a",
+        "rev": "dd2d6cf07f81cef543e37883352e30b91634ec86",
         "type": "github"
       },
       "original": {
@@ -124,11 +124,11 @@
     "claude-code-plugins": {
       "flake": false,
       "locked": {
-        "lastModified": 1782238601,
-        "narHash": "sha256-iOkBzaWNqKLWvDoLv/5zXmazRJoxsqitYnSbnF4OW1w=",
+        "lastModified": 1782450193,
+        "narHash": "sha256-FUdnXtg2G5PDvoOkq89Ky+v+JB6PIoMTy1elcwALzyg=",
         "owner": "anthropics",
         "repo": "claude-plugins-official",
-        "rev": "720ba8d2a36dd64ccff3ed2a1f98712587d97362",
+        "rev": "82f22ec4f0a73aa2564036ffc28a1da00c707e0c",
         "type": "github"
       },
       "original": {
@@ -222,11 +222,11 @@
     "difftastic-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1781209061,
-        "narHash": "sha256-F1IhH7WGi/1sWE/x+QAk/+A12RVfe6A1yArPkSuoNUs=",
+        "lastModified": 1782464014,
+        "narHash": "sha256-QQ3TidMe+mJh3jt0gXXG+uSE8we3IcfbagDip40BUJo=",
         "owner": "Wilfred",
         "repo": "difftastic",
-        "rev": "49e5cff6b035431421709dc1f74363d8d14638b9",
+        "rev": "324aba47124b88198db7f84ce7271370741da204",
         "type": "github"
       },
       "original": {
@@ -547,11 +547,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1782233665,
-        "narHash": "sha256-h/xOtrByoA/Ak1lWHn0O1lVZz4qWYbwOSLQ8YSwQO0I=",
+        "lastModified": 1782423922,
+        "narHash": "sha256-qPNd6lUohHP5gcJhqQ7rLV87RwIx0xYR2A4Frb9Zjc4=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "062581938b4a378a82dfbb294b494808157153a1",
+        "rev": "5d320ab301cfaaca7d32514f13815d19d109f5f4",
         "type": "github"
       },
       "original": {
@@ -604,11 +604,11 @@
     "mattpocock-skills": {
       "flake": false,
       "locked": {
-        "lastModified": 1781772093,
-        "narHash": "sha256-6T0KwZcUIIbd6kpkQXPCnnJPVY2mEjxYjed4FjKnRAw=",
+        "lastModified": 1782388103,
+        "narHash": "sha256-efsb/AXAmEvcjoknbExBeEHFB28o2c2Nk8muWwNNQFQ=",
         "owner": "mattpocock",
         "repo": "skills",
-        "rev": "6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461",
+        "rev": "5d78bd0903420f97c791f834201e550c765699f8",
         "type": "github"
       },
       "original": {
@@ -851,11 +851,11 @@
     },
     "nixpkgs_5": {
       "locked": {
-        "lastModified": 1782118813,
-        "narHash": "sha256-BnbXO5s5EhV89lLXMAGCzPdEN5a6vNqvMk71obeTEUw=",
+        "lastModified": 1782175435,
+        "narHash": "sha256-EMzXKmnOtBQ2MnvpiNOm7E+kOMvdPrIKaeg52Tip2Uk=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "b3c092d3c36d91e2f61f3dfb39a159f180a56659",
+        "rev": "89570f24e97e614aa34aa9ab1c927b6578a43775",
         "type": "github"
       },
       "original": {
@@ -1071,11 +1071,11 @@
         "tinted-zed": "tinted-zed"
       },
       "locked": {
-        "lastModified": 1781997134,
-        "narHash": "sha256-muBZG4O/agq/ljgHr6c3AsobIWgODAS6vf50xIS7o+Q=",
+        "lastModified": 1782310521,
+        "narHash": "sha256-vsxcG0i8e4EPfdnhMTKMVzD1825H2vG1BBslzom9wxg=",
         "owner": "nix-community",
         "repo": "stylix",
-        "rev": "a6a493119e492e15874caf6f7f8c7e572e64c655",
+        "rev": "e084d011e7ee9302aceaaf6c1fc28a9ace09e16a",
         "type": "github"
       },
       "original": {
@@ -1331,11 +1331,11 @@
     "wshobson-agents": {
       "flake": false,
       "locked": {
-        "lastModified": 1781229338,
-        "narHash": "sha256-ZgPkGhDhmxHoO+l0SVGSRPu01S3Nh9Jha++zYOvhXuA=",
+        "lastModified": 1782392594,
+        "narHash": "sha256-wgDN0ytDleqyPQtJHSvrzZVSeY+JPI+SNDl3FFliIqM=",
         "owner": "wshobson",
         "repo": "agents",
-        "rev": "cc37bfdd292ce520ba1c44df7a3a70d5f8137236",
+        "rev": "5cc2549a50fc672230efd0a0307e2fd27ffba792",
         "type": "github"
       },
       "original": {

@@ -26,7 +26,6 @@ globs: "**/*.rs"
 
 ## Performance
 
-- Prefer `&[T]` and iterators over cloning collections — avoid `.clone()` unless ownership is needed
 - Use `Vec::with_capacity(n)` when size is known — avoids reallocations
 - Prefer `Box<str>` / `Arc<str>` over `String` for immutable shared strings
 - Use `rayon` for CPU-bound parallelism — `.par_iter()` is a drop-in replacement for `.iter()`

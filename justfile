@@ -1,3 +1,6 @@
+alias s:= switch
+alias l:= llm-update
+alias g:= gc
 # List available recipes
 default:
     @just --list

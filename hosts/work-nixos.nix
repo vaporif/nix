@@ -5,10 +5,11 @@
     system = "aarch64-linux";
     configPath = "${config.custom.homeDir}/.config/nix";
     sshAgent = "";
-    # The signing key is the personal Mac's Secretive key, whose private half
-    # isn't on this box — drop it so git signing is off and it isn't an
-    # authorized SSH key here.
-    git.signingKey = "";
+    git = {
+      name = "Dmytro Onypko";
+      email = "dmytro.onypko@justmarkets.com";
+      signingKey = "";
+    };
     stateVersion = "26.05";
     # No qdrant on the work Mac, so disable the ferrex memory stack here.
     qdrant.enable = false;
@@ -22,7 +23,6 @@
     sshAuthorizedKeys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN9gvaCjdNLEKlUzkpBGtnnO7AjYxHkkueSfj689dkyX dmytro.onypko@Mac-G4F36NXDV4.local"
     ];
-    # This box only needs the repos, nix and justex jumps.
     yaziBookmarks = [
       {
         key = "r";

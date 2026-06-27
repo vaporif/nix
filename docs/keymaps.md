@@ -293,15 +293,6 @@
 | `h` | Smart leave (arrow left) |
 | `F` | Fuzzy find and grep (fzf+rg) |
 | `/` | Filter files (smart-case) |
-| `b r` | Go to [r]epos |
-| `b g` | Go to [g]lint |
-| `b a` | Go to nephil[a] |
-| `b p` | Go to [p]arry-guard |
-| `b m` | Go to [m]ercury |
-| `b k` | Go to [k]ingdom |
-| `b c` | Go to [c]ommonware |
-| `b n` | Go to [n]ix |
-| `b l` | Go to [l]ogos |
 | `u a` | Add bookmark |
 | `u g` | Jump bookmark by key |
 | `u G` | Jump bookmark by fzf |

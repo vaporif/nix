@@ -41,7 +41,6 @@ in {
         "gimp"
         "syncthing-app"
         "utm"
-        "atoll"
       ]
       ++ lib.optionals hmCfg.claude.enable [
         "claude"

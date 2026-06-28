@@ -18,8 +18,6 @@ in {
 
   home = {
     packages = with pkgs; [
-      element-desktop
-      signal-desktop
       qbittorrent
       mpv-unwrapped
     ];

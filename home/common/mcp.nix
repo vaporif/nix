@@ -54,6 +54,16 @@
           exec ${lib.getExe inputs.mcp-servers-nix.packages.${pkgs.stdenv.hostPlatform.system}.tavily-mcp}
         ''}";
       };
+    }
+    // lib.optionalAttrs (cfg.gitlab.enable && cfg.secrets.gitlab-token != null && cfg.secrets.gitlab-api-url != null) {
+      gitlab = {
+        command = "${pkgs.writeShellScript "gitlab-mcp-wrapper" ''
+          export GITLAB_PERSONAL_ACCESS_TOKEN="''${GITLAB_PERSONAL_ACCESS_TOKEN:-$(cat ${cfg.secrets.gitlab-token})}"
+          export GITLAB_API_URL="''${GITLAB_API_URL:-$(cat ${cfg.secrets.gitlab-api-url})}"
+          export GITLAB_READ_ONLY_MODE=true
+          exec ${lib.getExe pkgs.gitlab-mcp}
+        ''}";
+      };
     };
 
   # Desktop-only programs

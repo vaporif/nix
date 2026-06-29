@@ -14,6 +14,8 @@ in {
 
   codex = final.callPackage ../pkgs/codex.nix {};
 
+  gitlab-mcp = final.callPackage ../pkgs/gitlab-mcp.nix {};
+
   difftastic = final.callPackage ../pkgs/difftastic.nix {inherit difftastic-src;};
 
   lean-ctx = (final.callPackage ../pkgs/lean-ctx.nix {}).overrideAttrs (_: {

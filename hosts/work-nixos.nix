@@ -11,6 +11,7 @@
       signingKey = "";
     };
     stateVersion = "26.05";
+    gitlab.enable = true;
     # No qdrant on the work Mac, so disable the ferrex memory stack here.
     qdrant.enable = false;
     # Persistent SSH sessions: drop into a tmux session on login so work

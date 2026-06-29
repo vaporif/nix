@@ -184,6 +184,14 @@
           bindkey '^F' fzf-file-widget
           bindkey -r '^T'
         ''
+        + lib.optionalString config.custom.gitlab.enable ''
+
+          if [[ -z "''${CLAUDE_SANDBOX:-}" && -z "''${CODEX_SANDBOX:-}" && -r /run/secrets/gitlab-token && -r /run/secrets/gitlab-api-url ]]; then
+            export GITLAB_TOKEN="$(cat /run/secrets/gitlab-token)"
+            GITLAB_HOST="$(cat /run/secrets/gitlab-api-url)"
+            export GITLAB_HOST="''${GITLAB_HOST%/api/v4}"
+          fi
+        ''
         + lib.optionalString config.custom.tmux.autoAttach ''
 
           # Persistent session: on an interactive SSH login, replace the shell

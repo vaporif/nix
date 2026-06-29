@@ -10,8 +10,8 @@ Review and clean up all added/changed code in the current git branch compared to
 2. Read surrounding code in the same files/modules to understand existing patterns
 3. For each changed file, analyze the code for:
 
-**Remove:**
-- Unnecessary comments (obvious ones, TODOs that are done, redundant explanations)
+**Remove (trim comments hard — license to delete, not only AI-slop):**
+- Low-value comments of any origin: obvious ones, narration, redundant explanations, decorative dividers, TODOs that are done. Cut them whoever wrote them; when in doubt, delete. Keep only genuine *why* comments (constraints, workarounds, invariants, external references).
 - AI-generated artifacts ("Here's the implementation", "This function does X", excessive docstrings)
 - Over-engineered abstractions that add complexity without value
 - Unused imports, variables, or dead code

@@ -7,7 +7,7 @@
   inputs,
   ...
 }:
-pkgs.testers.nixosTest {
+import ./run-vm-test.nix pkgs {
   name = "xdg-config-paths";
 
   nodes.machine = {...}: {

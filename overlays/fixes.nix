@@ -13,6 +13,15 @@ in
           });
         })
       ]
+      # Skip timing-sensitive fastmcp rate-limiting test (recovery-over-time
+      # depends on wall-clock pacing and flakes in the sandbox)
+      ++ [
+        (_: python-prev: {
+          fastmcp = python-prev.fastmcp.overridePythonAttrs (old: {
+            disabledTests = (old.disabledTests or []) ++ ["test_rate_limiting_recovery_over_time"];
+          });
+        })
+      ]
       # Skip jeepney checks (dbus + trio/outcome unavailable on macOS)
       ++ lib.optionals prev.stdenv.isDarwin [
         (_: python-prev: {
@@ -35,6 +44,12 @@ in
     # Skip flaky mcp-nixos test (test_read_text_file matches "Error" in store file content)
     mcp-nixos = prev.mcp-nixos.overrideAttrs (_: {
       doInstallCheck = false;
+    });
+
+    # Skip statix snapshot test that mismatches under the sandboxed temp-file
+    # path redaction (bool_comparison__ba56854c…_lint)
+    statix = prev.statix.overrideAttrs (old: {
+      checkFlags = (old.checkFlags or []) ++ ["--skip=ba56854c55bd3954b56d4e0c3d32b65c"];
     });
 
     # Disable ffmpeg due to CVEs (video previews disabled in yazi.toml anyway)

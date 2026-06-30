@@ -1,6 +1,6 @@
 diff -ruN orig/skills/brainstorming/SKILL.md mod/skills/brainstorming/SKILL.md
---- orig/skills/brainstorming/SKILL.md
-+++ mod/skills/brainstorming/SKILL.md
+--- orig/skills/brainstorming/SKILL.md	2026-06-30 20:23:44.877516131 +0100
++++ mod/skills/brainstorming/SKILL.md	2026-06-30 20:23:44.951212175 +0100
 @@ -24,12 +24,67 @@
  1. **Explore project context** — check files, docs, recent commits
  2. **Offer the visual companion just-in-time** — NOT upfront. The first time a question would genuinely be clearer shown than described, offer it then (its own message); on approval its browser tab opens for you. If no visual question ever arises, never offer it. See the Visual Companion section below.
@@ -263,8 +263,8 @@ diff -ruN orig/skills/brainstorming/SKILL.md mod/skills/brainstorming/SKILL.md
  ## Visual Companion
  
 diff -ruN orig/skills/brainstorming/spec-document-reviewer-prompt.md mod/skills/brainstorming/spec-document-reviewer-prompt.md
---- orig/skills/brainstorming/spec-document-reviewer-prompt.md
-+++ mod/skills/brainstorming/spec-document-reviewer-prompt.md
+--- orig/skills/brainstorming/spec-document-reviewer-prompt.md	2026-06-30 20:23:44.879269946 +0100
++++ mod/skills/brainstorming/spec-document-reviewer-prompt.md	2026-06-30 20:23:44.951533763 +0100
 @@ -4,7 +4,7 @@
  
  **Purpose:** Verify the spec is complete, consistent, and ready for implementation planning.
@@ -275,8 +275,8 @@ diff -ruN orig/skills/brainstorming/spec-document-reviewer-prompt.md mod/skills/
  ```
  Subagent (general-purpose):
 diff -ruN orig/skills/executing-plans/SKILL.md mod/skills/executing-plans/SKILL.md
---- orig/skills/executing-plans/SKILL.md
-+++ mod/skills/executing-plans/SKILL.md
+--- orig/skills/executing-plans/SKILL.md	2026-06-30 20:23:44.880275502 +0100
++++ mod/skills/executing-plans/SKILL.md	2026-06-30 20:24:58.485040462 +0100
 @@ -7,31 +7,92 @@
  
  ## Overview
@@ -287,7 +287,7 @@ diff -ruN orig/skills/executing-plans/SKILL.md mod/skills/executing-plans/SKILL.
 -**Announce at start:** "I'm using the executing-plans skill to implement this plan."
 +**Announce at start:** "I'm using the executing-plans skill to route this plan to its execution sub-skill."
  
--**Note:** Tell your human partner that Superpowers works much better with access to subagents. The quality of its work will be significantly higher if run on a platform with subagent support (Claude Code, Codex CLI, Codex App, Copilot CLI, and Gemini CLI all qualify; see the per-platform tool refs in `../using-superpowers/references/`). If subagents are available, use superpowers:subagent-driven-development instead of this skill.
+-**Note:** Tell your human partner that Superpowers works much better with access to subagents. The quality of its work will be significantly higher if run on a platform with subagent support (Claude Code, Codex CLI, Codex App, and Copilot CLI all qualify; see the per-platform tool refs in `../using-superpowers/references/`). If subagents are available, use superpowers:subagent-driven-development instead of this skill.
 +## Routing
  
 -## The Process
@@ -392,8 +392,8 @@ diff -ruN orig/skills/executing-plans/SKILL.md mod/skills/executing-plans/SKILL.
  - Don't skip verifications
  - Reference skills when plan says to
 diff -ruN orig/skills/requesting-code-review/SKILL.md mod/skills/requesting-code-review/SKILL.md
---- orig/skills/requesting-code-review/SKILL.md
-+++ mod/skills/requesting-code-review/SKILL.md
+--- orig/skills/requesting-code-review/SKILL.md	2026-06-30 20:23:44.881587770 +0100
++++ mod/skills/requesting-code-review/SKILL.md	2026-06-30 20:23:44.952574236 +0100
 @@ -57,7 +57,7 @@
  
  [Dispatch code reviewer subagent]
@@ -403,85 +403,9 @@ diff -ruN orig/skills/requesting-code-review/SKILL.md mod/skills/requesting-code
    BASE_SHA: a7981ec
    HEAD_SHA: 3df7661
  
-diff -ruN orig/skills/subagent-driven-development/implementer-prompt.md mod/skills/subagent-driven-development/implementer-prompt.md
---- orig/skills/subagent-driven-development/implementer-prompt.md
-+++ mod/skills/subagent-driven-development/implementer-prompt.md
-@@ -3,7 +3,7 @@
- Use this template when dispatching an implementer subagent.
- 
- ```
--Subagent (general-purpose):
-+Subagent ({subagent_type from plan's ## Agent Assignments section, or Subagent Type Selection table as fallback}):
-   description: "Implement Task N: [task name]"
-   model: [MODEL — REQUIRED: choose per SKILL.md Model Selection; an omitted
-          model silently inherits the session's most expensive one]
-@@ -47,6 +47,26 @@
-     While iterating, run the focused test for what you're changing; run the
-     full suite once before committing, not after every edit.
- 
-+    ## Plan File Checkbox Tracking
-+
-+    The plan file is at: [plan path, e.g. `docs/plans/<filename>.md`]
-+
-+    Steps under your task use `- [ ]` checkboxes. Treat these as durable progress
-+    state, not decoration:
-+    - When you finish a step AND its verification passes (test green, command
-+      output matches expected), edit the plan file and flip that step's leading
-+      `- [ ]` to `- [x]` BEFORE moving on. Use Edit on the literal `- [ ]` prefix
-+      of the step line; do not reformat anything else.
-+    - One flip per verified step. Do not batch flips at the end.
-+    - If a verification fails after you flipped, flip it back to `- [ ]` and treat
-+      the step as pending.
-+    - If you encounter a step already marked `- [x]` when you start, the
-+      controller already accounted for it — do NOT redo it. If the side effects
-+      look missing, stop and report it as DONE_WITH_CONCERNS rather than silently
-+      re-running.
-+    - Include the plan file's checkbox edits in your task commit (or as a final
-+      `plan: progress on Task N` commit) so the resume point survives.
-+
-     ## Code Organization
- 
-     You reason best about code you can hold in context at once, and your edits are more
-@@ -77,6 +97,36 @@
-     The controller can provide more context, re-dispatch with a more capable model,
-     or break the task into smaller pieces.
- 
-+    ## Comments: Trim Hard
-+
-+    Default to NO comment. A comment has to earn its place by explaining something the
-+    code cannot say itself.
-+
-+    - If the plan's code blocks contain comments, do NOT copy them through. Strip them
-+      as you adopt the code. The plan's prose was for you; it does not belong in the diff.
-+    - Delete any comment that restates what the code does ("// increment counter",
-+      "// return the result"), narrates the obvious ("// First, set up the client"), or
-+      decorates (section banners, dividers).
-+    - Keep only genuine *why* comments: a hidden constraint, a workaround for a known
-+      bug, a non-obvious invariant, or an external reference (issue/RFC/spec link).
-+    - When in doubt, delete it. A wrong or stale comment is worse than no comment.
-+
-+    ## Prose Quality
-+
-+    Any non-code text you write (the *why* comments that survive the trim, docstrings,
-+    error messages, documentation, commit messages) must sound like a person wrote it.
-+    Avoid AI-isms: no "serves as", "leverages", "ensures", "facilitates", no significance
-+    inflation ("crucial", "pivotal"), no filler ("in order to", "it is important to
-+    note"), no sycophantic tone. Be direct and specific. Trim first, then humanize what
-+    is left — never the other way round.
-+
-+    ## Document Decision Trade-offs
-+
-+    When you make a choice not explicitly specified in the plan (picking between two
-+    valid approaches, choosing a data structure, deciding on an error handling pattern),
-+    note the pros and cons briefly in your report. If the decision is significant enough
-+    to affect the design, flag it as DONE_WITH_CONCERNS so the controller can review it.
-+
-     ## Before Reporting Back: Self-Review
- 
-     Review your work with fresh eyes. Ask yourself:
 diff -ruN orig/skills/subagent-driven-development/SKILL.md mod/skills/subagent-driven-development/SKILL.md
---- orig/skills/subagent-driven-development/SKILL.md
-+++ mod/skills/subagent-driven-development/SKILL.md
+--- orig/skills/subagent-driven-development/SKILL.md	2026-06-30 20:23:44.882243695 +0100
++++ mod/skills/subagent-driven-development/SKILL.md	2026-06-30 20:23:44.953577833 +0100
 @@ -57,15 +57,17 @@
          "Write diff file, dispatch task reviewer subagent (./task-reviewer-prompt.md)" [shape=box];
          "Task reviewer reports spec ✅ and quality approved?" [shape=diamond];
@@ -690,9 +614,85 @@ diff -ruN orig/skills/subagent-driven-development/SKILL.md mod/skills/subagent-d
  ## Integration
  
  **Required workflow skills:**
+diff -ruN orig/skills/subagent-driven-development/implementer-prompt.md mod/skills/subagent-driven-development/implementer-prompt.md
+--- orig/skills/subagent-driven-development/implementer-prompt.md	2026-06-30 20:23:44.882569741 +0100
++++ mod/skills/subagent-driven-development/implementer-prompt.md	2026-06-30 20:23:44.952909490 +0100
+@@ -3,7 +3,7 @@
+ Use this template when dispatching an implementer subagent.
+ 
+ ```
+-Subagent (general-purpose):
++Subagent ({subagent_type from plan's ## Agent Assignments section, or Subagent Type Selection table as fallback}):
+   description: "Implement Task N: [task name]"
+   model: [MODEL — REQUIRED: choose per SKILL.md Model Selection; an omitted
+          model silently inherits the session's most expensive one]
+@@ -47,6 +47,26 @@
+     While iterating, run the focused test for what you're changing; run the
+     full suite once before committing, not after every edit.
+ 
++    ## Plan File Checkbox Tracking
++
++    The plan file is at: [plan path, e.g. `docs/plans/<filename>.md`]
++
++    Steps under your task use `- [ ]` checkboxes. Treat these as durable progress
++    state, not decoration:
++    - When you finish a step AND its verification passes (test green, command
++      output matches expected), edit the plan file and flip that step's leading
++      `- [ ]` to `- [x]` BEFORE moving on. Use Edit on the literal `- [ ]` prefix
++      of the step line; do not reformat anything else.
++    - One flip per verified step. Do not batch flips at the end.
++    - If a verification fails after you flipped, flip it back to `- [ ]` and treat
++      the step as pending.
++    - If you encounter a step already marked `- [x]` when you start, the
++      controller already accounted for it — do NOT redo it. If the side effects
++      look missing, stop and report it as DONE_WITH_CONCERNS rather than silently
++      re-running.
++    - Include the plan file's checkbox edits in your task commit (or as a final
++      `plan: progress on Task N` commit) so the resume point survives.
++
+     ## Code Organization
+ 
+     You reason best about code you can hold in context at once, and your edits are more
+@@ -77,6 +97,36 @@
+     The controller can provide more context, re-dispatch with a more capable model,
+     or break the task into smaller pieces.
+ 
++    ## Comments: Trim Hard
++
++    Default to NO comment. A comment has to earn its place by explaining something the
++    code cannot say itself.
++
++    - If the plan's code blocks contain comments, do NOT copy them through. Strip them
++      as you adopt the code. The plan's prose was for you; it does not belong in the diff.
++    - Delete any comment that restates what the code does ("// increment counter",
++      "// return the result"), narrates the obvious ("// First, set up the client"), or
++      decorates (section banners, dividers).
++    - Keep only genuine *why* comments: a hidden constraint, a workaround for a known
++      bug, a non-obvious invariant, or an external reference (issue/RFC/spec link).
++    - When in doubt, delete it. A wrong or stale comment is worse than no comment.
++
++    ## Prose Quality
++
++    Any non-code text you write (the *why* comments that survive the trim, docstrings,
++    error messages, documentation, commit messages) must sound like a person wrote it.
++    Avoid AI-isms: no "serves as", "leverages", "ensures", "facilitates", no significance
++    inflation ("crucial", "pivotal"), no filler ("in order to", "it is important to
++    note"), no sycophantic tone. Be direct and specific. Trim first, then humanize what
++    is left — never the other way round.
++
++    ## Document Decision Trade-offs
++
++    When you make a choice not explicitly specified in the plan (picking between two
++    valid approaches, choosing a data structure, deciding on an error handling pattern),
++    note the pros and cons briefly in your report. If the decision is significant enough
++    to affect the design, flag it as DONE_WITH_CONCERNS so the controller can review it.
++
+     ## Before Reporting Back: Self-Review
+ 
+     Review your work with fresh eyes. Ask yourself:
 diff -ruN orig/skills/writing-plans/SKILL.md mod/skills/writing-plans/SKILL.md
---- orig/skills/writing-plans/SKILL.md
-+++ mod/skills/writing-plans/SKILL.md
+--- orig/skills/writing-plans/SKILL.md	2026-06-30 20:23:44.888393529 +0100
++++ mod/skills/writing-plans/SKILL.md	2026-06-30 20:23:44.954256550 +0100
 @@ -7,7 +7,7 @@
  
  ## Overview

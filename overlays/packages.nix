@@ -19,7 +19,7 @@ in {
       ${final.rtk}/bin/rtk --version > /dev/null
     '';
   });
-  
+
   gitlab-mcp = final.callPackage ../pkgs/gitlab-mcp.nix {};
 
   difftastic = final.callPackage ../pkgs/difftastic.nix {inherit difftastic-src;};

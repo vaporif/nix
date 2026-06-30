@@ -229,7 +229,16 @@
           })
         ];
       };
+    neovimModule = lib.modules.importApply ./home/common/neovim/module.nix inputs;
+    neovimWrapper = inputs.wrappers.lib.evalModule neovimModule;
   in {
+    packages = lib.genAttrs supportedSystems (system: let
+      nvim = neovimWrapper.config.wrap {pkgs = mkPkgs system;};
+    in {
+      inherit nvim;
+      default = nvim;
+    });
+
     devShells = lib.genAttrs supportedSystems (system: let
       pkgs = mkPkgs system;
     in {

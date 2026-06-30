@@ -82,6 +82,9 @@ in {
         setw -g mode-keys vi
         bind -T copy-mode-vi v send -X begin-selection
         bind -T copy-mode-vi y send -X copy-selection-and-cancel
+        # slow wheel scroll: 1 line per tick instead of the default burst
+        bind -T copy-mode-vi WheelUpPane   send -N1 -X scroll-up
+        bind -T copy-mode-vi WheelDownPane send -N1 -X scroll-down
         set -ga terminal-overrides ",*256col*:Tc"
         set -ga terminal-features ",*:RGB"
         set -ga terminal-overrides ',*:Ss=\E[%p1%d q:Se=\E[ q'

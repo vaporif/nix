@@ -45,7 +45,7 @@ in {
   systemd.oomd = {
     enable = true;
     enableUserSlices = true;
-    extraConfig.DefaultMemoryPressureDurationSec = "20s";
+    settings.OOM.DefaultMemoryPressureDurationSec = "20s";
   };
 
   environment.systemPackages = [

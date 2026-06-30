@@ -5,6 +5,16 @@ Personal Nix config for macOS and NixOS. Uses [nix-darwin](https://github.com/ni
 - **macOS** -- nix-darwin + Home Manager
 - **NixOS** -- NixOS + Home Manager (shell-only VM)
 
+## Run neovim standalone
+
+The whole neovim setup (plugins, LSPs, tools) is a flake package. Run it on any machine with Nix without cloning the repo:
+
+```shell
+nix run github:vaporif/nix#nvim
+```
+
+It bundles editor tooling like `nixd`, `lua-language-server`, and `stylua`. Project toolchains like `cargo` and `rustc` come from the host PATH when they're present.
+
 ## Forking this config
 
 ### Prerequisites

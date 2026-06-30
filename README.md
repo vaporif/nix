@@ -2,8 +2,8 @@
 
 Personal Nix config for macOS and NixOS. Uses [nix-darwin](https://github.com/nix-darwin/nix-darwin), [NixOS](https://nixos.org), and [home-manager](https://github.com/nix-community/home-manager).
 
-- **macOS** -- nix-darwin + Home Manager
-- **NixOS** -- NixOS + Home Manager (shell-only VM)
+- **macOS**: nix-darwin + Home Manager
+- **NixOS**: NixOS + Home Manager (shell-only VM)
 
 ## Run neovim standalone
 

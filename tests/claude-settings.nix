@@ -10,7 +10,7 @@
   home-manager,
   ...
 }: let
-  vmTest = pkgs.testers.nixosTest {
+  vmTest = import ./run-vm-test.nix pkgs {
     name = "claude-settings";
 
     nodes.machine = {...}: {

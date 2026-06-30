@@ -151,7 +151,6 @@
           t = "y";
           g = "lazygit";
           ls = "eza -a";
-          cat = "bat";
           e = "nvim";
           x = "exit";
           mcp-scan = "${lib.getExe pkgs.uv} tool run mcp-scan@latest";

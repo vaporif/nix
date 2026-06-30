@@ -128,11 +128,18 @@ in {
           description = "Path to ${name} secret file. null when sops is not configured.";
         });
 
-    claude.enable = lib.mkEnableOption "Claude Code (CLI, plugins, settings, security, sandbox, aliases, MCP integration)";
-    claude.bashGuard.enable = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
-      description = "Bash-command validation hook (the parry guard) that intercepts Bash tool calls. Disable per host (e.g. the work VM) to skip command interception.";
+    claude = {
+      enable = lib.mkEnableOption "Claude Code (CLI, plugins, settings, security, sandbox, aliases, MCP integration)";
+      bashGuard.enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Bash-command validation hook (the parry guard) that intercepts Bash tool calls. Disable per host (e.g. the work VM) to skip command interception.";
+      };
+      rtk.enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "RTK (Rust Token Killer) output-compression CLI plus its Claude Code PreToolUse Bash-rewrite hook.";
+      };
     };
     tmux.autoAttach = lib.mkEnableOption "auto-attach to a persistent tmux session on interactive SSH logins, keeping the shell and running programs alive across disconnects (e.g. the work VM)";
     gitlab.enable = lib.mkEnableOption "the read-only GitLab MCP server (work VM only); reads its API URL and token from the gitlab-api-url and gitlab-token sops secrets";

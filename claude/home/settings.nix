@@ -53,6 +53,18 @@ in {
             sec.hooks.PreToolUse
             ++ lib.optionals isDarwin [
               (parryHook // {matcher = "Bash|Read|Write|Edit|Glob|Grep|WebFetch|WebSearch|NotebookEdit|Task|mcp__.*";})
+            ]
+            # rtk only returns "allow"; most-restrictive-wins keeps the guards above authoritative.
+            ++ lib.optionals cfg.claude.rtk.enable [
+              {
+                matcher = "Bash";
+                hooks = [
+                  {
+                    command = "${lib.getExe pkgs.rtk} hook claude";
+                    type = "command";
+                  }
+                ];
+              }
             ];
           PostToolUse =
             sec.hooks.PostToolUse

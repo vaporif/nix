@@ -79,6 +79,7 @@ switch host="":
     set -euo pipefail
     bash claude/update.sh --check || true
     bash scripts/update-codex.sh --check || true
+    bash scripts/update-rtk.sh --check || true
     if [[ "$(uname)" == "Darwin" ]]; then
         bash scripts/update-librewolf.sh --check || true
         nom build ".#darwinConfigurations.burnedapple.system"
@@ -102,12 +103,16 @@ update-claude:
 update-codex:
     bash scripts/update-codex.sh
 
+# Bump pkgs/rtk.nix to the latest rtk-ai/rtk release
+update-rtk:
+    bash scripts/update-rtk.sh
+
 # Bump pkgs/librewolf-unwrapped/src.json to the latest LibreWolf release
 update-librewolf:
     bash scripts/update-librewolf.sh
 
-# Bump all vendored LLM tools (claude-code + codex)
-llm-update: update-claude update-codex
+# Bump all vendored LLM tools (claude-code + codex + rtk)
+llm-update: update-claude update-codex update-rtk
 
 # Set up git hooks
 setup-hooks:

@@ -17,6 +17,6 @@ in {
   wrappers.neovim = {
     enable = true;
     nixConfigPath = cfg.configPath;
-    lspPackages = cfg.lspPackages;
+    inherit (cfg) lspPackages;
   };
 }

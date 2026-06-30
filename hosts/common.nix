@@ -36,7 +36,7 @@
       name = "vaporif";
       publicKey = "vaporif.cachix.org-1:y/fKd8ILM10UJCdXFFYn/n8+AqXnRLzwHjX+BikcUf8=";
     };
-    # mkDefault so a host can opt out (e.g. work-nixos has no age key).
+    # mkDefault so a host without an age key can opt out (secrets.enable = false).
     secrets.enable = lib.mkDefault true;
     timezone = "Europe/Lisbon";
   };

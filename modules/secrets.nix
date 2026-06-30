@@ -6,4 +6,6 @@
   "ntfy-topic"
   "nix-access-tokens"
   "github-token"
+  "gitlab-token"
+  "gitlab-api-url"
 ]

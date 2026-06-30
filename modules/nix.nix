@@ -29,6 +29,7 @@ in {
         ]
         ++ lib.optionals (cfg.cachix.publicKey != "") [cfg.cachix.publicKey];
     }
+    // lib.optionalAttrs pkgs.stdenv.isLinux {max-jobs = 4;}
     # Determinate Nix 3.21.1's parallel evaluator crashes with
     # "polling file descriptor: Invalid argument" on the full-system eval.
     # eval-cores is a Determinate Nix extension not recognized by standard NixOS Nix.

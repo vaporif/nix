@@ -2,8 +2,8 @@
 name: post-implementation-polish
 description: |
   Auto-execute after implementation completes. Runs 3 review rounds with fixes,
-  an idiomatic code pass, /cleanup with fixes, then strips AI comments and
-  humanizes remaining valuable ones.
+  an idiomatic code pass, /cleanup with fixes, then trims comments hard (cutting
+  low-value comments, not only AI-slop) and humanizes the survivors.
 ---
 
 # Post-Implementation Polish
@@ -105,20 +105,26 @@ After `/cleanup` completes and fixes are applied, commit any changes.
 
 Two-step phase:
 
-**Step 1: Strip unnecessary comments**
+**Step 1: Trim comments hard**
 
-Dispatch a subagent to scan all changed files (`git diff $BASE_SHA...HEAD --name-only`) and remove:
+Dispatch a subagent to scan all changed files (`git diff $BASE_SHA...HEAD --name-only`) and cut comments aggressively. This is not only an AI-slop pass — it removes any low-value comment regardless of who wrote it. The subagent has **license to delete**; default to deletion, and when in doubt about a comment's value, delete it. A wrong or stale comment is worse than no comment.
+
+Remove:
 
 - Comments that restate what the code does ("increment counter", "return the result")
+- Comments that narrate the obvious ("First, set up the client", "Now handle the response")
 - AI-generated artifacts ("Here's the implementation", "This handles the case where...")
 - Obvious doc comments on self-documenting code
 - TODO/FIXME comments that reference completed work
 - Section dividers or decorative comments
+- Any other comment that adds nothing a reader wouldn't get from the code itself — even if a human wrote it
 
-**Keep** comments that explain:
+**Keep** only comments that explain:
 - Non-obvious "why" (hidden constraints, workarounds, subtle invariants)
 - External references (links to issues, RFCs, specs)
 - Warnings about gotchas that aren't obvious from the code
+
+Trim first; Step 2 humanizes only what survives.
 
 Commit removals: "polish: strip unnecessary comments"
 

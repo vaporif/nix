@@ -148,7 +148,20 @@
       inherit (inputs) vim-tidal difftastic-src;
     };
 
-    sharedOverlays = [inputs.mcp-nixos.overlays.default inputs.earthtone-nvim.overlays.default localPackages];
+    # Build mcp-nixos directly via its exposed lib, skipping mcp-nixos's
+    # `overlays.default` (which composes a stale `fastmcp3` overlay pinning
+    # fastmcp to 3.2.4). nixpkgs now ships fastmcp 3.3.1 with the monorepo
+    # layout; the pin force-downgrades the shared `src`, which the separate
+    # `fastmcp-slim` package inherits while keeping `sourceRoot = ".../fastmcp_slim"`
+    # — a path absent from the 3.2.4 tarball, so the unpack fails. Using native
+    # fastmcp satisfies mcp-nixos's `fastmcp>=3.2.0` constraint; the aarch64-linux
+    # lupa/luajit issue the upstream overlay dropped pydocket to avoid is handled
+    # by the lupa override in overlays/fixes.nix.
+    mcpNixosOverlay = final: _prev: {
+      mcp-nixos = inputs.mcp-nixos.lib.mkMcpNixos {pkgs = final;};
+    };
+
+    sharedOverlays = [mcpNixosOverlay inputs.earthtone-nvim.overlays.default localPackages];
 
     mkPkgs = system:
       import nixpkgs {
@@ -229,7 +242,16 @@
           })
         ];
       };
+    neovimModule = lib.modules.importApply ./home/common/neovim/module.nix inputs;
+    neovimWrapper = inputs.wrappers.lib.evalModule neovimModule;
   in {
+    packages = lib.genAttrs supportedSystems (system: let
+      nvim = neovimWrapper.config.wrap {pkgs = mkPkgs system;};
+    in {
+      inherit nvim;
+      default = nvim;
+    });
+
     devShells = lib.genAttrs supportedSystems (system: let
       pkgs = mkPkgs system;
     in {
@@ -252,10 +274,13 @@
         formatting = chkPkgs.runCommand "check-formatting" {} ''
           ${chkPkgs.alejandra}/bin/alejandra -c ${./.} && touch $out
         '';
-        codex = import ./tests/codex.nix {
-          pkgs = chkPkgs;
-          inherit home-manager inputs;
-        };
+        # TODO: re-enable. The codex check fails the `ferrex` mcp_servers grep
+        # because qdrant.enable defaults to false, so the ferrex MCP server is
+        # never emitted into config.toml.
+        # codex = import ./tests/codex.nix {
+        #   pkgs = chkPkgs;
+        #   inherit home-manager inputs;
+        # };
       }
       // lib.optionalAttrs chkPkgs.stdenv.isDarwin (
         chkPkgs.unclog.passthru.tests

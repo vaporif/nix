@@ -93,6 +93,10 @@ switch host="":
         [[ -e /run/current-system ]] && nvd diff /run/current-system ./result || true
         sudo -H nix-env --profile /nix/var/nix/profiles/system --set ./result
         sudo ./result/bin/switch-to-configuration switch
+        # Reload tmux config in the running server, if any
+        if command -v tmux >/dev/null && tmux info &>/dev/null; then
+            tmux source-file "${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf" || true
+        fi
     fi
 
 # Bump claude/package.nix to the latest Anthropic release

@@ -7,16 +7,28 @@
   # Secrets read outside the sandbox and forwarded in as env vars.
   # Filter out null entries so a fork without sops doesn't try to
   # interpolate a null path.
-  secretEnvVars = lib.filter (s: s.file != null) [
-    {
-      env = "TAVILY_API_KEY";
-      file = cfg.secrets.tavily-key;
-    }
-    {
-      env = "HF_TOKEN";
-      file = cfg.secrets.hf-token-scan-injection;
-    }
-  ];
+  secretEnvVars = lib.filter (s: s.file != null) (
+    [
+      {
+        env = "TAVILY_API_KEY";
+        file = cfg.secrets.tavily-key;
+      }
+      {
+        env = "HF_TOKEN";
+        file = cfg.secrets.hf-token-scan-injection;
+      }
+    ]
+    ++ lib.optionals cfg.gitlab.enable [
+      {
+        env = "GITLAB_PERSONAL_ACCESS_TOKEN";
+        file = cfg.secrets.gitlab-token;
+      }
+      {
+        env = "GITLAB_API_URL";
+        file = cfg.secrets.gitlab-api-url;
+      }
+    ]
+  );
 
   # Generate pre-load script for secrets (runs before sandbox)
   secretPreload = lib.concatStringsSep "\n" (map (s: ''

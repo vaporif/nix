@@ -91,6 +91,9 @@ in {
     ++ lib.optionals cfg.codex.enable [
       pkgs.codex
     ]
+    ++ lib.optionals cfg.gitlab.enable [
+      pkgs.glab
+    ]
     ++ lib.optionals pkgs.stdenv.isDarwin [
       pkgs.gnused
     ];

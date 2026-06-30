@@ -13,6 +13,12 @@ in {
     ./security.nix
   ];
 
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 10d";
+  };
+
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
@@ -36,19 +42,17 @@ in {
     dockerCompat = true;
   };
 
-  services.earlyoom = {
-    enable = true;
-    freeMemThreshold = 5;
-    freeSwapThreshold = 5;
-  };
-
   zramSwap = {
     enable = true;
     algorithm = "zstd";
     memoryPercent = 50;
   };
 
-  systemd.oomd.enableUserSlices = true;
+  systemd.oomd = {
+    enable = true;
+    enableUserSlices = true;
+    settings.OOM.DefaultMemoryPressureDurationSec = "20s";
+  };
 
   environment.systemPackages = [
     pkgs.age

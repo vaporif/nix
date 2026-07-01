@@ -85,9 +85,6 @@ in {
       pkgs.claude-code
       pkgs.claude_formatter
     ]
-    ++ lib.optionals (cfg.claude.enable && cfg.claude.rtk.enable) [
-      pkgs.rtk
-    ]
     ++ lib.optionals cfg.codex.enable [
       pkgs.codex
     ]

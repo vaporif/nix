@@ -53,21 +53,6 @@ in {
             sec.hooks.PreToolUse
             ++ lib.optionals isDarwin [
               (parryHook // {matcher = "Bash|Read|Write|Edit|Glob|Grep|WebFetch|WebSearch|NotebookEdit|Task|mcp__.*";})
-            ]
-            # rtk only returns "allow"; most-restrictive-wins keeps the guards above authoritative.
-            # Bare "rtk" (not an absolute store path) so rtk's own self-detector recognises its
-            # hook as installed — an abs path fails its first-token check and nags on every Bash
-            # call. pkgs.rtk is on PATH under the same rtk.enable gate (cf. "parry-guard hook").
-            ++ lib.optionals cfg.claude.rtk.enable [
-              {
-                matcher = "Bash";
-                hooks = [
-                  {
-                    command = "rtk hook claude";
-                    type = "command";
-                  }
-                ];
-              }
             ];
           PostToolUse =
             sec.hooks.PostToolUse

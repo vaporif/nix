@@ -14,12 +14,6 @@ in {
 
   codex = final.callPackage ../pkgs/codex.nix {};
 
-  rtk = (final.callPackage ../pkgs/rtk.nix {}).overrideAttrs (_: {
-    passthru.tests.rtk = mkTest "rtk" ''
-      ${final.rtk}/bin/rtk --version > /dev/null
-    '';
-  });
-
   gitlab-mcp = final.callPackage ../pkgs/gitlab-mcp.nix {};
 
   difftastic = final.callPackage ../pkgs/difftastic.nix {inherit difftastic-src;};

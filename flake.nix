@@ -287,7 +287,6 @@
         // chkPkgs.nomicfoundation_solidity_language_server.passthru.tests
         // chkPkgs.claude_formatter.passthru.tests
         // chkPkgs.tidal_script.passthru.tests
-        // chkPkgs.rtk.passthru.tests
       )
       // lib.optionalAttrs chkPkgs.stdenv.isLinux {
         claude-security = import ./tests/claude-security.nix {

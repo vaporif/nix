@@ -1,4 +1,8 @@
-{config, ...}: {
+{
+  config,
+  lib,
+  ...
+}: {
   imports = [./common.nix];
   nix.settings.trusted-users = ["root" config.custom.user];
   custom = {
@@ -12,11 +16,12 @@
       signingKey = "";
     };
     stateVersion = "26.05";
+    cachix = {
+      name = lib.mkForce "";
+      publicKey = lib.mkForce "";
+    };
     gitlab.enable = true;
-    # No qdrant on the work Mac, so disable the ferrex memory stack here.
     qdrant.enable = false;
-    # Persistent SSH sessions: drop into a tmux session on login so work
-    # survives closing the terminal or losing the connection.
     tmux.autoAttach = true;
     claude.bashGuard.enable = false;
     # Work laptop (the VMware host) SSH key, so it can log into this VM.

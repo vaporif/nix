@@ -1,5 +1,6 @@
 {config, ...}: {
   imports = [./common.nix];
+  nix.settings.trusted-users = ["root" config.custom.user];
   custom = {
     hostname = "work-nixos";
     system = "aarch64-linux";

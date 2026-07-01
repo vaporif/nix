@@ -1,6 +1,7 @@
 {
   inputs,
   lib,
+  config,
   ...
 }: {
   imports = [./common.nix];
@@ -25,6 +26,15 @@
   };
 
   home.stateVersion = "24.05";
+
+  # On real hosts the NixOS/darwin system module writes managed-mcp.json; a
+  # standalone HM build has no system module, so install it here. Runs as root
+  # in the container, which owns /etc. Yields the non-secret servers only
+  # (github, nixos, context7) — tavily/gitlab/ferrex stay gated off.
+  home.activation.claudeManagedMcp = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    $DRY_RUN_CMD mkdir -p /etc/claude-code
+    $DRY_RUN_CMD ln -sf ${config.custom.codeMcpServersConfig} /etc/claude-code/managed-mcp.json
+  '';
 
   # earthtone-light, same as modules/theme.nix but HM-compatible (no font packages).
   stylix = {

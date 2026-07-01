@@ -232,13 +232,23 @@
 
     exec ${bwrap} "''${args[@]}" ${codex} "$@"
   '';
+
+  # Passthrough wrappers when custom.claude.sandbox = false (bwrap can't nest).
+  claudePlain = pkgs.writeShellScriptBin "claude" ''exec ${claude} "$@"'';
+  codexPlain = pkgs.writeShellScriptBin "codex" ''exec ${codex} "$@"'';
 in {
   config.custom.sandboxedPackages = lib.mkMerge [
     (lib.mkIf cfg.claude.enable {
-      claude = claudeLinux;
+      claude =
+        if cfg.claude.sandbox
+        then claudeLinux
+        else claudePlain;
     })
     (lib.mkIf cfg.codex.enable {
-      codex = codexLinux;
+      codex =
+        if cfg.claude.sandbox
+        then codexLinux
+        else codexPlain;
     })
   ];
 }

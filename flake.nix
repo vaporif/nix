@@ -169,6 +169,32 @@
         overlays = sharedOverlays;
       };
 
+    # Standalone HM builds bypass nixpkgsConfig, so unfree must be allowed here
+    # (claude-code is unfree).
+    containerPkgs = system:
+      import nixpkgs {
+        inherit system;
+        overlays = sharedOverlays;
+        config = {inherit allowUnfreePredicate;};
+      };
+
+    containerSystems = ["aarch64-linux" "x86_64-linux"];
+
+    mkContainer = system:
+      home-manager.lib.homeManagerConfiguration {
+        pkgs = containerPkgs system;
+        extraSpecialArgs = {inherit inputs;};
+        modules = [
+          ./modules/options.nix
+          ./hosts/container.nix
+          {custom.system = system;}
+          ./home/common
+          ./home/linux
+          stylix.homeManagerModules.stylix
+          parry-guard.homeManagerModules.default
+        ];
+      };
+
     allowUnfreePredicate = pkg:
       builtins.elem (lib.getName pkg) [
         "claude-code"
@@ -324,6 +350,12 @@
         })
       ];
     };
+
+    homeConfigurations =
+      {container = mkContainer "aarch64-linux";}
+      // lib.genAttrs (map (s: "container-${s}") containerSystems) (
+        name: mkContainer (lib.removePrefix "container-" name)
+      );
 
     nixosConfigurations = {
       personal-nixos = mkNixos {

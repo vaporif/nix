@@ -15,6 +15,29 @@ nix run github:vaporif/nix#nvim
 
 It bundles editor tooling like `nixd`, `lua-language-server`, and `stylua`. Project toolchains like `cargo` and `rustc` come from the host PATH when they're present.
 
+## Dev container home env
+
+`homeConfigurations.container` is a standalone Home Manager build (no nix-darwin/NixOS) that installs the same shell, tmux, neovim, and Claude Code environment as the real hosts into a plain Linux container running as `root`. It reuses `home/common` as-is; the container profile lives in `hosts/container.nix`.
+
+Differences from a full host: no sops secrets (`secrets.enable = false`, so every secret path is null and its consumers no-op), no Codex/Qdrant/GitLab, and the Claude/Codex CLIs run **unsandboxed** (`custom.claude.sandbox = false`) because bubblewrap can't nest inside a rootless container.
+
+Build and activate inside the container (run as `root`):
+
+```shell
+nix build github:vaporif/nix#homeConfigurations.container.activationPackage \
+  --out-link /root/hm && /root/hm/activate
+```
+
+Outputs, by architecture:
+
+| Attribute | System |
+|-----------|--------|
+| `homeConfigurations.container` | `aarch64-linux` (default alias) |
+| `homeConfigurations.container-aarch64-linux` | `aarch64-linux` |
+| `homeConfigurations.container-x86_64-linux` | `x86_64-linux` |
+
+Pick the attribute matching the container's architecture (e.g. `#homeConfigurations.container-x86_64-linux.activationPackage` on x86_64). Once activated, enter the shell with the project toolchain layered on top via `nix develop -c zsh`.
+
 ## Forking this config
 
 ### Prerequisites

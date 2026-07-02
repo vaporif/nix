@@ -4,5 +4,6 @@
 !CLAUDE.md
 result
 result-*
+nix.conf
 .direnv/
 .fastembed_cache

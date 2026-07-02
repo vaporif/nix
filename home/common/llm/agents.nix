@@ -17,5 +17,6 @@ in {
     rust-engineer.source = ../../../assistants/shared/agents/rust-engineer.md;
     bevy-engineer.source = bevyEngineerAgent;
     solana-developer.source = ../../../assistants/shared/agents/solana-developer.md;
+    unity-csharp-engineer.source = ../../../assistants/shared/agents/unity-csharp-engineer.md;
   };
 }

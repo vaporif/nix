@@ -97,6 +97,25 @@
     };
   };
 
+  # Claude Code-only custom servers.
+  # unity-mcp is per-project (the dereza Unity repo), but the enterprise
+  # managed-mcp.json has exclusive control over MCP servers, so a repo-local
+  # .mcp.json can never load. Approve it here instead. Launched lazily via
+  # `nix run` against the repo flake, so it only does real work when the Unity
+  # Editor + repo are present; otherwise it just idles/fails harmlessly.
+  codeOnlyServers = lib.optionalAttrs pkgs.stdenv.isDarwin {
+    unity-mcp = {
+      command = lib.getExe' pkgs.nix "nix";
+      args = [
+        "run"
+        "${homeDir}/Repos/dereza#mcp-for-unity"
+        "--"
+        "--transport"
+        "stdio"
+      ];
+    };
+  };
+
   # Claude Desktop: all servers
   desktopMcpConfig = {
     programs = commonPrograms // desktopOnlyPrograms;
@@ -106,7 +125,7 @@
   # Claude Code: dev-focused servers only
   codeMcpConfig = {
     programs = commonPrograms;
-    settings.servers = commonServers;
+    settings.servers = commonServers // codeOnlyServers;
   };
 
   desktopMcpModule = inputs.mcp-servers-nix.lib.evalModule pkgs desktopMcpConfig;

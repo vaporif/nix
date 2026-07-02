@@ -116,6 +116,32 @@ require('lze').load {
       local home = vim.env.HOME
       require('auto-session').setup {
         suppressed_dirs = { home, home .. '/Repos', home .. '/Downloads', '/' },
+        post_restore_cmds = {
+          function(session_name)
+            local missing = {}
+            for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+              if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buftype == '' then
+                local name = vim.api.nvim_buf_get_name(buf)
+                if name ~= '' and vim.fn.filereadable(name) == 0 and vim.fn.isdirectory(name) == 0 then
+                  table.insert(missing, vim.fn.fnamemodify(name, ':~'))
+                end
+              end
+            end
+            if vim.tbl_isempty(missing) then
+              return
+            end
+
+            require('auto-session').delete_session(session_name)
+            for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+              pcall(vim.api.nvim_buf_delete, buf, { force = true })
+            end
+
+            vim.schedule(function()
+              vim.notify('Session cleared — missing files:\n' .. table.concat(missing, '\n'), vim.log.levels.WARN)
+              require('snacks').dashboard.open()
+            end)
+          end,
+        },
       }
     end,
   },

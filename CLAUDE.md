@@ -36,7 +36,7 @@ flake.nix                    # Entry point (inputs + module composition)
 ├── home/{common,darwin,linux}/ # Home Manager configs
 ├── claude/                  # Everything Claude: home/, security/, overrides/, package.nix, update.sh, statusline.sh, direnv-rules.sh
 ├── config/                  # Dotfiles: nvim/, wezterm/, yazi/, karabiner/
-├── assistants/              # Shared assistant content (rules/skills/agents/commands consumed by claude + codex)
+├── llm/                     # Shared assistant content (rules/skills/agents/commands consumed by claude + codex)
 ├── scripts/                 # Helper scripts (setup, git-meta, git-bare-clone, keymaps, update-codex)
 ├── tests/                   # Integration tests (claude-security.nix, claude-settings.nix, codex.nix)
 ├── overlays/                # Custom package overlays

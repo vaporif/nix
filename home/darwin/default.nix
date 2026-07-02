@@ -40,6 +40,12 @@ in {
     };
   };
 
+  programs.zsh.initContent = ''
+    unity() {
+      open -a "Unity Hub" --args --projectPath "''${1:A}"
+    }
+  '';
+
   stylix.targets.librewolf.profileNames = ["default"];
 
   # mac-app-util skips regenerating a trampoline if the destination .app

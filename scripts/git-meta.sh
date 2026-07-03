@@ -1,9 +1,24 @@
 #!/usr/bin/env bash
-# Sync non-tracked config files between .meta/ and git worktrees
-# Usage: git meta <push|pull|diff|init>
+# Symlink shared, unversioned config from .meta/ into every worktree.
+# Usage: git meta <init|link|status>
+#
+# Layout (bare repo + sibling worktrees, see git-bare-clone.sh):
+#   reponame/
+#   ├── .bare/                git dir
+#   ├── .meta/                single source of truth (unversioned)
+#   │   ├── .files            manifest, trailing / marks a directory
+#   │   ├── .envrc
+#   │   ├── docs/{specs,plans}/
+#   │   └── external/
+#   └── <worktree>/
+#       ├── .envrc     -> ../.meta/.envrc
+#       ├── docs/specs -> ../../.meta/docs/specs
+#       └── ...
 set -euo pipefail
 
-DEFAULTS=(.envrc .claude/ CLAUDE.md)
+# Entries default to directories where the name has no obvious file extension;
+# the manifest's trailing slash is authoritative. .envrc is the lone file.
+DEFAULTS=(.envrc docs/specs/ docs/plans/ external/)
 
 die() { echo "error: $*" >&2; exit 1; }
 warn() { echo "warning: $*" >&2; }
@@ -11,14 +26,13 @@ warn() { echo "warning: $*" >&2; }
 get_bare_dir() {
   local common_dir
   common_dir=$(git rev-parse --git-common-dir 2>/dev/null) || die "not in a git repo"
-  common_dir=$(cd "${common_dir}" && pwd -P)
-  echo "${common_dir}"
+  (cd "${common_dir}" && pwd -P)
 }
 
 get_meta_dir() {
-  local bare_dir
-  bare_dir=$(get_bare_dir)
-  echo "$(dirname "${bare_dir}")/.meta"
+  # bare_dir is <repo>/.bare, so dirname lands .meta at the project root
+  # (<repo>/.meta), scoped per-repo alongside the worktrees.
+  echo "$(dirname "$(get_bare_dir)")/.meta"
 }
 
 get_worktree_root() {
@@ -40,98 +54,100 @@ require_meta() {
   [[ -d "${META_DIR}" ]] || die ".meta/ not found at ${META_DIR} (run 'git meta init' first)"
 }
 
-get_files() {
-  local meta_dir="$1"
-  if [[ -f "${meta_dir}/.files" ]]; then
-    grep -v '^\s*#' "${meta_dir}/.files" | grep -v '^\s*$' || true
+# Raw manifest lines (with trailing-slash markers intact) or the defaults.
+get_raw_files() {
+  if [[ -f "${META_DIR}/.files" ]]; then
+    grep -v '^\s*#' "${META_DIR}/.files" | grep -v '^\s*$' || true
   else
     printf '%s\n' "${DEFAULTS[@]}"
   fi
 }
 
-for_each_file() {
-  local callback="$1"
-  local files
-  files=$(get_files "${META_DIR}")
-  while IFS= read -r entry; do
-    [[ -n "${entry}" ]] || continue
-    "${callback}" "${entry}"
-  done <<< "${files}"
+is_dir_entry() { [[ "$1" == */ ]]; }
+
+# Relative path from a worktree entry back to .meta/<entry>: one ../ per path
+# component, so <wt>/docs/specs -> ../../.meta/docs/specs regardless of nesting.
+rel_target() {
+  local entry="${1%/}" prefix="" i
+  local -a comps
+  IFS='/' read -ra comps <<< "${entry}"
+  for ((i = 0; i < ${#comps[@]}; i++)); do prefix+="../"; done
+  echo "${prefix}.meta/${entry}"
 }
 
-sync_entry() {
-  local src_base="$1" dst_base="$2" entry="${3%/}"
-  local src="${src_base}/${entry}" dst="${dst_base}/${entry}"
-
-  if [[ ! -e "${src}" ]]; then
-    warn "skipping ${entry} (not found in source)"
-    return
-  fi
-
-  if [[ -d "${src}" ]]; then
-    if [[ -d "${dst}" ]]; then
-      rm -rf "${dst}.bak"
-      mv "${dst}" "${dst}.bak"
-    fi
-    mkdir -p "${dst}"
-    rsync -a --exclude 'cache/' --exclude 'rules/' --exclude '.bak' "${src}/" "${dst}/"
+# Make sure .meta/<entry> exists so the symlink never dangles.
+ensure_meta_target() {
+  local raw="$1" entry="${1%/}" target="${META_DIR}/${1%/}"
+  [[ -e "${target}" ]] && return
+  if is_dir_entry "${raw}"; then
+    mkdir -p "${target}"
   else
-    if [[ -f "${dst}" ]]; then
-      cp -f "${dst}" "${dst}.bak"
-    fi
-    mkdir -p "$(dirname "${dst}")"
-    cp -f "${src}" "${dst}"
+    mkdir -p "$(dirname "${target}")"
+    : > "${target}"
   fi
 }
 
-diff_entry() {
+link_entry() {
+  local raw="$1" entry="${1%/}"
+  local dst="${WT_ROOT}/${entry}"
+  local want; want=$(rel_target "${raw}")
+
+  ensure_meta_target "${raw}"
+
+  if [[ -L "${dst}" ]]; then
+    [[ "$(readlink "${dst}")" == "${want}" ]] && { echo "ok:      ${entry}"; return; }
+    rm "${dst}"
+  elif [[ -e "${dst}" ]]; then
+    rm -rf "${dst}.bak"
+    mv "${dst}" "${dst}.bak"
+    warn "backed up real ${entry} -> ${entry}.bak"
+  fi
+
+  mkdir -p "$(dirname "${dst}")"
+  ln -s "${want}" "${dst}"
+  echo "link:    ${entry}"
+}
+
+status_entry() {
   local entry="${1%/}"
-  local src="${META_DIR}/${entry}" dst="${WT_ROOT}/${entry}"
+  local dst="${WT_ROOT}/${entry}"
+  local want; want=$(rel_target "$1")
 
-  if [[ ! -e "${src}" && ! -e "${dst}" ]]; then
-    return
-  fi
-  if [[ ! -e "${src}" ]]; then
-    echo "only in worktree: ${entry}"
-    return
-  fi
-  if [[ ! -e "${dst}" ]]; then
-    echo "only in .meta: ${entry}"
-    return
-  fi
-
-  if [[ -d "${src}" ]]; then
-    diff -rq --exclude='cache' --exclude='rules' --exclude='.bak' "${src}" "${dst}" 2>/dev/null || true
+  if [[ -L "${dst}" ]]; then
+    if [[ "$(readlink "${dst}")" != "${want}" ]]; then
+      echo "diverged: ${entry} (points elsewhere)"
+    elif [[ -e "${dst}" ]]; then
+      echo "ok:       ${entry}"
+    else
+      echo "dangling: ${entry} (no target in .meta/)"
+    fi
+  elif [[ -e "${dst}" ]]; then
+    echo "diverged: ${entry} (real file, not a symlink)"
   else
-    diff -u --label ".meta/${entry}" --label "worktree/${entry}" "${src}" "${dst}" 2>/dev/null || true
+    echo "missing:  ${entry}"
   fi
 }
 
-do_push() {
-  local entry="$1"
-  echo "push: ${entry}"
-  sync_entry "${WT_ROOT}" "${META_DIR}" "${entry}"
+# Append managed entries to the shared exclude file so their symlinks don't
+# clutter `git status` in any worktree.
+update_exclude() {
+  local exclude; exclude="$(get_bare_dir)/info/exclude"
+  mkdir -p "$(dirname "${exclude}")"
+  touch "${exclude}"
+  local raw entry
+  while IFS= read -r raw; do
+    [[ -n "${raw}" ]] || continue
+    entry="/${raw%/}"
+    grep -qxF "${entry}" "${exclude}" || echo "${entry}" >> "${exclude}"
+  done < <(get_raw_files)
 }
 
-do_pull() {
-  local entry="$1"
-  echo "pull: ${entry}"
-  sync_entry "${META_DIR}" "${WT_ROOT}" "${entry}"
-}
-
-cmd_push() {
-  require_meta
-  for_each_file do_push
-}
-
-cmd_pull() {
-  require_meta
-  for_each_file do_pull
-}
-
-cmd_diff() {
-  require_meta
-  for_each_file diff_entry
+for_each() {
+  local callback="$1" raw
+  while IFS= read -r raw; do
+    [[ -n "${raw}" ]] || continue
+    "${callback}" "${raw}"
+  done < <(get_raw_files)
 }
 
 cmd_init() {
@@ -139,34 +155,49 @@ cmd_init() {
   META_DIR=$(get_meta_dir)
   WT_ROOT=$(get_worktree_root)
 
-  if [[ -d "${META_DIR}" ]]; then
-    die ".meta/ already exists at ${META_DIR} (use push/pull to sync)"
-  fi
+  [[ -d "${META_DIR}" ]] && die ".meta/ already exists at ${META_DIR} (use 'link' to wire up a worktree)"
 
   mkdir -p "${META_DIR}"
   echo "created ${META_DIR}"
 
-  if [[ ! -f "${META_DIR}/.files" ]]; then
-    printf '# files to sync between .meta/ and worktrees\n' > "${META_DIR}/.files"
-    printf '%s\n' "${DEFAULTS[@]}" >> "${META_DIR}/.files"
-    echo "created ${META_DIR}/.files"
-  fi
+  {
+    printf '# files/dirs symlinked from .meta/ into each worktree\n'
+    printf '# trailing / marks a directory\n'
+    printf '%s\n' "${DEFAULTS[@]}"
+  } > "${META_DIR}/.files"
+  echo "created ${META_DIR}/.files"
 
-  local files
-  files=$(get_files "${META_DIR}")
-  while IFS= read -r entry; do
-    [[ -n "${entry}" ]] || continue
-    if [[ -e "${WT_ROOT}/${entry}" ]]; then
-      echo "init: ${entry}"
-      sync_entry "${WT_ROOT}" "${META_DIR}" "${entry}"
+  # Adopt anything real already in this worktree, then link it back.
+  local raw entry src
+  while IFS= read -r raw; do
+    [[ -n "${raw}" ]] || continue
+    entry="${raw%/}"
+    src="${WT_ROOT}/${entry}"
+    if [[ -e "${src}" && ! -L "${src}" ]]; then
+      mkdir -p "$(dirname "${META_DIR}/${entry}")"
+      mv "${src}" "${META_DIR}/${entry}"
+      echo "adopted: ${entry}"
     fi
-  done <<< "${files}"
+  done < <(get_raw_files)
+
+  for_each link_entry
+  update_exclude
+}
+
+cmd_link() {
+  require_meta
+  for_each link_entry
+  update_exclude
+}
+
+cmd_status() {
+  require_meta
+  for_each status_entry
 }
 
 case "${1:-}" in
-  push) cmd_push ;;
-  pull) cmd_pull ;;
-  diff) cmd_diff ;;
-  init) cmd_init ;;
-  *)    echo "Usage: git meta <push|pull|diff|init>" >&2; exit 1 ;;
+  init)   cmd_init ;;
+  link)   cmd_link ;;
+  status) cmd_status ;;
+  *)      echo "Usage: git meta <init|link|status>" >&2; exit 1 ;;
 esac

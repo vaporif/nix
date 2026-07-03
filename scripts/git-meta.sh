@@ -32,7 +32,10 @@ get_bare_dir() {
 get_meta_dir() {
   # bare_dir is <repo>/.bare, so dirname lands .meta at the project root
   # (<repo>/.meta), scoped per-repo alongside the worktrees.
-  echo "$(dirname "$(get_bare_dir)")/.meta"
+  local bare_dir parent
+  bare_dir=$(get_bare_dir)
+  parent=$(dirname "${bare_dir}")
+  echo "${parent}/.meta"
 }
 
 get_worktree_root() {
@@ -63,8 +66,6 @@ get_raw_files() {
   fi
 }
 
-is_dir_entry() { [[ "$1" == */ ]]; }
-
 # Relative path from a worktree entry back to .meta/<entry>: one ../ per path
 # component, so <wt>/docs/specs -> ../../.meta/docs/specs regardless of nesting.
 rel_target() {
@@ -79,7 +80,7 @@ rel_target() {
 ensure_meta_target() {
   local raw="$1" entry="${1%/}" target="${META_DIR}/${1%/}"
   [[ -e "${target}" ]] && return
-  if is_dir_entry "${raw}"; then
+  if [[ "${raw}" == */ ]]; then
     mkdir -p "${target}"
   else
     mkdir -p "$(dirname "${target}")"
@@ -95,7 +96,8 @@ link_entry() {
   ensure_meta_target "${raw}"
 
   if [[ -L "${dst}" ]]; then
-    [[ "$(readlink "${dst}")" == "${want}" ]] && { echo "ok:      ${entry}"; return; }
+    local current; current=$(readlink "${dst}")
+    [[ "${current}" == "${want}" ]] && { echo "ok:      ${entry}"; return; }
     rm "${dst}"
   elif [[ -e "${dst}" ]]; then
     rm -rf "${dst}.bak"
@@ -114,7 +116,8 @@ status_entry() {
   local want; want=$(rel_target "$1")
 
   if [[ -L "${dst}" ]]; then
-    if [[ "$(readlink "${dst}")" != "${want}" ]]; then
+    local current; current=$(readlink "${dst}")
+    if [[ "${current}" != "${want}" ]]; then
       echo "diverged: ${entry} (points elsewhere)"
     elif [[ -e "${dst}" ]]; then
       echo "ok:       ${entry}"
@@ -134,20 +137,22 @@ update_exclude() {
   local exclude; exclude="$(get_bare_dir)/info/exclude"
   mkdir -p "$(dirname "${exclude}")"
   touch "${exclude}"
-  local raw entry
+  local raw entry files
+  files=$(get_raw_files)
   while IFS= read -r raw; do
     [[ -n "${raw}" ]] || continue
     entry="/${raw%/}"
     grep -qxF "${entry}" "${exclude}" || echo "${entry}" >> "${exclude}"
-  done < <(get_raw_files)
+  done <<< "${files}"
 }
 
 for_each() {
-  local callback="$1" raw
+  local callback="$1" raw files
+  files=$(get_raw_files)
   while IFS= read -r raw; do
     [[ -n "${raw}" ]] || continue
     "${callback}" "${raw}"
-  done < <(get_raw_files)
+  done <<< "${files}"
 }
 
 cmd_init() {
@@ -168,17 +173,19 @@ cmd_init() {
   echo "created ${META_DIR}/.files"
 
   # Adopt anything real already in this worktree, then link it back.
-  local raw entry src
+  local raw entry src dst_parent files
+  files=$(get_raw_files)
   while IFS= read -r raw; do
     [[ -n "${raw}" ]] || continue
     entry="${raw%/}"
     src="${WT_ROOT}/${entry}"
     if [[ -e "${src}" && ! -L "${src}" ]]; then
-      mkdir -p "$(dirname "${META_DIR}/${entry}")"
+      dst_parent=$(dirname "${META_DIR}/${entry}")
+      mkdir -p "${dst_parent}"
       mv "${src}" "${META_DIR}/${entry}"
       echo "adopted: ${entry}"
     fi
-  done < <(get_raw_files)
+  done <<< "${files}"
 
   for_each link_entry
   update_exclude

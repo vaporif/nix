@@ -107,6 +107,11 @@ in {
         lazy = false;
       };
 
+      roslyn = {
+        lazy = true;
+        data = pkgs.vimPlugins.roslyn-nvim;
+      };
+
       auto-session = {
         data = pkgs.vimPlugins.auto-session;
         lazy = false;

@@ -4,7 +4,7 @@
   ...
 }: let
   bevyEngineerAgent = pkgs.runCommand "bevy-engineer.md" {} ''
-    cat ${../../../assistants/shared/agents/bevy-engineer.md} > $out
+    cat ${../../../llm/shared/agents/bevy-engineer.md} > $out
     {
       printf '\n\n---\n\n'
       printf '## Appendix: Bevy 0.18 migration case study (source)\n\n'
@@ -14,9 +14,9 @@
   '';
 in {
   custom.llm.agents = {
-    rust-engineer.source = ../../../assistants/shared/agents/rust-engineer.md;
+    rust-engineer.source = ../../../llm/shared/agents/rust-engineer.md;
     bevy-engineer.source = bevyEngineerAgent;
-    solana-developer.source = ../../../assistants/shared/agents/solana-developer.md;
-    unity-csharp-engineer.source = ../../../assistants/shared/agents/unity-csharp-engineer.md;
+    solana-developer.source = ../../../llm/shared/agents/solana-developer.md;
+    unity-csharp-engineer.source = ../../../llm/shared/agents/unity-csharp-engineer.md;
   };
 }

@@ -67,6 +67,13 @@
     # Working directory (after tmpfs $HOME so it's not masked)
     args+=(--bind "$(pwd)" "$(pwd)" --chdir "$(pwd)")
 
+    # Git worktree layout (git bclone): worktree .git points at sibling ../.bare,
+    # with shared ../.meta config. Bind them so git works from inside a worktree.
+    worktree_parent="$(dirname "$(pwd)")"
+    bind_rw "$worktree_parent/.bare"
+    bind_rw "$worktree_parent/.git"
+    bind_ro "$worktree_parent/.meta"
+
     # Read-write home paths
     bind_rw "$HOME/.claude"
     bind_rw "$HOME/.cache/nix"

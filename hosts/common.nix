@@ -1,4 +1,8 @@
-{lib, ...}: {
+{
+  config,
+  lib,
+  ...
+}: {
   custom = {
     claude.enable = true;
     codex = {
@@ -39,5 +43,49 @@
     # mkDefault so a host without an age key can opt out (secrets.enable = false).
     secrets.enable = lib.mkDefault true;
     timezone = "Europe/Lisbon";
+
+    # Full bookmark set; hosts override (e.g. work-nixos trims to a subset).
+    yaziBookmarks = lib.mkDefault [
+      {
+        key = "r";
+        path = "~/Repos/";
+        desc = "Go to [r]epos";
+      }
+      {
+        key = "a";
+        path = "~/Repos/nephila";
+        desc = "Go to nephil[a]";
+      }
+      {
+        key = "p";
+        path = "~/Repos/parry-guard";
+        desc = "Go to [p]arry-guard";
+      }
+      {
+        key = "m";
+        path = "~/Repos/mercury";
+        desc = "Go to [m]ercury";
+      }
+      {
+        key = "k";
+        path = "~/Repos/kingdom";
+        desc = "Go to [k]ingdom";
+      }
+      {
+        key = "c";
+        path = "~/Repos/monorepo";
+        desc = "Go to [c]ommonware";
+      }
+      {
+        key = "n";
+        path = config.custom.configPath;
+        desc = "Go to [n]ix";
+      }
+      {
+        key = "l";
+        path = "~/Repos/logos";
+        desc = "Go to [l]ogos";
+      }
+    ];
   };
 }

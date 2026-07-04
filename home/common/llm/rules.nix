@@ -1,9 +1,9 @@
 {...}: {
   custom.llm.rules = {
-    go.source = ../../../assistants/shared/rules/go.md;
-    lua.source = ../../../assistants/shared/rules/lua.md;
-    nix.source = ../../../assistants/shared/rules/nix.md;
-    rust.source = ../../../assistants/shared/rules/rust.md;
-    solidity.source = ../../../assistants/shared/rules/solidity.md;
+    go.source = ../../../llm/shared/rules/go.md;
+    lua.source = ../../../llm/shared/rules/lua.md;
+    nix.source = ../../../llm/shared/rules/nix.md;
+    rust.source = ../../../llm/shared/rules/rust.md;
+    solidity.source = ../../../llm/shared/rules/solidity.md;
   };
 }

@@ -13,12 +13,18 @@ in
           });
         })
       ]
-      # Skip timing-sensitive fastmcp rate-limiting test (recovery-over-time
-      # depends on wall-clock pacing and flakes in the sandbox)
+      # Skip sandbox-flaky fastmcp tests:
+      #  - rate-limiting recovery-over-time depends on wall-clock pacing
+      #  - supabase integration test hits the network and times out (>5s) sandboxed
       ++ [
         (_: python-prev: {
           fastmcp = python-prev.fastmcp.overridePythonAttrs (old: {
-            disabledTests = (old.disabledTests or []) ++ ["test_rate_limiting_recovery_over_time"];
+            disabledTests =
+              (old.disabledTests or [])
+              ++ [
+                "test_rate_limiting_recovery_over_time"
+                "test_unauthorized_access"
+              ];
           });
         })
       ]

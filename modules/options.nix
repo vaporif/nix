@@ -132,8 +132,8 @@ in {
       enable = lib.mkEnableOption "Claude Code (CLI, plugins, settings, security, sandbox, aliases, MCP integration)";
       bashGuard.enable = lib.mkOption {
         type = lib.types.bool;
-        default = true;
-        description = "Bash-command validation hook (the parry guard) that intercepts Bash tool calls. Disable per host (e.g. the work VM) to skip command interception.";
+        default = false;
+        description = "Bash-command validation hook (the parry guard) that intercepts Bash tool calls. Disabled by default; enable per host to turn on command interception.";
       };
       sandbox = lib.mkOption {
         type = lib.types.bool;

@@ -16,7 +16,6 @@
     claude = {
       enable = true;
       sandbox = false; # bwrap can't nest in a rootless container
-      bashGuard.enable = false;
     };
     codex.enable = false;
     qdrant.enable = false;

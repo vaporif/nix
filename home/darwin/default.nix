@@ -89,4 +89,30 @@ in {
       StandardErrorPath = "${homeDir}/.qdrant/qdrant.err";
     };
   };
+
+  # Standalone unity-mcp server in HTTP transport. Runs outside Claude Code's
+  # seatbelt sandbox (launchd-spawned), so instance discovery via the plugin
+  # WebSocket hub works — unlike a CC-spawned stdio server, which is sandboxed
+  # out of ~/.unity-mcp. Claude Code connects to it over HTTP (see
+  # home/common/mcp.nix). Idles cleanly when the Unity repo isn't present.
+  launchd.agents.unity-mcp-http = {
+    enable = cfg.claude.enable;
+    config = {
+      Label = "dev.coplay.unity-mcp-http";
+      ProgramArguments = [
+        "${pkgs.writeShellScript "unity-mcp-http-wrapper" ''
+          if [ ! -e ${homeDir}/Repos/dereza/flake.nix ]; then
+            echo "dereza repo not present; unity-mcp HTTP server idle"
+            exit 0
+          fi
+          exec ${lib.getExe' pkgs.nix "nix"} run ${homeDir}/Repos/dereza#mcp-for-unity -- \
+            --transport http --http-host 127.0.0.1 --http-port 8080
+        ''}"
+      ];
+      RunAtLoad = true;
+      KeepAlive = {SuccessfulExit = false;};
+      StandardOutPath = "${homeDir}/Library/Logs/unity-mcp-http.log";
+      StandardErrorPath = "${homeDir}/Library/Logs/unity-mcp-http.err";
+    };
+  };
 }

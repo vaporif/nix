@@ -97,24 +97,14 @@
     };
   };
 
-  # Claude Code-only custom servers.
-  # unity-mcp is per-project (the dereza Unity repo), but the enterprise
-  # managed-mcp.json has exclusive control over MCP servers, so a repo-local
-  # .mcp.json can never load. Approve it here instead. Launched lazily via
-  # `nix run` against the repo flake, so it only does real work when the Unity
-  # Editor + repo are present; otherwise it just idles/fails harmlessly.
-  codeOnlyServers = lib.optionalAttrs pkgs.stdenv.isDarwin {
-    unity-mcp = {
-      command = lib.getExe' pkgs.nix "nix";
-      args = [
-        "run"
-        "${homeDir}/Repos/dereza#mcp-for-unity"
-        "--"
-        "--transport"
-        "stdio"
-      ];
-    };
-  };
+  # unity-mcp is intentionally NOT a stdio server here. Claude Code spawns stdio
+  # MCP servers inside the macOS seatbelt sandbox, which denies reads of
+  # ~/.unity-mcp (where Unity writes its instance status files), so stdio
+  # discovery always found 0 instances. Instead it runs as a standalone HTTP
+  # server (launchd agent in home/darwin/default.nix) that discovers instances
+  # via the plugin's WebSocket hub — no filesystem scan, so the sandbox is
+  # irrelevant. The enterprise managed-mcp.json has exclusive control over MCP
+  # servers, so the HTTP entry is injected into the generated config below.
 
   # Claude Desktop: all servers
   desktopMcpConfig = {
@@ -125,13 +115,25 @@
   # Claude Code: dev-focused servers only
   codeMcpConfig = {
     programs = commonPrograms;
-    settings.servers = commonServers // codeOnlyServers;
+    settings.servers = commonServers;
   };
 
   desktopMcpModule = inputs.mcp-servers-nix.lib.evalModule pkgs desktopMcpConfig;
   codeMcpModule = inputs.mcp-servers-nix.lib.evalModule pkgs codeMcpConfig;
   desktopMcpServersConfig = desktopMcpModule.config.configFile;
-  codeMcpServersConfig = codeMcpModule.config.configFile;
+
+  # On darwin, inject the unity-mcp HTTP entry pointing at the launchd-managed
+  # standalone server (see the note above). The server default port is 8080 and
+  # FastMCP serves the MCP protocol at /mcp.
+  codeMcpServersConfig =
+    if pkgs.stdenv.isDarwin
+    then
+      pkgs.runCommand "managed-mcp.json" {} ''
+        ${lib.getExe pkgs.jq} \
+          '.mcpServers["unity-mcp"] = {type: "http", url: "http://127.0.0.1:8080/mcp"}' \
+          ${codeMcpModule.config.configFile} > $out
+      ''
+    else codeMcpModule.config.configFile;
   codexMcpServers = lib.mapAttrs (name: server:
     lib.filterAttrs (_: value: value != null && value != {}) {
       command = server.command or null;

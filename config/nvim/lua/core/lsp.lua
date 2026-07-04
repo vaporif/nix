@@ -158,6 +158,18 @@ vim.lsp.enable 'ruff'
 vim.lsp.config.just_ls = {}
 vim.lsp.enable 'just_ls'
 
+-- roslyn.nvim starts the client itself; it reads this via vim.lsp.config.
+-- Disable dynamic didChangeWatchedFiles registration (roslyn handles file watching).
+vim.lsp.config.roslyn = {
+  capabilities = {
+    workspace = {
+      didChangeWatchedFiles = {
+        dynamicRegistration = false,
+      },
+    },
+  },
+}
+
 vim.lsp.config.solidity_ls_nomicfoundation = {
   cmd = { 'nomicfoundation-solidity-language-server', '--stdio' },
   filetypes = { 'solidity' },

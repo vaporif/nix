@@ -93,7 +93,8 @@ for_each_symlink() {
   files=$(get_raw_files)
   while IFS= read -r raw; do
     [[ -n "${raw}" ]] || continue
-    is_copy_entry "${raw}" && continue
+    # shellcheck disable=SC2310 # return 1 is the intended "not a copy entry" signal
+    if is_copy_entry "${raw}"; then continue; fi
     "${callback}" "${raw}"
   done <<< "${files}"
 }
@@ -185,6 +186,7 @@ copy_entry() {
   [[ -d "${src}" ]] || { echo "copy:    ${entry} (no dir in worktree)"; return; }
 
   local f rel target copied=0 kept=0
+  # shellcheck disable=SC2312 # find failure yields no files, handled below
   while IFS= read -r -d '' f; do
     rel="${f#"${src}"/}"
     target="${dst}/${rel}"
@@ -215,6 +217,7 @@ status_copy_entry() {
   fi
 
   local f rel pending=0 present=0
+  # shellcheck disable=SC2312 # find failure yields no files, handled below
   while IFS= read -r -d '' f; do
     rel="${f#"${src}"/}"
     if [[ -e "${dst}/${rel}" ]]; then
@@ -233,12 +236,13 @@ update_exclude() {
   local exclude; exclude="$(get_bare_dir)/info/exclude"
   mkdir -p "$(dirname "${exclude}")"
   touch "${exclude}"
-  local raw entry
+  local raw entry entries
+  entries=$(get_raw_files; printf '%s\n' "${COPY_ENTRIES[@]}")
   while IFS= read -r raw; do
     [[ -n "${raw}" ]] || continue
     entry="/${raw%/}"
     grep -qxF "${entry}" "${exclude}" || echo "${entry}" >> "${exclude}"
-  done < <(get_raw_files; printf '%s\n' "${COPY_ENTRIES[@]}")
+  done <<< "${entries}"
 }
 
 cmd_init() {
@@ -260,10 +264,12 @@ cmd_init() {
   echo "created ${META_DIR}/.files"
 
   # Adopt anything real already in this worktree, then link it back.
-  local raw entry src dst_parent
+  local raw entry src dst_parent raw_files
+  raw_files=$(get_raw_files)
   while IFS= read -r raw; do
     [[ -n "${raw}" ]] || continue
-    is_copy_entry "${raw}" && continue
+    # shellcheck disable=SC2310 # return 1 is the intended "not a copy entry" signal
+    if is_copy_entry "${raw}"; then continue; fi
     entry="${raw%/}"
     src="${WT_ROOT}/${entry}"
     if [[ -e "${src}" && ! -L "${src}" ]]; then
@@ -272,7 +278,7 @@ cmd_init() {
       mv "${src}" "${META_DIR}/${entry}"
       echo "adopted: ${entry}"
     fi
-  done < <(get_raw_files)
+  done <<< "${raw_files}"
 
   for_each_symlink link_entry
   for_each_copy copy_entry

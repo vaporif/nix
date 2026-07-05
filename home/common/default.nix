@@ -70,6 +70,7 @@ in {
       baseIndex = 1;
       terminal = "tmux-256color";
       extraConfig = ''
+        set -g prefix2 C-b
         set -g pane-base-index 1
         set -g renumber-windows on
         set -sg escape-time 0
@@ -118,8 +119,9 @@ in {
 
         # new windows / splits inherit the current pane's path
         bind c new-window -c "#{pane_current_path}"
-        bind '"' split-window -v -c "#{pane_current_path}"
-        bind % split-window -h -c "#{pane_current_path}"
+        # v = vsplit (side by side), h = split (stacked) — vim naming
+        bind v split-window -h -c "#{pane_current_path}"
+        bind h split-window -v -c "#{pane_current_path}"
 
         # Alt-1..9 select window 1..9 (no prefix)
         bind -n M-1 select-window -t 1

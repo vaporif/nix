@@ -86,6 +86,11 @@
         path = "~/Repos/logos";
         desc = "Go to [l]ogos";
       }
+      {
+        key = "d";
+        path = "~/Repos/dereza";
+        desc = "Go to [d]ereza";
+      }
     ];
   };
 }

@@ -66,11 +66,9 @@
       enable = true;
       enableZshIntegration = true;
       defaultCommand = "fd --type f --hidden --follow --exclude .git";
-      fileWidgetCommand = "fd --type f --hidden --follow --exclude .git";
-      historyWidgetOptions = [
-        "--no-sort"
-        "--tiebreak=index"
-      ];
+      fileWidget.command = "fd --type f --hidden --follow --exclude .git";
+      # Atuin owns Ctrl-R; disable fzf's history widget to avoid the clash.
+      historyWidget.command = "";
     };
 
     starship = {

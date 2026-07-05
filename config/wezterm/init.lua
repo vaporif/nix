@@ -127,8 +127,8 @@ local config = {
     -- Session management
     { key = 'o', mods = 'LEADER', action = act.ShowLauncher },
 
-    -- Quick session switcher
-    { key = 'z', mods = 'LEADER', action = act.ShowLauncherArgs {
+    -- Quick session switcher (matches tmux <prefix> s)
+    { key = 's', mods = 'LEADER', action = act.ShowLauncherArgs {
       flags = 'FUZZY|WORKSPACES',
     } },
 

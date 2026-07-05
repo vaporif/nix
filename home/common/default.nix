@@ -136,11 +136,16 @@ in {
         bind -n M-8 select-window -t 8
         bind -n M-9 select-window -t 9
 
-        # Ctrl-t: toggle floating scratch terminal (one per window/tab)
-        # TMUX= unsets the parent so the nested session isn't refused
-        bind -n C-t if-shell -F '#{m:scratch-*,#{session_name}}' \
-          'detach-client' \
-          'display-popup -E -w 80% -h 80% "TMUX= tmux new-session -A -s scratch-#{s/@//:window_id}"'
+        # Ctrl-t: toggle floating scratch terminal, one distinct session per tab.
+        # display-popup does NOT expand #{...} in its command, so all tabs would
+        # share a single literally-named session. run-shell DOES expand formats,
+        # so build the popup command there to bake in the per-window session name.
+        # TMUX= unsets the parent so the nested session isn't refused.
+        bind -n C-t if-shell -F '#{m:scratch-*,#{session_name}}' {
+          detach-client
+        } {
+          run-shell 'tmux display-popup -E -w 80% -h 80% "TMUX= tmux new-session -A -s scratch-#{s/@//:window_id} -c \"#{pane_current_path}\""'
+        }
       '';
     };
 

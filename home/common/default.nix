@@ -118,10 +118,12 @@ in {
         set -g mode-style "bg=${c.base02},fg=${c.base05}"
 
         # new windows / splits inherit the current pane's path
-        bind c new-window -c "#{pane_current_path}"
-        # v = vsplit (side by side), h = split (stacked) — vim naming
-        bind v split-window -h -c "#{pane_current_path}"
-        bind h split-window -v -c "#{pane_current_path}"
+        # t = new tab; v = stacked, h = side by side — matches wezterm
+        bind t new-window -c "#{pane_current_path}"
+        bind v split-window -v -c "#{pane_current_path}"
+        bind h split-window -h -c "#{pane_current_path}"
+        # close pane without confirmation prompt
+        bind x kill-pane
 
         # Alt-1..9 select window 1..9 (no prefix)
         bind -n M-1 select-window -t 1

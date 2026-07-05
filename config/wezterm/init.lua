@@ -65,6 +65,9 @@ local config = {
   leader = { key = 'b', mods = 'CTRL', timeout_milliseconds = 1000 },
 
   keys = {
+    -- Tab management
+    { key = 't', mods = 'LEADER', action = act.SpawnTab 'CurrentPaneDomain' },
+
     -- Pane management
     { key = 'x', mods = 'LEADER', action = act.CloseCurrentPane { confirm = false } },
 

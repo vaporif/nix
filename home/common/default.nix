@@ -137,9 +137,10 @@ in {
         bind -n M-9 select-window -t 9
 
         # Ctrl-t: toggle floating scratch terminal (one per window/tab)
+        # TMUX= unsets the parent so the nested session isn't refused
         bind -n C-t if-shell -F '#{m:scratch-*,#{session_name}}' \
           'detach-client' \
-          'display-popup -E -w 80% -h 80% "tmux attach -t scratch-#{s/@//:window_id} || tmux new -s scratch-#{s/@//:window_id}"'
+          'display-popup -E -w 80% -h 80% "TMUX= tmux new-session -A -s scratch-#{s/@//:window_id}"'
       '';
     };
 

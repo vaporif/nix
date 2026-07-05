@@ -39,9 +39,9 @@
         desc = "Go to [n]ix";
       }
       {
-        key = "j";
-        path = "~/repos/justex";
-        desc = "Go to [j]ustex";
+        key = "m";
+        path = "~/repos/matching-engine";
+        desc = "Go to [m]atching-engine";
       }
     ];
   };

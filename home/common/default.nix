@@ -132,10 +132,10 @@ in {
         bind -n M-8 select-window -t 8
         bind -n M-9 select-window -t 9
 
-        # Ctrl-t: toggle floating scratch terminal
-        bind -n C-t if-shell -F '#{==:#{session_name},scratch}' \
+        # Ctrl-t: toggle floating scratch terminal (one per window/tab)
+        bind -n C-t if-shell -F '#{m:scratch-*,#{session_name}}' \
           'detach-client' \
-          'display-popup -E -w 80% -h 80% "tmux attach -t scratch || tmux new -s scratch"'
+          'display-popup -E -w 80% -h 80% "tmux attach -t scratch-#{s/@//:window_id} || tmux new -s scratch-#{s/@//:window_id}"'
       '';
     };
 

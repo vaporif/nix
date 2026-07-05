@@ -1,24 +1,35 @@
 #!/usr/bin/env bash
-# Symlink shared, unversioned config from .meta/ into every worktree.
+# Sync shared, unversioned config from .meta/ into every worktree.
 # Usage: git meta <init|link|status>
+#
+# Two classes of entry:
+#   - symlinked: .envrc, external/ — one shared copy, linked into each worktree
+#   - copied:    docs/specs, docs/plans — real per-worktree dirs; link/init copy
+#     them up into .meta per-file, skipping files already there (no overwrite).
+#     .meta becomes a no-clobber archive; each worktree keeps its own dir.
 #
 # Layout (bare repo + sibling worktrees, see git-bare-clone.sh):
 #   reponame/
 #   ├── .bare/                git dir
 #   ├── .meta/                single source of truth (unversioned)
-#   │   ├── .files            manifest, trailing / marks a directory
+#   │   ├── .files            manifest of symlinked entries, trailing / marks a dir
 #   │   ├── .envrc
-#   │   ├── docs/{specs,plans}/
+#   │   ├── docs/{specs,plans}/   archive, populated by copy (no overwrite)
 #   │   └── external/
 #   └── <worktree>/
-#       ├── .envrc     -> ../.meta/.envrc
-#       ├── docs/specs -> ../../.meta/docs/specs
+#       ├── .envrc     -> ../.meta/.envrc   (symlink)
+#       ├── docs/specs                       (real dir, copied up to .meta)
 #       └── ...
 set -euo pipefail
 
-# Entries default to directories where the name has no obvious file extension;
-# the manifest's trailing slash is authoritative. .envrc is the lone file.
-DEFAULTS=(.envrc docs/specs/ docs/plans/ external/)
+# Symlinked entries. Directories default where the name has no obvious file
+# extension; the manifest's trailing slash is authoritative. .envrc is a file.
+SYMLINK_DEFAULTS=(.envrc external/)
+
+# Copied entries: real per-worktree dirs archived up into .meta (no overwrite).
+# Hardcoded — these are fixed and must never be symlinked, even if an old
+# manifest still lists them.
+COPY_ENTRIES=(docs/specs/ docs/plans/)
 
 die() { echo "error: $*" >&2; exit 1; }
 warn() { echo "warning: $*" >&2; }
@@ -62,8 +73,37 @@ get_raw_files() {
   if [[ -f "${META_DIR}/.files" ]]; then
     grep -v '^\s*#' "${META_DIR}/.files" | grep -v '^\s*$' || true
   else
-    printf '%s\n' "${DEFAULTS[@]}"
+    printf '%s\n' "${SYMLINK_DEFAULTS[@]}"
   fi
+}
+
+# True if the entry is a copied (not symlinked) path. Guards against old
+# manifests that still list docs/specs or docs/plans.
+is_copy_entry() {
+  local entry="${1%/}" c
+  for c in "${COPY_ENTRIES[@]}"; do
+    [[ "${entry}" == "${c%/}" ]] && return 0
+  done
+  return 1
+}
+
+# Iterate symlinked manifest entries, skipping any copy entries.
+for_each_symlink() {
+  local callback="$1" raw files
+  files=$(get_raw_files)
+  while IFS= read -r raw; do
+    [[ -n "${raw}" ]] || continue
+    is_copy_entry "${raw}" && continue
+    "${callback}" "${raw}"
+  done <<< "${files}"
+}
+
+# Iterate copied entries.
+for_each_copy() {
+  local callback="$1" raw
+  for raw in "${COPY_ENTRIES[@]}"; do
+    "${callback}" "${raw}"
+  done
 }
 
 # Relative path from a worktree entry back to .meta/<entry>: one ../ per path
@@ -131,28 +171,74 @@ status_entry() {
   fi
 }
 
-# Append managed entries to the shared exclude file so their symlinks don't
-# clutter `git status` in any worktree.
+# Copy every file under a worktree entry up into .meta, skipping files already
+# there (no overwrite). Worktree→meta only; the worktree dir stays real.
+copy_entry() {
+  local entry="${1%/}"
+  local src="${WT_ROOT}/${entry}"
+  local dst="${META_DIR}/${entry}"
+
+  if [[ -L "${src}" ]]; then
+    warn "${entry} is a symlink (old layout) — rm it to keep a per-worktree copy; skipping"
+    return
+  fi
+  [[ -d "${src}" ]] || { echo "copy:    ${entry} (no dir in worktree)"; return; }
+
+  local f rel target copied=0 kept=0
+  while IFS= read -r -d '' f; do
+    rel="${f#"${src}"/}"
+    target="${dst}/${rel}"
+    if [[ -e "${target}" ]]; then
+      kept=$((kept + 1))
+    else
+      mkdir -p "$(dirname "${target}")"
+      cp "${f}" "${target}"
+      copied=$((copied + 1))
+    fi
+  done < <(find "${src}" -type f -print0)
+
+  echo "copy:    ${entry} (${copied} copied, ${kept} kept)"
+}
+
+status_copy_entry() {
+  local entry="${1%/}"
+  local src="${WT_ROOT}/${entry}"
+  local dst="${META_DIR}/${entry}"
+
+  if [[ -L "${src}" ]]; then
+    echo "diverged: ${entry} (symlink, old layout — rm it for a per-worktree copy)"
+    return
+  fi
+  if [[ ! -d "${src}" ]]; then
+    echo "missing:  ${entry} (no dir in worktree)"
+    return
+  fi
+
+  local f rel pending=0 present=0
+  while IFS= read -r -d '' f; do
+    rel="${f#"${src}"/}"
+    if [[ -e "${dst}/${rel}" ]]; then
+      present=$((present + 1))
+    else
+      pending=$((pending + 1))
+    fi
+  done < <(find "${src}" -type f -print0)
+
+  echo "copy:     ${entry} (${pending} to copy, ${present} already in .meta)"
+}
+
+# Append managed entries to the shared exclude file so their symlinks and
+# per-worktree working dirs don't clutter `git status` in any worktree.
 update_exclude() {
   local exclude; exclude="$(get_bare_dir)/info/exclude"
   mkdir -p "$(dirname "${exclude}")"
   touch "${exclude}"
-  local raw entry files
-  files=$(get_raw_files)
+  local raw entry
   while IFS= read -r raw; do
     [[ -n "${raw}" ]] || continue
     entry="/${raw%/}"
     grep -qxF "${entry}" "${exclude}" || echo "${entry}" >> "${exclude}"
-  done <<< "${files}"
-}
-
-for_each() {
-  local callback="$1" raw files
-  files=$(get_raw_files)
-  while IFS= read -r raw; do
-    [[ -n "${raw}" ]] || continue
-    "${callback}" "${raw}"
-  done <<< "${files}"
+  done < <(get_raw_files; printf '%s\n' "${COPY_ENTRIES[@]}")
 }
 
 cmd_init() {
@@ -168,15 +254,16 @@ cmd_init() {
   {
     printf '# files/dirs symlinked from .meta/ into each worktree\n'
     printf '# trailing / marks a directory\n'
-    printf '%s\n' "${DEFAULTS[@]}"
+    printf '# (docs/specs, docs/plans are copied, not linked — see git-meta.sh)\n'
+    printf '%s\n' "${SYMLINK_DEFAULTS[@]}"
   } > "${META_DIR}/.files"
   echo "created ${META_DIR}/.files"
 
   # Adopt anything real already in this worktree, then link it back.
-  local raw entry src dst_parent files
-  files=$(get_raw_files)
+  local raw entry src dst_parent
   while IFS= read -r raw; do
     [[ -n "${raw}" ]] || continue
+    is_copy_entry "${raw}" && continue
     entry="${raw%/}"
     src="${WT_ROOT}/${entry}"
     if [[ -e "${src}" && ! -L "${src}" ]]; then
@@ -185,21 +272,24 @@ cmd_init() {
       mv "${src}" "${META_DIR}/${entry}"
       echo "adopted: ${entry}"
     fi
-  done <<< "${files}"
+  done < <(get_raw_files)
 
-  for_each link_entry
+  for_each_symlink link_entry
+  for_each_copy copy_entry
   update_exclude
 }
 
 cmd_link() {
   require_meta
-  for_each link_entry
+  for_each_symlink link_entry
+  for_each_copy copy_entry
   update_exclude
 }
 
 cmd_status() {
   require_meta
-  for_each status_entry
+  for_each_symlink status_entry
+  for_each_copy status_copy_entry
 }
 
 case "${1:-}" in

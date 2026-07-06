@@ -80,6 +80,8 @@ in {
 
       (pkgs.writeShellScriptBin "git-bare-clone" (builtins.readFile ../../scripts/git-bare-clone.sh))
       (pkgs.writeShellScriptBin "git-meta" (builtins.readFile ../../scripts/git-meta.sh))
+      (pkgs.writeShellScriptBin "git-worktree-new" (builtins.readFile ../../scripts/git-worktree-new.sh))
+      (pkgs.writeShellScriptBin "git-worktree-remove" (builtins.readFile ../../scripts/git-worktree-remove.sh))
     ]
     ++ lib.optionals cfg.claude.enable [
       pkgs.claude-code

@@ -54,6 +54,8 @@ in {
           discard = "reset HEAD --hard";
           fp = "fetch --all --prune";
           bclone = "!git-bare-clone";
+          wb = "!git-worktree-new";
+          wr = "!git-worktree-remove";
         };
         pull.ff = "only";
         push.autoSetupRemote = true;

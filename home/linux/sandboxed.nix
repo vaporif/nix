@@ -72,7 +72,7 @@
     worktree_parent="$(dirname "$(pwd)")"
     bind_rw "$worktree_parent/.bare"
     bind_rw "$worktree_parent/.git"
-    bind_ro "$worktree_parent/.meta"
+    bind_rw "$worktree_parent/.meta"
 
     # Read-write home paths
     bind_rw "$HOME/.claude"

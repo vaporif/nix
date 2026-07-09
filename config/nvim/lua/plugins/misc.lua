@@ -33,7 +33,17 @@ require('lze').load {
     'todo-comments.nvim',
     event = 'DeferredUIEnter',
     after = function()
-      require('todo-comments').setup { signs = false }
+      require('todo-comments').setup {
+        signs = false,
+        -- also match TODO(scope): style (very-magic vim regex)
+        highlight = {
+          pattern = [[.*<(KEYWORDS)\s*(\([^)]*\))?\s*:]],
+        },
+        -- ripgrep regex used by TodoFzfLua
+        search = {
+          pattern = [[\b(KEYWORDS)(\([^)]*\))?:]],
+        },
+      }
     end,
   },
   {

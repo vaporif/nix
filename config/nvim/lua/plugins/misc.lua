@@ -32,9 +32,6 @@ require('lze').load {
   {
     'todo-comments.nvim',
     event = 'DeferredUIEnter',
-    keys = {
-      { '<leader>fT', '<cmd>TodoFzfLua<cr>', desc = '[T]odos' },
-    },
     after = function()
       require('todo-comments').setup { signs = false }
     end,

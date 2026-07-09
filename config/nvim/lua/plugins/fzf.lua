@@ -2,6 +2,7 @@ require('lze').load {
   {
     'fzf-lua',
     keys = {
+      { '<leader>fT', '<cmd>TodoFzfLua<cr>', desc = '[T]odos' },
       { '<leader>fh', '<cmd>FzfLua help_tags<cr>', desc = '[h]elp' },
       { '<leader>fk', '<cmd>FzfLua keymaps<cr>', desc = '[k]eymaps' },
       { '<leader>ff', '<cmd>FzfLua files<cr>', desc = '[f]iles' },

@@ -71,6 +71,7 @@ in {
         feature.experimental = true;
         help.autocorrect = "prompt";
         branch.sort = "committerdate";
+        branch.autoSetupMerge = "simple";
         url."git@github.com:".insteadOf = "https://github.com/";
         url."git@codeberg.org:".insteadOf = "https://codeberg.org/";
         interactive.diffFilter = "delta --color-only";

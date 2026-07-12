@@ -1,7 +1,6 @@
 output:
   - summary
   - failure
-  - execution_info
 
 pre-commit:
   parallel: true

@@ -1,7 +1,7 @@
 diff -ruN mattpocock-skills-orig/skills/engineering/improve-codebase-architecture/SKILL.md mattpocock-skills-mod/skills/engineering/improve-codebase-architecture/SKILL.md
---- mattpocock-skills-orig/skills/engineering/improve-codebase-architecture/SKILL.md	2026-06-18 20:15:08
-+++ mattpocock-skills-mod/skills/engineering/improve-codebase-architecture/SKILL.md	2026-06-18 20:15:41
-@@ -8,16 +8,16 @@
+--- mattpocock-skills-orig/skills/engineering/improve-codebase-architecture/SKILL.md	2026-07-13 21:58:57.810891238 +0000
++++ mattpocock-skills-mod/skills/engineering/improve-codebase-architecture/SKILL.md	2026-07-13 21:59:23.368357350 +0000
+@@ -8,10 +8,10 @@
  
  Surface architectural friction and propose **deepening opportunities** — refactors that turn shallow modules into deep ones. The aim is testability and AI-navigability.
  
@@ -14,14 +14,16 @@ diff -ruN mattpocock-skills-orig/skills/engineering/improve-codebase-architectur
  
  ## Process
  
- ### 1. Explore
+@@ -22,7 +22,7 @@
+ - If the user named a direction — a module, a subsystem, a pain point — take it, and skip the inference below.
+ - Otherwise, walk back a good stretch of the commit history (`git log --oneline`) to find the codebase's hot spots — the files and areas that keep coming up — and let those paths pull your attention first. If the changes are scattered with no clear hot spot, widen the net.
  
 -Read the project's domain glossary (`CONTEXT.md`) and any ADRs in the area you're touching first.
 +Read any ADRs in `docs/adr/` that touch the area you're working in first (if the directory exists). Skip silently if it doesn't.
  
  Then use the Agent tool with `subagent_type=Explore` to walk the codebase. Don't follow rigid heuristics — explore organically and note where you experience friction:
  
-@@ -46,7 +46,7 @@
+@@ -51,7 +51,7 @@
  
  End the report with a **Top recommendation** section: which candidate you'd tackle first and why.
  
@@ -30,9 +32,9 @@ diff -ruN mattpocock-skills-orig/skills/engineering/improve-codebase-architectur
  
  **ADR conflicts**: if a candidate contradicts an existing ADR, only surface it when the friction is real enough to warrant revisiting the ADR. Mark it clearly in the card (e.g. a warning callout: _"contradicts ADR-0007 — but worth reopening because…"_). Don't list every theoretical refactor an ADR forbids.
  
-@@ -58,9 +58,7 @@
+@@ -63,9 +63,7 @@
  
- Once the user picks a candidate, run the `/grilling` skill to walk the design tree with them — constraints, dependencies, the shape of the deepened module, what sits behind the seam, what tests survive.
+ Once the user picks a candidate, run the `/grilling` skill to walk the decision tree with them — constraints, dependencies, the shape of the deepened module, what sits behind the seam, what tests survive.
  
 -Side effects happen inline as decisions crystallize — run the `/domain-modeling` skill to keep the domain model current as you go:
 +Side effects happen inline as decisions crystallize:

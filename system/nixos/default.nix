@@ -51,7 +51,14 @@ in {
   systemd.oomd = {
     enable = true;
     enableUserSlices = true;
+    enableSystemSlice = true;
     settings.OOM.DefaultMemoryPressureDurationSec = "20s";
+  };
+
+  services.earlyoom = {
+    enable = true;
+    freeMemThreshold = 5;
+    freeSwapThreshold = 10;
   };
 
   environment.systemPackages = [

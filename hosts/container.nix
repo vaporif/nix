@@ -22,7 +22,14 @@
     tmux.autoAttach = false;
     gitlab.enable = false;
     yaziBookmarks = [];
+    # docker-dev.sh bind-mounts the host ~/.ssh read-only; dropping the signing
+    # key stops HM writing .ssh/allowed_signers + signing_key.pub into it (the
+    # host's ssh/git identity is used instead).
+    git.signingKey = "";
   };
+
+  # Same reason: don't generate ~/.ssh/config over the read-only host mount.
+  programs.ssh.enable = lib.mkForce false;
 
   home.stateVersion = "24.05";
 

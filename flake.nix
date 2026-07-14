@@ -190,7 +190,7 @@
           {custom.system = system;}
           ./home/common
           ./home/linux
-          stylix.homeManagerModules.stylix
+          stylix.homeModules.stylix
           parry-guard.homeManagerModules.default
         ];
       };

@@ -12,15 +12,14 @@
     then "${homeDir}/${lib.removePrefix "~/" path}"
     else path;
 
-  mkDenyTriple = path: [
+  mkDenyPair = path: [
     "Read(${path})"
-    "Write(${path})"
     "Edit(${path})"
   ];
 
-  mkDirDeny = dir: mkDenyTriple "${expandTilde dir}/**";
-  mkFileDeny = file: mkDenyTriple (expandTilde file);
-  mkAbsDeny = mkDenyTriple;
+  mkDirDeny = dir: mkDenyPair "${expandTilde dir}/**";
+  mkFileDeny = file: mkDenyPair (expandTilde file);
+  mkAbsDeny = mkDenyPair;
 
   scripts = import ./scripts/wrap.nix {
     inherit pkgs lib;

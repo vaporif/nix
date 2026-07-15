@@ -118,8 +118,8 @@ in {
         set -g mode-style "bg=${c.base02},fg=${c.base05}"
 
         # new windows / splits inherit the current pane's path
-        # t = new tab; v = stacked, h = side by side — matches wezterm
-        bind t new-window -c "#{pane_current_path}"
+        # c = new tab; v = stacked, h = side by side — matches wezterm
+        bind c new-window -c "#{pane_current_path}"
         bind v split-window -v -c "#{pane_current_path}"
         bind h split-window -h -c "#{pane_current_path}"
         # close pane without confirmation prompt
@@ -136,15 +136,20 @@ in {
         bind -n M-8 select-window -t 8
         bind -n M-9 select-window -t 9
 
-        # Ctrl-t: toggle floating scratch terminal, one distinct session per tab.
-        # display-popup does NOT expand #{...} in its command, so all tabs would
-        # share a single literally-named session. run-shell DOES expand formats,
-        # so build the popup command there to bake in the per-window session name.
-        # TMUX= unsets the parent so the nested session isn't refused.
-        bind -n C-t if-shell -F '#{m:scratch-*,#{session_name}}' {
-          detach-client
+        # Ctrl-t: toggle a bottom drawer (mirrors the wezterm Ctrl+t split).
+        # 1 pane        -> open a 70% bottom split, focused
+        # 2 panes, flat -> focus the top pane and zoom it (hides the drawer)
+        # 2 panes, zoom -> unzoom and focus the bottom drawer
+        bind -n C-t if-shell -F '#{==:#{window_panes},1}' {
+          split-window -v -l 70% -c "#{pane_current_path}"
         } {
-          run-shell 'tmux display-popup -E -w 80% -h 80% "TMUX= tmux new-session -A -s scratch-#{s/@//:window_id} -c \"#{pane_current_path}\""'
+          if-shell -F '#{window_zoomed_flag}' {
+            resize-pane -Z
+            select-pane -t '{bottom}'
+          } {
+            select-pane -t '{top}'
+            resize-pane -Z
+          }
         }
       '';
     };

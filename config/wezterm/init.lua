@@ -20,6 +20,81 @@ local function toggle_split(split_dir, size, focus_dir, hide_dir)
   end)
 end
 
+-- Leader bindings defined once, then bound to both the native leader (CTRL+b)
+-- and a key table activated by the alternative leader (CTRL+a).
+local leader_keys = {
+  -- Tab management
+  { key = 'c', action = act.SpawnTab 'CurrentPaneDomain' },
+
+  -- Pane management
+  { key = 'x', action = act.CloseCurrentPane { confirm = false } },
+
+  -- Split panes
+  { key = 'v', action = act.SplitVertical { domain = 'CurrentPaneDomain' } },
+  { key = 'h', action = act.SplitHorizontal { domain = 'CurrentPaneDomain' } },
+
+  -- Navigate panes (arrow keys, matching default tmux)
+  { key = 'LeftArrow', action = act.ActivatePaneDirection 'Left' },
+  { key = 'RightArrow', action = act.ActivatePaneDirection 'Right' },
+  { key = 'UpArrow', action = act.ActivatePaneDirection 'Up' },
+  { key = 'DownArrow', action = act.ActivatePaneDirection 'Down' },
+
+  { key = '[', action = act.ActivateCopyMode },
+
+  -- Toggle fullscreen for pane (matches tmux <prefix> z)
+  { key = 'z', action = act.TogglePaneZoomState },
+
+  -- Rename tab
+  {
+    key = ',',
+    action = act.PromptInputLine {
+      description = 'Enter new name for tab',
+      action = wezterm.action_callback(function(window, _, line)
+        if line then
+          window:active_tab():set_title(line)
+        end
+      end),
+    },
+  },
+
+  -- Search mode
+  { key = '/', action = act.Search { CaseInSensitiveString = '' } },
+
+  -- Resize panes
+  { key = 'r', action = act.ActivateKeyTable { name = 'resize_pane', one_shot = false } },
+
+  -- Move panes
+  { key = 'm', action = act.ActivateKeyTable { name = 'move_tab', one_shot = false } },
+
+  -- Session management
+  { key = 'o', action = act.ShowLauncher },
+
+  -- Quick session switcher (matches tmux <prefix> s)
+  { key = 's', action = act.ShowLauncherArgs { flags = 'FUZZY|WORKSPACES' } },
+
+  -- Pane cycling with Tab
+  { key = 'Tab', action = act.ActivatePaneDirection 'Next' },
+}
+
+-- CTRL+b keys: same bindings tagged with the LEADER modifier.
+local function leader_mod_keys()
+  local out = {}
+  for _, k in ipairs(leader_keys) do
+    table.insert(out, { key = k.key, mods = 'LEADER', action = k.action })
+  end
+  return out
+end
+
+-- CTRL+a key table: same bindings plus an escape hatch.
+local function leader_key_table()
+  local out = {}
+  for _, k in ipairs(leader_keys) do
+    table.insert(out, { key = k.key, action = k.action })
+  end
+  table.insert(out, { key = 'Escape', action = 'PopKeyTable' })
+  return out
+end
+
 -- Event handlers (side effects, not config values)
 local mux = wezterm.mux
 wezterm.on('gui-startup', function(cmd)
@@ -62,80 +137,21 @@ local config = {
   -- Disable dead keys
   use_dead_keys = false,
 
+  -- Native leader (CTRL+b); CTRL+a is wired up as an alternative leader below.
   leader = { key = 'b', mods = 'CTRL', timeout_milliseconds = 1000 },
 
   keys = {
-    -- Tab management
-    { key = 't', mods = 'LEADER', action = act.SpawnTab 'CurrentPaneDomain' },
-
-    -- Pane management
-    { key = 'x', mods = 'LEADER', action = act.CloseCurrentPane { confirm = false } },
-
-    -- Split panes
-    { key = 'v', mods = 'LEADER', action = act.SplitVertical { domain = 'CurrentPaneDomain' } },
-    { key = 'h', mods = 'LEADER', action = act.SplitHorizontal { domain = 'CurrentPaneDomain' } },
-
-    -- Navigate panes
-    { key = 'n', mods = 'LEADER', action = act.ActivatePaneDirection 'Left' },
-    { key = 'i', mods = 'LEADER', action = act.ActivatePaneDirection 'Right' },
-    { key = 'u', mods = 'LEADER', action = act.ActivatePaneDirection 'Up' },
-    { key = 'e', mods = 'LEADER', action = act.ActivatePaneDirection 'Down' },
-
-    { key = '[', mods = 'LEADER', action = act.ActivateCopyMode },
-
-    -- Toggle fullscreen for pane (matches tmux <prefix> z)
-    { key = 'z', mods = 'LEADER', action = act.TogglePaneZoomState },
-
-    -- Rename tab
+    -- Alternative leader: CTRL+a acts as a prefix into the same bindings.
+    -- The CTRL+b (LEADER) bindings are appended after this table is built.
     {
-      key = ',',
-      mods = 'LEADER',
-      action = act.PromptInputLine {
-        description = 'Enter new name for tab',
-        action = wezterm.action_callback(function(window, _, line)
-          if line then
-            window:active_tab():set_title(line)
-          end
-        end),
-      },
-    },
-
-    -- Search mode
-    { key = '/', mods = 'LEADER', action = act.Search { CaseInSensitiveString = '' } },
-
-    -- Scroll mode
-    { key = 'c', mods = 'LEADER', action = act.ActivateCopyMode },
-
-    -- Resize panes
-    {
-      key = 'r',
-      mods = 'LEADER',
+      key = 'a',
+      mods = 'CTRL',
       action = act.ActivateKeyTable {
-        name = 'resize_pane',
-        one_shot = false,
+        name = 'leader',
+        one_shot = true,
+        timeout_milliseconds = 1000,
       },
     },
-
-    -- Move panes
-    {
-      key = 'm',
-      mods = 'LEADER',
-      action = act.ActivateKeyTable {
-        name = 'move_tab',
-        one_shot = false,
-      },
-    },
-
-    -- Session management
-    { key = 'o', mods = 'LEADER', action = act.ShowLauncher },
-
-    -- Quick session switcher (matches tmux <prefix> s)
-    { key = 's', mods = 'LEADER', action = act.ShowLauncherArgs {
-      flags = 'FUZZY|WORKSPACES',
-    } },
-
-    -- Pane cycling with Tab
-    { key = 'Tab', mods = 'LEADER', action = act.ActivatePaneDirection 'Next' },
 
     -- Additional useful bindings
     { key = 'Enter', mods = 'ALT', action = act.ToggleFullScreen },
@@ -152,6 +168,9 @@ local config = {
 
   -- Key tables for resize and move modes
   key_tables = {
+    -- Alternative-leader (CTRL+a) bindings; mirrors the CTRL+b leader keys.
+    leader = leader_key_table(),
+
     resize_pane = {
       { key = 'LeftArrow', action = act.AdjustPaneSize { 'Left', 1 } },
       { key = 'n', action = act.AdjustPaneSize { 'Left', 1 } },
@@ -216,6 +235,11 @@ local config = {
     },
   },
 }
+
+-- Append the CTRL+b (LEADER) bindings so they share leader_keys with CTRL+a.
+for _, k in ipairs(leader_mod_keys()) do
+  table.insert(config.keys, k)
+end
 
 agent_deck.apply_to_config(config, {
   icons = {

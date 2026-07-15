@@ -69,6 +69,31 @@ in {
       prefix = "C-a";
       baseIndex = 1;
       terminal = "tmux-256color";
+      # resurrect saves/restores sessions; continuum auto-saves and restores
+      # on server start. continuum must load last, so keep it last in the list.
+      plugins = with pkgs.tmuxPlugins; [
+        {
+          plugin = resurrect;
+          extraConfig = ''
+            set -g @resurrect-strategy-nvim 'session'
+            set -g @resurrect-capture-pane-contents 'on'
+          '';
+        }
+        {
+          plugin = extrakto;
+          extraConfig = ''
+            set -g @extrakto_key 'tab'
+            set -g @extrakto_clip_tool 'tmux'
+          '';
+        }
+        {
+          plugin = continuum;
+          extraConfig = ''
+            set -g @continuum-restore 'on'
+            set -g @continuum-save-interval '5'
+          '';
+        }
+      ];
       extraConfig = ''
         set -g prefix2 C-b
         set -g pane-base-index 1

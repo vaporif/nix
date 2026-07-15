@@ -81,6 +81,8 @@ local config = {
     { key = 'u', mods = 'LEADER', action = act.ActivatePaneDirection 'Up' },
     { key = 'e', mods = 'LEADER', action = act.ActivatePaneDirection 'Down' },
 
+    { key = '[', mods = 'LEADER', action = act.ActivateCopyMode },
+
     -- Toggle fullscreen for pane (matches tmux <prefix> z)
     { key = 'z', mods = 'LEADER', action = act.TogglePaneZoomState },
 

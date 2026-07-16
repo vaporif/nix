@@ -128,6 +128,12 @@ in {
           description = "Path to ${name} secret file. null when sops is not configured.";
         });
 
+    neovim.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Neovim with all configs/lsp/etc";
+    };
+
     claude = {
       enable = lib.mkEnableOption "Claude Code (CLI, plugins, settings, security, sandbox, aliases, MCP integration)";
       bashGuard.enable = lib.mkOption {

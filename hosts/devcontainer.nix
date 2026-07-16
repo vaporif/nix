@@ -6,6 +6,7 @@
   custom = {
     user = lib.mkForce "vscode";
     homeDir = "/home/vscode";
+    neovim.enable = false;
     configPath = "/home/vscode/.config/nix";
   };
 }

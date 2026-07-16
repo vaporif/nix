@@ -10,6 +10,7 @@ in {
     [
       pkgs.nixd
       pkgs.alejandra
+      pkgs.selene
       pkgs.statix
       pkgs.deadnix
       pkgs.nix-tree

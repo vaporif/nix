@@ -180,13 +180,13 @@
 
     containerSystems = ["aarch64-linux" "x86_64-linux"];
 
-    mkContainer = system:
+    mkHomeContainer = hostModule: system:
       home-manager.lib.homeManagerConfiguration {
         pkgs = containerPkgs system;
         extraSpecialArgs = {inherit inputs;};
         modules = [
           ./modules/options.nix
-          ./hosts/container.nix
+          hostModule
           {custom.system = system;}
           ./home/common
           ./home/linux
@@ -194,6 +194,9 @@
           parry-guard.homeManagerModules.default
         ];
       };
+
+    mkContainer = mkHomeContainer ./hosts/container.nix;
+    mkDevcontainer = mkHomeContainer ./hosts/devcontainer.nix;
 
     allowUnfreePredicate = pkg:
       builtins.elem (lib.getName pkg) [
@@ -322,6 +325,10 @@
       {container = mkContainer "aarch64-linux";}
       // lib.genAttrs (map (s: "container-${s}") containerSystems) (
         name: mkContainer (lib.removePrefix "container-" name)
+      )
+      // {devcontainer = mkDevcontainer "aarch64-linux";}
+      // lib.genAttrs (map (s: "devcontainer-${s}") containerSystems) (
+        name: mkDevcontainer (lib.removePrefix "devcontainer-" name)
       );
 
     nixosConfigurations = {

@@ -20,7 +20,6 @@ in {
 
       pkgs.dua
       pkgs.stylua
-      pkgs.selene
       pkgs.typos
       pkgs.taplo
       pkgs.shellcheck
@@ -32,10 +31,6 @@ in {
       pkgs.cargo-depgraph
       pkgs.rusty-man
       pkgs.graphviz
-
-      pkgs.python314
-      pkgs.uv
-      pkgs.python3Packages.huggingface-hub
 
       pkgs.presenterm
       pkgs.asciinema
@@ -51,14 +46,8 @@ in {
       pkgs.trippy
       pkgs.promptfoo
 
-      (pkgs.haskellPackages.ghcWithPackages (hpkgs: [
-        hpkgs.tidal
-        hpkgs.cabal-install
-      ]))
-
       pkgs.tdf
 
-      pkgs.ffmpeg
       pkgs.wget
       pkgs.rsync
       pkgs.delta
@@ -70,18 +59,35 @@ in {
       pkgs.lefthook
 
       pkgs.mcp-nixos
-      pkgs.qdrant
-      pkgs.qdrant-web-ui
 
-      pkgs.tidal_script
       pkgs.lean-ctx
       pkgs.unclog
-      pkgs.nomicfoundation_solidity_language_server
 
       (pkgs.writeShellScriptBin "git-bare-clone" (builtins.readFile ../../scripts/git-bare-clone.sh))
       (pkgs.writeShellScriptBin "git-meta" (builtins.readFile ../../scripts/git-meta.sh))
       (pkgs.writeShellScriptBin "git-worktree-new" (builtins.readFile ../../scripts/git-worktree-new.sh))
       (pkgs.writeShellScriptBin "git-worktree-remove" (builtins.readFile ../../scripts/git-worktree-remove.sh))
+    ]
+    # Heavy / host-only tooling, darwin only (kept off Linux + container builds).
+    ++ lib.optionals pkgs.stdenv.isDarwin [
+      pkgs.python314
+      pkgs.uv
+      pkgs.python3Packages.huggingface-hub
+
+      (pkgs.haskellPackages.ghcWithPackages (hpkgs: [
+        hpkgs.tidal
+        hpkgs.cabal-install
+      ]))
+
+      pkgs.ffmpeg
+
+      pkgs.qdrant
+      pkgs.qdrant-web-ui
+
+      pkgs.tidal_script
+      pkgs.nomicfoundation_solidity_language_server
+
+      pkgs.gnused
     ]
     ++ lib.optionals cfg.claude.enable [
       pkgs.claude-code
@@ -92,8 +98,5 @@ in {
     ]
     ++ lib.optionals cfg.gitlab.enable [
       pkgs.glab
-    ]
-    ++ lib.optionals pkgs.stdenv.isDarwin [
-      pkgs.gnused
     ];
 }

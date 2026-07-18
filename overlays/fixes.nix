@@ -81,19 +81,6 @@ in
     });
   }
   // lib.optionalAttrs prev.stdenv.isDarwin {
-    # mpv and qbittorrent crash the cctools "new" linker (ld 1010.6, SIGTRAP)
-    # on aarch64-darwin during their final link, and neither is in the binary
-    # cache, so both build from source. Route the link through LLVM lld.
-    mpv-unwrapped = prev.mpv-unwrapped.overrideAttrs (old: {
-      nativeBuildInputs = (old.nativeBuildInputs or []) ++ [prev.lld];
-      NIX_CFLAGS_LINK = (old.NIX_CFLAGS_LINK or "") + " -fuse-ld=lld";
-    });
-
-    qbittorrent = prev.qbittorrent.overrideAttrs (old: {
-      nativeBuildInputs = (old.nativeBuildInputs or []) ++ [prev.lld];
-      NIX_CFLAGS_LINK = (old.NIX_CFLAGS_LINK or "") + " -fuse-ld=lld";
-    });
-
     # Skip ast-grep check (test_scan_invalid_rule_id fails with illegal byte sequence in sandbox)
     ast-grep = prev.ast-grep.overrideAttrs (_: {
       doCheck = false;

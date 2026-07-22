@@ -1,0 +1,34 @@
+--- a/mattermost-api.cabal	2026-07-21 17:26:06.125744037 +0000
++++ b/mattermost-api.cabal	2026-07-21 17:27:36.479016828 +0000
+@@ -51,6 +51,8 @@
+                      , stm
+                      , aeson >= 2.0.1.0 && < 2.3.0.0
+                      , crypton-connection
++                     , tls
++                     , data-default
+                      , memory
+                      , resource-pool >= 0.2.3
+                      -- To prevent broken websockets versions from using
+--- a/src/Network/Mattermost/Util.hs	2026-07-21 17:26:06.126574122 +0000
++++ b/src/Network/Mattermost/Util.hs	2026-07-21 17:26:15.766890269 +0000
+@@ -22,7 +22,10 @@
+ 
+ import           Control.Exception ( Exception
+                                    , throwIO )
++import           Data.Default (def)
+ import           Data.Pool (takeResource, putResource, destroyResource)
++import qualified Network.TLS as TLS
++import qualified Network.TLS.Extra as TLS
+ import           Network.Connection ( Connection
+                                     , ConnectionContext
+                                     , ConnectionParams(..)
+@@ -95,7 +98,8 @@
+             -- The first argument to TLSSettingsSimple is whether to
+             -- /disable/ cert validation. If requireTrustedCert is True,
+             -- we want that argument to be False to force validation.
+-            Just (TLSSettingsSimple (not requireTrustedCert) False False)
++            Just (TLSSettingsSimple (not requireTrustedCert) False False
++                    (def { TLS.supportedCiphers = TLS.ciphersuite_default }))
+     , connectionUseSocks  = do
+         (ty, cHost, cPort) <- proxy
+         case ty of

@@ -1,7 +1,7 @@
 diff -ruN orig/skills/brainstorming/SKILL.md mod/skills/brainstorming/SKILL.md
 --- orig/skills/brainstorming/SKILL.md	2026-07-02 00:37:06.456880419 +0100
 +++ mod/skills/brainstorming/SKILL.md	2026-07-02 00:37:33.285207809 +0100
-@@ -24,12 +24,70 @@
+@@ -24,12 +24,68 @@
  1. **Explore project context** — check files, docs, recent commits
  2. **Offer the visual companion just-in-time** — NOT upfront. The first time a question would genuinely be clearer shown than described, offer it then (its own message); on approval its browser tab opens for you. If no visual question ever arises, never offer it. See the Visual Companion section below.
  3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
@@ -26,11 +26,11 @@ diff -ruN orig/skills/brainstorming/SKILL.md mod/skills/brainstorming/SKILL.md
 +   - Tasks A and B are parallelisable iff they touch disjoint files, have no shared dependencies neither has produced yet, and neither needs to read the other's output.
 +   - Tasks that depend on a previous task's artifacts (a generated type, a new file, a schema migration) are sequential — dispatch only after the predecessor's review passes.
 +   - Default to sequential when in doubt; parallelism only pays off when the independence is obvious.
-+7. **Assign agent types (heuristic, no ask)** — walk the planned tasks. For each, pick an implementer agent type from the selection guide based on its primary language/domain. Then add a final **Polish** line — the agent type that will run `post-implementation-polish` after all tasks finish. Default is `general-purpose`; only pick a specialist when the diff is uniformly in one domain (e.g. all Rust → `systems-programming:rust-pro`, all Solidity → `blockchain-web3:blockchain-developer`). Do NOT present a table for approval. Announce assignments as a single block:
++7. **Assign agent types (heuristic, no ask)** — walk the planned tasks. For each, pick an implementer agent type from the selection guide based on its primary language/domain. Then add a final **Polish** line — the agent type that will run `post-implementation-polish` after all tasks finish. Default is `general-purpose`; only pick a specialist when the diff is uniformly in one domain (e.g. all Rust → `rust-engineer`, all Solidity → `blockchain-web3:blockchain-developer`). Do NOT present a table for approval. Announce assignments as a single block:
 +
 +    ```
 +    Agent assignments (auto-selected):
-+      Task 1: Implement auth middleware → systems-programming:rust-pro    (Rust)
++      Task 1: Implement auth middleware → rust-engineer                  (Rust)
 +      Task 2: Add API endpoints         → systems-programming:golang-pro  (Go)
 +      Task 3: Update Nix config         → general-purpose                 (Nix)
 +      Polish:                           → general-purpose                 (mixed diff)
@@ -40,17 +40,15 @@ diff -ruN orig/skills/brainstorming/SKILL.md mod/skills/brainstorming/SKILL.md
 +
 +    | Domain / Language      | Agent Type                               |
 +    |------------------------|------------------------------------------|
-+    | Rust                   | systems-programming:rust-pro             |
++    | Rust                   | rust-engineer                            |
 +    | Go                     | systems-programming:golang-pro           |
-+    | C                      | systems-programming:c-pro                |
-+    | C++                    | systems-programming:cpp-pro              |
 +    | Python                 | python-development:python-pro            |
 +    | Bevy game / engine     | bevy-engineer                            |
 +    | Unity game / C#        | unity-csharp-engineer                    |
 +    | Solidity / Web3 / DeFi | blockchain-web3:blockchain-developer     |
 +    | General / other        | general-purpose (default)                |
 +
-+    **Bevy detection (use `bevy-engineer`, not `systems-programming:rust-pro`):** if the project's `Cargo.toml` (or any workspace member's) lists `bevy = ...` as a dependency, or imports/uses Bevy types (`bevy::prelude`, `App`, `Plugin`, `Query`, `Component`, `Resource`), the task is Bevy work. Pick `bevy-engineer` for any task touching ECS systems, plugins, schedules, render/asset code, or Bevy build profiles — even if the surface change looks like "plain Rust".
++    **Bevy detection (use `bevy-engineer`, not `rust-engineer`):** if the project's `Cargo.toml` (or any workspace member's) lists `bevy = ...` as a dependency, or imports/uses Bevy types (`bevy::prelude`, `App`, `Plugin`, `Query`, `Component`, `Resource`), the task is Bevy work. Pick `bevy-engineer` for any task touching ECS systems, plugins, schedules, render/asset code, or Bevy build profiles — even if the surface change looks like "plain Rust".
 +
 +    **Unity detection (use `unity-csharp-engineer` for C# game work):** if the project has a `ProjectSettings/ProjectVersion.txt`, an `Assets/` + `Packages/manifest.json` layout, `.asmdef` files, or `.cs` files that use `UnityEngine`/`MonoBehaviour`/`ScriptableObject`, the task is Unity work. Pick `unity-csharp-engineer` for any task touching MonoBehaviours, ScriptableObjects, scenes/prefabs, gameplay systems, or Unity performance/GC — even plain-looking `.cs` edits inside a Unity project.
 +
@@ -77,7 +75,7 @@ diff -ruN orig/skills/brainstorming/SKILL.md mod/skills/brainstorming/SKILL.md
  
  ## Process Flow
  
-@@ -40,25 +98,36 @@
+@@ -40,25 +96,36 @@
      "Propose 2-3 approaches" [shape=box];
      "Present design sections" [shape=box];
      "User approves design?" [shape=diamond];
@@ -122,7 +120,7 @@ diff -ruN orig/skills/brainstorming/SKILL.md mod/skills/brainstorming/SKILL.md
  
  ## The Process
  
-@@ -77,6 +146,8 @@
+@@ -77,6 +144,8 @@
  - Propose 2-3 different approaches with trade-offs
  - Present options conversationally with your recommendation and reasoning
  - Lead with your recommended option and explain why
@@ -131,7 +129,7 @@ diff -ruN orig/skills/brainstorming/SKILL.md mod/skills/brainstorming/SKILL.md
  
  **Presenting the design:**
  
-@@ -85,6 +156,7 @@
+@@ -85,6 +154,7 @@
  - Ask after each section whether it looks right so far
  - Cover: architecture, components, data flow, error handling, testing
  - Be ready to go back and clarify if something doesn't make sense
@@ -139,7 +137,7 @@ diff -ruN orig/skills/brainstorming/SKILL.md mod/skills/brainstorming/SKILL.md
  
  **Design for isolation and clarity:**
  
-@@ -103,41 +175,113 @@
+@@ -103,41 +173,113 @@
  
  **Documentation:**
  
@@ -490,7 +488,7 @@ diff -ruN orig/skills/subagent-driven-development/SKILL.md mod/skills/subagent-d
  ## Model Selection
  
  Use the least powerful model that can handle each role to conserve cost and increase speed.
-@@ -129,6 +169,71 @@
+@@ -129,6 +169,69 @@
  - Touches multiple files with integration concerns → standard model
  - Requires design judgment or broad codebase understanding → most capable model
  
@@ -516,10 +514,8 @@ diff -ruN orig/skills/subagent-driven-development/SKILL.md mod/skills/subagent-d
 +
 +| Domain / Language      | subagent_type                        |
 +|------------------------|--------------------------------------|
-+| Rust                   | systems-programming:rust-pro         |
++| Rust                   | rust-engineer                        |
 +| Go                     | systems-programming:golang-pro       |
-+| C                      | systems-programming:c-pro            |
-+| C++                    | systems-programming:cpp-pro          |
 +| Python                 | python-development:python-pro        |
 +| Bevy game / engine     | bevy-engineer                        |
 +| Unity game / C#        | unity-csharp-engineer                |
@@ -530,7 +526,7 @@ diff -ruN orig/skills/subagent-driven-development/SKILL.md mod/skills/subagent-d
 +
 +For code quality reviews of Web3/Solidity code, use `git-pr-workflows:code-reviewer` and additionally dispatch `security-scanning:security-auditor` for a parallel security review.
 +
-+For Bevy projects (any crate that depends on `bevy = ...` in `Cargo.toml` or imports `bevy::prelude::*`), pick `bevy-engineer` over `systems-programming:rust-pro` — it carries Bevy ECS, scheduling, plugin, and migration conventions on top of the Rust baseline.
++For Bevy projects (any crate that depends on `bevy = ...` in `Cargo.toml` or imports `bevy::prelude::*`), pick `bevy-engineer` over `rust-engineer` — it carries Bevy ECS, scheduling, plugin, and migration conventions on top of the Rust baseline.
 +
 +For Unity projects (a `ProjectSettings/ProjectVersion.txt`, an `Assets/` + `Packages/manifest.json` layout, `.asmdef` files, or `.cs` files importing `UnityEngine`), pick `unity-csharp-engineer` for any C# gameplay task — it carries MonoBehaviour lifecycle, ScriptableObject, GC/Jobs performance, and unity-mcp Editor-loop conventions on top of the C# baseline.
 +
@@ -562,7 +558,7 @@ diff -ruN orig/skills/subagent-driven-development/SKILL.md mod/skills/subagent-d
  ## Handling Implementer Status
  
  Implementer subagents report one of four statuses. Handle each appropriately:
-@@ -274,7 +379,8 @@
+@@ -274,7 +377,8 @@
  ```
  You: I'm using Subagent-Driven Development to execute this plan.
  
@@ -572,7 +568,7 @@ diff -ruN orig/skills/subagent-driven-development/SKILL.md mod/skills/subagent-d
  [Create todos for all tasks]
  
  Task 1: Hook installation script
-@@ -387,6 +493,9 @@
+@@ -387,6 +491,9 @@
  - Move to next task while the review has open Critical/Important issues
  - Re-dispatch a task the progress ledger already marks complete — check
    the ledger (and `git log`) after any compaction or resume
@@ -582,7 +578,7 @@ diff -ruN orig/skills/subagent-driven-development/SKILL.md mod/skills/subagent-d
  
  **If subagent asks questions:**
  - Answer clearly and completely
-@@ -396,13 +505,36 @@
+@@ -396,13 +503,36 @@
  **If reviewer finds issues:**
  - Implementer (same subagent) fixes them
  - Reviewer reviews again
@@ -763,7 +759,7 @@ diff -ruN orig/skills/writing-plans/SKILL.md mod/skills/writing-plans/SKILL.md
 +- Task 2: <task name> → <agent type> (<language/domain>)
 +- Polish: post-implementation-polish → <agent type> (default: general-purpose)
 +
-+The Polish line is **mandatory** in every plan — polish always runs as a single dispatched subagent at the end of execution, and the plan picks which agent type owns it. Default is `general-purpose`. Pick a specialist (e.g. `git-pr-workflows:code-reviewer` for Web3, `systems-programming:rust-pro` for a Rust-only diff) only when the diff is uniformly in that domain. If the spec lacks a Polish line, write `Polish: post-implementation-polish → general-purpose` here and proceed.
++The Polish line is **mandatory** in every plan — polish always runs as a single dispatched subagent at the end of execution, and the plan picks which agent type owns it. Default is `general-purpose`. Pick a specialist (e.g. `git-pr-workflows:code-reviewer` for Web3, `rust-engineer` for a Rust-only diff) only when the diff is uniformly in that domain. If the spec lacks a Polish line, write `Polish: post-implementation-polish → general-purpose` here and proceed.
 +
 +This table is authoritative for subagent-driven-development and `/team-feature`. Do NOT re-pick agents during execution.]
 +

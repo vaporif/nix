@@ -3,6 +3,7 @@ require('lze').load {
   { 'nvim-nio', on_require = 'nio' },
   { 'nui.nvim', on_require = 'nui' },
   { 'nvim-web-devicons', on_require = 'nvim-web-devicons' },
+  { 'image.nvim', on_require = 'image' },
   { 'promise-async', on_require = { 'promise', 'async' } },
   { 'nvim-dap-ui', on_require = 'dapui' },
   { 'nvim-dap-go', on_require = 'dap-go' },

@@ -167,6 +167,7 @@
       import nixpkgs {
         inherit system;
         overlays = sharedOverlays;
+        config = {inherit allowUnfreePredicate;};
       };
 
     # Standalone HM builds bypass nixpkgsConfig, so unfree must be allowed here
@@ -206,6 +207,7 @@
         # Both plugins are actually permissively licensed.
         "neotest-vitest"
         "neotest-foundry"
+        "diagram.nvim"
         # Pulled in transitively by the neovim node host. Ships a custom
         # author grant (freely modifiable/redistributable) with no SPDX
         # match, so nixpkgs conservatively marks it unfree.

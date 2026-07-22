@@ -224,6 +224,8 @@ in {
           inc-rename-nvim
           guess-indent-nvim
           render-markdown-nvim
+          image-nvim
+          diagram-nvim
         ];
       };
 
@@ -238,6 +240,8 @@ in {
             haskell-language-server
             just-lsp
             golangci-lint
+            mermaid-cli
+            imagemagick
           ]);
       };
     };

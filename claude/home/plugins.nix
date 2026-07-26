@@ -22,8 +22,6 @@
     patches = [../../patches/superpowers-customizations.patch];
   };
 
-  # Removes Rust/C/C++ agents + memory-safety skill from systems-programming
-  # (Rust handled by standalone rust-engineer agent; C/C++ unused).
   # Uses runCommand instead of applyPatches so it survives upstream churn —
   # only file presence and the description string are touched.
   patchedWshobsonAgents = pkgs.runCommand "wshobson-agents-patched" {nativeBuildInputs = [pkgs.jq];} ''
@@ -58,7 +56,7 @@
   systemsProgrammingPlugin = pkgs.runCommand "claude-plugin-systems-programming" {} ''
     cp -r ${patchedWshobsonAgents}/plugins/systems-programming $out
     chmod -R u+w $out
-    cp ${../overrides/agent-overrides/golang-pro.md} $out/agents/golang-pro.md
+    rm -rf $out/agents
   '';
 
   plugins = [
@@ -94,7 +92,7 @@
     }
     {
       name = "systems-programming";
-      description = "Go agent with concurrency patterns";
+      description = "Go and Rust concurrency/async pattern skills";
       source = systemsProgrammingPlugin;
       version = readPluginVersion "${inputs.wshobson-agents}/plugins/systems-programming";
     }

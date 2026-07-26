@@ -31,38 +31,41 @@ in {
 
   users.users.${cfg.user}.home = cfg.homeDir;
 
-  environment.systemPackages = [
-    pkgs.age
-    pkgs.libressl
-  ];
+  environment = {
+    systemPackages = [
+      pkgs.age
+      pkgs.libressl
+    ];
 
-  environment.etc."codex/config.toml" = lib.mkIf cfg.codex.enable {
-    source = toml.generate "codex-system-config.toml" {
-      hooks = {
-        PreToolUse = [
-          (parryHook // {matcher = "Bash|Read|Write|Edit|Glob|Grep|WebFetch|WebSearch|apply_patch|mcp__.*";})
-        ];
-        PostToolUse = [
-          (parryHook // {matcher = "Bash|Read|WebFetch|Edit|apply_patch|mcp__github__get_file_contents|mcp__filesystem__read_file|mcp__filesystem__read_text_file";})
-        ];
-        UserPromptSubmit = [
-          (parryHook // {matcher = "";})
-        ];
+    etc."codex/config.toml" = lib.mkIf cfg.codex.enable {
+      source = toml.generate "codex-system-config.toml" {
+        hooks = {
+          PreToolUse = [
+            (parryHook // {matcher = "Bash|Read|Write|Edit|Glob|Grep|WebFetch|WebSearch|apply_patch|mcp__.*";})
+          ];
+          PostToolUse = [
+            (parryHook // {matcher = "Bash|Read|WebFetch|Edit|apply_patch|mcp__github__get_file_contents|mcp__filesystem__read_file|mcp__filesystem__read_text_file";})
+          ];
+          UserPromptSubmit = [
+            (parryHook // {matcher = "";})
+          ];
+        };
       };
+    };
+
+    # Determinate's nix.conf does `!include nix.custom.conf`, so drop the GitHub
+    # token include there instead — otherwise flake fetches hit the anonymous
+    # api.github.com rate limit.
+    etc."nix/nix.custom.conf" = lib.mkIf (cfg.secrets.nix-access-tokens != null) {
+      text = ''
+        !include ${cfg.secrets.nix-access-tokens}
+      '';
     };
   };
 
   # Determinate Nix manages /etc/nix/nix.conf itself, so nix-darwin's nix
   # config (including modules/nix.nix's access-tokens !include) is inert here.
-  # Determinate's nix.conf does `!include nix.custom.conf`, so drop the GitHub
-  # token include there instead — otherwise flake fetches hit the anonymous
-  # api.github.com rate limit.
   nix.enable = false;
-  environment.etc."nix/nix.custom.conf" = lib.mkIf (cfg.secrets.nix-access-tokens != null) {
-    text = ''
-      !include ${cfg.secrets.nix-access-tokens}
-    '';
-  };
 
   launchd.daemons.maxfiles = {
     command = "/bin/launchctl limit maxfiles 65536 524288";

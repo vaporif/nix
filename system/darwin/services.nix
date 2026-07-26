@@ -5,9 +5,8 @@ _: {
       skhdConfig = ''
         # App shortcuts (hyper = caps lock via karabiner)
         # Left hand
-        # Direct path bypasses mac-app-util's AppleScript trampoline, which
-        # shows a "Press Run / Quit" dialog when launched with Ctrl held (Hyper).
-        hyper - r : /usr/bin/open "$HOME/Applications/Home Manager Apps/LibreWolf.app" # lib[r]ewolf
+        # Direct path + --env avoid Hyper's held modifiers triggering mac-app-util's dialog and Firefox's Troubleshoot Mode.
+        hyper - r : /usr/bin/open --env MOZ_DISABLE_SAFE_MODE_KEY=1 "$HOME/Applications/Home Manager Apps/LibreWolf.app" # lib[r]ewolf
         hyper - t : open -a "wezterm"               # [t]erminal
         hyper - c : open -a "Claude"                # [c]laude
         hyper - s : open -a "Slack"                 # [s]lack

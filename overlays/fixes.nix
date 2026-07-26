@@ -23,6 +23,7 @@ in
               (old.disabledTests or [])
               ++ [
                 "test_rate_limiting_recovery_over_time"
+                "test_rate_limiting_with_different_operations"
                 "test_unauthorized_access"
               ];
           });

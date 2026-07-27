@@ -8,4 +8,6 @@
   "github-token"
   "gitlab-token"
   "gitlab-api-url"
+  "mattermost-token"
+  "mattermost-host"
 ]

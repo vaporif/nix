@@ -21,6 +21,7 @@
       publicKey = lib.mkForce "";
     };
     gitlab.enable = true;
+    mattermost.enable = true;
     qdrant.enable = false;
     tmux.autoAttach = true;
     # Work laptop (the VMware host) SSH key, so it can log into this VM.

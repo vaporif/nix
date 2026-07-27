@@ -63,7 +63,6 @@ in {
 
       pkgs.lean-ctx
       pkgs.unclog
-      pkgs.matterhorn
 
       (pkgs.writeShellScriptBin "git-bare-clone" (builtins.readFile ../../scripts/git-bare-clone.sh))
       (pkgs.writeShellScriptBin "git-meta" (builtins.readFile ../../scripts/git-meta.sh))
@@ -100,5 +99,8 @@ in {
     ]
     ++ lib.optionals cfg.gitlab.enable [
       pkgs.glab
+    ]
+    ++ lib.optionals cfg.mattermost.enable [
+      pkgs.matterhorn
     ];
 }

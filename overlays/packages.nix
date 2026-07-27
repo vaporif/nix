@@ -18,6 +18,24 @@ in {
 
   difftastic = final.callPackage ../pkgs/difftastic.nix {inherit difftastic-src;};
 
+  # matterhorn: the nixpkgs build is broken. mattermost-api's TLS code predates
+  # crypton-connection 0.4's added `Supported` field on TLSSettingsSimple, and
+  # matterhorn's own dependency bounds are stale. Patch the API for the new
+  # constructor arity (adding tls + data-default deps) and jailbreak the bounds.
+  matterhorn = let
+    hl = final.haskell.lib;
+    hp = final.haskellPackages.override {
+      overrides = _: hprev: {
+        mattermost-api = hl.doJailbreak (hl.markUnbroken (hl.addBuildDepends
+          (hl.appendPatch hprev.mattermost-api ../patches/mattermost-api-tls.patch)
+          [hprev.tls hprev.data-default]));
+        mattermost-api-qc = hl.doJailbreak (hl.markUnbroken hprev.mattermost-api-qc);
+        matterhorn = hl.doJailbreak (hl.markUnbroken hprev.matterhorn);
+      };
+    };
+  in
+    hp.matterhorn;
+
   lean-ctx = (final.callPackage ../pkgs/lean-ctx.nix {}).overrideAttrs (_: {
     passthru.tests.lean-ctx = mkTest "lean-ctx" ''
       ${final.lean-ctx}/bin/lean-ctx --version > /dev/null

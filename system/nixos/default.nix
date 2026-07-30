@@ -44,6 +44,14 @@ in {
     memoryPercent = 50;
   };
 
+  # The freedesktop trash spec has no expiry of its own, so anything moved to
+  # ~/.local/share/Trash stays until something ages it out. `e` only touches
+  # the dirs if they already exist, so no empty trash is created.
+  systemd.tmpfiles.rules = [
+    "e ${cfg.homeDir}/.local/share/Trash/files - - - 30d"
+    "e ${cfg.homeDir}/.local/share/Trash/info - - - 30d"
+  ];
+
   systemd.oomd = {
     enable = true;
     enableUserSlices = true;

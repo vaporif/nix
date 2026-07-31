@@ -33,6 +33,12 @@ in {
 
   programs.zsh.enable = true;
 
+  # Stylix auto-enables its regreet target on every Linux host and still writes
+  # to `programs.regreet.*`, which nixpkgs renamed to
+  # `services.displayManager.regreet`. These hosts are shell-only, so drop the
+  # target instead of carrying the rename warning.
+  stylix.targets.regreet.enable = false;
+
   virtualisation.podman = {
     enable = true;
     dockerCompat = true;

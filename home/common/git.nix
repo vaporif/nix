@@ -27,10 +27,9 @@ in {
       settings = {
         gui.nerdFontsVersion = "3";
         git.pull.mode = "ff-only";
-        git.pagers = [
+        git.diffRenderers = [
           {
-            applyToPager = "diff";
-            pager = "delta --paging=never";
+            command = "delta --paging=never";
             colorArg = "always";
           }
         ];

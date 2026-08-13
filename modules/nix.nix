@@ -29,7 +29,13 @@ in {
         ]
         ++ lib.optionals (cfg.cachix.publicKey != "") [cfg.cachix.publicKey];
     }
-    // lib.optionalAttrs pkgs.stdenv.isLinux {max-jobs = 4;}
+    # The Linux hosts are VMs with far less RAM than cores. Leaving cores at 0
+    # lets each of the 4 jobs claim every core, so a single flake build can put
+    # ~48 compilers on 14 GiB and drive the machine into memory pressure.
+    // lib.optionalAttrs pkgs.stdenv.isLinux {
+      max-jobs = 4;
+      cores = 2;
+    }
     # Determinate Nix 3.21.1's parallel evaluator crashes with
     # "polling file descriptor: Invalid argument" on the full-system eval.
     # eval-cores is a Determinate Nix extension not recognized by standard NixOS Nix.

@@ -15,13 +15,13 @@
   #   inherit pkgs home-manager inputs;
   # };
 }
-// lib.optionalAttrs pkgs.stdenv.isDarwin (
+// lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin (
   pkgs.unclog.passthru.tests
   // pkgs.nomicfoundation_solidity_language_server.passthru.tests
   // pkgs.claude_formatter.passthru.tests
   // pkgs.tidal_script.passthru.tests
 )
-// lib.optionalAttrs pkgs.stdenv.isLinux {
+// lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
   claude-security = import ./claude-security.nix {
     inherit pkgs home-manager;
   };

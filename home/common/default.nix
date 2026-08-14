@@ -181,7 +181,7 @@ in {
 
     parry-guard =
       {
-        enable = pkgs.stdenv.isDarwin;
+        enable = pkgs.stdenv.hostPlatform.isDarwin;
         package = inputs.parry-guard.packages.${pkgs.stdenv.hostPlatform.system}.default;
         ignoreDirs = ["${cfg.homeDir}/Repos/"];
       }

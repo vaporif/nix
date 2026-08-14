@@ -30,7 +30,7 @@ buildNpmPackage {
 
   nativeBuildInputs =
     [pkg-config]
-    ++ lib.optional stdenv.isDarwin
+    ++ lib.optional stdenv.hostPlatform.isDarwin
     (
       if stdenv.hostPlatform.isAarch64
       then clang_20

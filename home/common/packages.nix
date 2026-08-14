@@ -70,7 +70,7 @@ in {
       (pkgs.writeShellScriptBin "git-worktree-remove" (builtins.readFile ../../scripts/git-worktree-remove.sh))
     ]
     # Heavy / host-only tooling, darwin only (kept off Linux + container builds).
-    ++ lib.optionals pkgs.stdenv.isDarwin [
+    ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
       pkgs.python314
       pkgs.uv
       pkgs.python3Packages.huggingface-hub

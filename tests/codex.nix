@@ -6,11 +6,11 @@
 }: let
   inherit (pkgs) lib;
   testSystem =
-    if pkgs.stdenv.isDarwin
+    if pkgs.stdenv.hostPlatform.isDarwin
     then "aarch64-darwin"
     else "aarch64-linux";
   testHomeDir =
-    if pkgs.stdenv.isDarwin
+    if pkgs.stdenv.hostPlatform.isDarwin
     then "/Users/testuser"
     else "/home/testuser";
   codexSandboxed = pkgs.writeShellScriptBin "codex" "";

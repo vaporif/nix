@@ -32,12 +32,12 @@ in {
     # The Linux hosts are VMs with far less RAM than cores. Leaving cores at 0
     # lets each of the 4 jobs claim every core, so a single flake build can put
     # ~48 compilers on 14 GiB and drive the machine into memory pressure.
-    // lib.optionalAttrs pkgs.stdenv.isLinux {
+    // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
       max-jobs = 4;
       cores = 2;
     }
     # Determinate Nix 3.21.1's parallel evaluator crashes with
     # "polling file descriptor: Invalid argument" on the full-system eval.
     # eval-cores is a Determinate Nix extension not recognized by standard NixOS Nix.
-    // lib.optionalAttrs pkgs.stdenv.isDarwin {eval-cores = 1;};
+    // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {eval-cores = 1;};
 }

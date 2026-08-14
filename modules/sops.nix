@@ -9,7 +9,7 @@
   ownership = {
     owner = cfg.user;
     group =
-      if pkgs.stdenv.isDarwin
+      if pkgs.stdenv.hostPlatform.isDarwin
       then "staff"
       else "users";
     mode = "0400";

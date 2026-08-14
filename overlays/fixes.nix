@@ -30,7 +30,7 @@ in
         })
       ]
       # Skip jeepney checks (dbus + trio/outcome unavailable on macOS)
-      ++ lib.optionals prev.stdenv.isDarwin [
+      ++ lib.optionals prev.stdenv.hostPlatform.isDarwin [
         (_: python-prev: {
           jeepney = python-prev.jeepney.overrideAttrs (_: {
             doInstallCheck = false;
@@ -39,7 +39,7 @@ in
         })
       ]
       # lupa 2.7 bundles x86_64 libluajit.a — linker fails on aarch64-linux
-      ++ lib.optionals (prev.stdenv.isLinux && prev.stdenv.isAarch64) [
+      ++ lib.optionals (prev.stdenv.hostPlatform.isLinux && prev.stdenv.hostPlatform.isAarch64) [
         (_: python-prev: {
           lupa = python-prev.lupa.overridePythonAttrs (old: {
             disabledTests = (old.disabledTests or []) ++ ["luajit"];
@@ -76,12 +76,12 @@ in
     };
   }
   # deno: drop stale patch (fd331552) that's already applied upstream — breaks aarch64-linux build
-  // lib.optionalAttrs (prev.stdenv.isLinux && prev.stdenv.isAarch64) {
+  // lib.optionalAttrs (prev.stdenv.hostPlatform.isLinux && prev.stdenv.hostPlatform.isAarch64) {
     deno = prev.deno.overrideAttrs (old: {
       patches = lib.filter (p: !(lib.hasSuffix "fd331552de39501d47c43dc4b0c637b969402ab1.patch" (toString p))) (old.patches or []);
     });
   }
-  // lib.optionalAttrs prev.stdenv.isDarwin {
+  // lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
     # Skip ast-grep check (test_scan_invalid_rule_id fails with illegal byte sequence in sandbox)
     ast-grep = prev.ast-grep.overrideAttrs (_: {
       doCheck = false;

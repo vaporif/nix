@@ -39,7 +39,7 @@
           export FERREX_LOG_FILE="${homeDir}/.ferrex/ferrex.log"
           exec ${lib.getExe' ferrex-package "ferrex"} \
             --qdrant-url "${
-            if pkgs.stdenv.isDarwin
+            if pkgs.stdenv.hostPlatform.isDarwin
             then "http://localhost:6334"
             else "http://${cfg.hostGatewayIp}:6334"
           }" \
@@ -126,7 +126,7 @@
   # standalone server (see the note above). The server default port is 8080 and
   # FastMCP serves the MCP protocol at /mcp.
   codeMcpServersConfig =
-    if pkgs.stdenv.isDarwin
+    if pkgs.stdenv.hostPlatform.isDarwin
     then
       pkgs.runCommand "managed-mcp.json" {} ''
         ${lib.getExe pkgs.jq} \

@@ -1,6 +1,5 @@
-diff -ruN mattpocock-skills-orig/skills/engineering/improve-codebase-architecture/SKILL.md mattpocock-skills-mod/skills/engineering/improve-codebase-architecture/SKILL.md
---- mattpocock-skills-orig/skills/engineering/improve-codebase-architecture/SKILL.md	2026-07-13 21:58:57.810891238 +0000
-+++ mattpocock-skills-mod/skills/engineering/improve-codebase-architecture/SKILL.md	2026-07-13 21:59:23.368357350 +0000
+--- mattpocock-skills-orig/skills/engineering/improve-codebase-architecture/SKILL.md
++++ mattpocock-skills-mod/skills/engineering/improve-codebase-architecture/SKILL.md
 @@ -8,10 +8,10 @@
  
  Surface architectural friction and propose **deepening opportunities** — refactors that turn shallow modules into deep ones. The aim is testability and AI-navigability.
@@ -8,7 +7,7 @@ diff -ruN mattpocock-skills-orig/skills/engineering/improve-codebase-architectur
 -This command is _informed_ by the project's domain model and built on a shared design vocabulary:
 +This command is built on a shared design vocabulary:
  
- - Run the `/codebase-design` skill for the architecture vocabulary (**module**, **interface**, **depth**, **seam**, **adapter**, **leverage**, **locality**) and its principles (the deletion test, "the interface is the test surface", "one adapter = hypothetical seam, two = real"). Use these terms exactly in every suggestion — don't drift into "component," "service," "API," or "boundary."
+ - Call the Skill tool with "codebase-design" for the architecture vocabulary (**module**, **interface**, **depth**, **seam**, **adapter**, **leverage**, **locality**) and its principles (the deletion test, "the interface is the test surface", "one adapter = hypothetical seam, two = real"). Use these terms exactly in every suggestion — don't drift into "component," "service," "API," or "boundary."
 -- The domain language in `CONTEXT.md` gives names to good seams; ADRs in `docs/adr/` record decisions this command should not re-litigate.
 +- ADRs in `docs/adr/` record decisions this command should not re-litigate.
  
@@ -21,7 +20,7 @@ diff -ruN mattpocock-skills-orig/skills/engineering/improve-codebase-architectur
 -Read the project's domain glossary (`CONTEXT.md`) and any ADRs in the area you're touching first.
 +Read any ADRs in `docs/adr/` that touch the area you're working in first (if the directory exists). Skip silently if it doesn't.
  
- Then use the Agent tool with `subagent_type=Explore` to walk the codebase. Don't follow rigid heuristics — explore organically and note where you experience friction:
+ Then spawn a sub-agent to walk the codebase. Don't follow rigid heuristics — explore organically and note where you experience friction:
  
 @@ -51,7 +51,7 @@
  
@@ -34,13 +33,13 @@ diff -ruN mattpocock-skills-orig/skills/engineering/improve-codebase-architectur
  
 @@ -63,9 +63,7 @@
  
- Once the user picks a candidate, run the `/grilling` skill to walk the decision tree with them — constraints, dependencies, the shape of the deepened module, what sits behind the seam, what tests survive.
+ Once the user picks a candidate, call the Skill tool with "grilling" to walk the decision tree with them — constraints, dependencies, the shape of the deepened module, what sits behind the seam, what tests survive.
  
--Side effects happen inline as decisions crystallize — run the `/domain-modeling` skill to keep the domain model current as you go:
+-Side effects happen inline as decisions crystallize — call the Skill tool with "domain-modeling" to keep the domain model current as you go:
 +Side effects happen inline as decisions crystallize:
  
 -- **Naming a deepened module after a concept not in `CONTEXT.md`?** Add the term to `CONTEXT.md`. Create the file lazily if it doesn't exist.
 -- **Sharpening a fuzzy term during the conversation?** Update `CONTEXT.md` right there.
 -- **User rejects the candidate with a load-bearing reason?** Offer an ADR, framed as: _"Want me to record this as an ADR so future architecture reviews don't re-suggest it?"_ Only offer when the reason would actually be needed by a future explorer to avoid re-suggesting the same thing — skip ephemeral reasons ("not worth it right now") and self-evident ones.
 +- **User rejects the candidate with a load-bearing reason?** Offer an ADR only when ALL THREE are true: hard to reverse, surprising without context, the result of a real trade-off. Skip ephemeral reasons ("not worth it right now") and self-evident ones. Frame the offer as: _"Want me to record this as an ADR so future architecture reviews don't re-suggest it?"_
- - **Want to explore alternative interfaces for the deepened module?** Run the `/codebase-design` skill and use its design-it-twice parallel sub-agent pattern.
+ - **Want to explore alternative interfaces for the deepened module?** Call the Skill tool with "codebase-design" and use its design-it-twice parallel sub-agent pattern.

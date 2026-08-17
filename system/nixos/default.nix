@@ -62,8 +62,8 @@ in {
     # oomd relieves pressure by killing an entire cgroup, so monitoring user
     # slices means it kills the ssh session scope — taking tmux and every shell
     # in it down along with the build that caused the pressure. Left on the
-    # system slice only; earlyoom covers user memory by killing the single
-    # largest process instead, which leaves the login intact.
+    # system slice only; earlyoom covers user memory, ranked per-process (see
+    # extraArgs below for why that ranking needs help).
     oomd = {
       enable = true;
       enableUserSlices = false;
@@ -81,6 +81,19 @@ in {
     enable = true;
     freeMemThreshold = 5;
     freeSwapThreshold = 10;
+
+    # earlyoom ranks victims by oom_score, not by RSS, and oom_score folds in
+    # oom_score_adj — so an 11 MiB `systemd --user` (adj 100) outranks a 12 GB
+    # runaway. It killed the user manager three times in three days, which
+    # tears down user@.service, every tmux scope under it and the ssh login.
+    # Names are matched against comm, truncated to 15 chars — hence
+    # `dbus-broker-lau` and `.claude-unwrapp` rather than their full names.
+    extraArgs = [
+      "--avoid"
+      "^(systemd|dbus-broker|dbus-broker-lau|sshd|sshd-session|tmux|zsh)$"
+      "--prefer"
+      "^(\\.claude-unwrapp|node|rust-analyzer|cargo|rustc)$"
+    ];
   };
 
   environment.systemPackages = [

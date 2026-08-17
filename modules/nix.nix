@@ -29,9 +29,6 @@ in {
         ]
         ++ lib.optionals (cfg.cachix.publicKey != "") [cfg.cachix.publicKey];
     }
-    # The Linux hosts are VMs with far less RAM than cores. Leaving cores at 0
-    # lets each of the 4 jobs claim every core, so a single flake build can put
-    # ~48 compilers on 14 GiB and drive the machine into memory pressure.
     // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
       max-jobs = 4;
       cores = 2;

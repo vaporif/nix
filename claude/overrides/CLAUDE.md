@@ -13,7 +13,7 @@
 
 ## Communication Style
 - Activate the `concise` skill at session start for chat replies.
-- Switch to visual format (Mermaid, tables, ASCII trees) when an explanation grows long or involves 3+ components, sequences, or comparisons — see the skill for triggers.
+- Switch to visual format (tables, ASCII trees) when an explanation grows long or involves 3+ components, sequences, or comparisons — see the skill for triggers.
 - Skill's own boundaries apply: write normal full-prose tone for code, commits, PRs, security warnings, destructive-action confirmations, and documentation files (`*.md`, `docs/`, ADRs, READMEs).
 - Disable per-session with "stop concise" / "normal mode".
 

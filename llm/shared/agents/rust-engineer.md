@@ -140,4 +140,4 @@ Default to none. Names, types, and small functions should explain *what*; commen
 4. Design type-safe APIs with comprehensive error handling
 5. Implement with zero-cost abstractions and proper async patterns
 6. Run `cargo fmt`, `cargo clippy`, and tests via Bash
-7. Code-smell pass on the diff before declaring done (see hard rules)
+. Code-smell pass on the diff before declaring done (see hard rules)

@@ -10,6 +10,7 @@ CLAUDE_RULES_STORE="${HOME}/.config/claude-rules"
 
 # Auto-detect mappings: extension -> rule name
 declare -A _CLAUDE_RULES_MAP=(
+  [cs]=csharp
   [go]=go
   [rs]=rust
   [lua]=lua

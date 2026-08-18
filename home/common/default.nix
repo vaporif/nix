@@ -119,11 +119,6 @@ in {
         set -ga terminal-features ",*:RGB"
         set -ga terminal-overrides ',*:Ss=\E[%p1%d q:Se=\E[ q'
         set -ga terminal-features ",xterm-ghostty:usstyle:clipboard:hyperlinks:sync:osc7"
-
-        # Ghostty exports GHOSTTY_RESOURCES_DIR into the process it spawns, but a
-        # tmux server outliving that client keeps the env it started with — so
-        # panes created later can't find the shell-integration script. Refresh
-        # both vars on attach.
         set -ga update-environment " GHOSTTY_RESOURCES_DIR GHOSTTY_BIN_DIR"
 
         # ── ultra-minimal status bar (colors from stylix palette) ──

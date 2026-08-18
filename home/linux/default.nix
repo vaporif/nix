@@ -1,9 +1,6 @@
 {pkgs, ...}: {
   imports = [./sandboxed.nix];
 
-  # Ghostty on the Mac sends TERM=xterm-ghostty over ssh, which these VMs can't
-  # resolve without the terminfo entry. Only the terminfo output — the GUI app
-  # is pointless on a shell-only host.
   home.packages = [pkgs.ghostty.terminfo];
 
   # Shell-only VMs have no GUI, so skip dconf entirely. Stylix enables GTK

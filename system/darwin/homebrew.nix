@@ -25,7 +25,6 @@ in {
 
     casks =
       [
-        # Not in nixpkgs for darwin — the macOS app needs an Xcode/Swift build.
         "ghostty"
         "supercollider"
         "spotify"

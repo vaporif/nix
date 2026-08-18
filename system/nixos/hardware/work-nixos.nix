@@ -21,10 +21,13 @@
     options = ["fmask=0022" "dmask=0022"];
   };
 
+  # Overrides the 50% shared default; this host also has a disk swapfile.
+  zramSwap.memoryPercent = lib.mkForce 25;
+
   swapDevices = [
     {
       device = "/swapfile";
-      size = 32768; # MiB
+      size = 8192; # MiB
     }
   ];
 

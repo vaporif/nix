@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   ...
 }: let
@@ -12,6 +13,7 @@ in {
 
     settings = {
       command = tmuxAttach;
+      custom-shader = "${inputs.ghostty-cursor-shaders}/cursor_warp.glsl";
       font-family = lib.mkForce [config.stylix.fonts.monospace.name];
       font-size = lib.mkForce config.stylix.fonts.sizes.terminal;
       macos-option-as-alt = true;

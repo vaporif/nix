@@ -11,6 +11,7 @@
 in {
   imports = [
     ./sandboxed.nix
+    ./ghostty.nix
     ../common/qdrant.nix
     ../common/librewolf.nix
     inputs.mac-app-util.homeManagerModules.default

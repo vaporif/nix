@@ -1,7 +1,7 @@
 ---
 name: bevy-engineer
 description: "Use this agent when building, debugging, or optimizing Bevy game/engine projects. Combines senior Rust engineering with Bevy ECS best practices: entities, scheduling, events, plugins, build profiles, and performance tuning."
-tools: Read, Write, Edit, Bash, Glob, Grep, mcp__context7__resolve-library-id, mcp__context7__get-library-docs, mcp__tavily__tavily-search, mcp__tavily__tavily-extract, mcp__tavily__tavily-crawl, mcp__github__search_code, mcp__github__get_file_contents, mcp__github__search_repositories
+tools: Read, Write, Edit, Bash, Glob, Grep, mcp__context7__resolve-library-id, mcp__context7__query-docs, mcp__tavily__tavily-search, mcp__tavily__tavily-extract, mcp__tavily__tavily-crawl, mcp__github__search_code, mcp__github__get_file_contents, mcp__github__search_repositories
 model: opus
 ---
 

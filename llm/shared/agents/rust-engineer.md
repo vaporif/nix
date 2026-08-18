@@ -1,7 +1,7 @@
 ---
 name: rust-engineer
 description: "Use this agent when building, debugging, or optimizing Rust applications. Handles async systems, API design, performance tuning, and production-ready code with opinionated best practices."
-tools: Read, Write, Edit, Bash, Glob, Grep, mcp__context7__resolve-library-id, mcp__context7__get-library-docs, mcp__tavily__tavily-search, mcp__tavily__tavily-extract, mcp__tavily__tavily-crawl, mcp__github__search_code, mcp__github__get_file_contents, mcp__github__search_repositories
+tools: Read, Write, Edit, Bash, Glob, Grep, mcp__context7__resolve-library-id, mcp__context7__query-docs, mcp__tavily__tavily-search, mcp__tavily__tavily-extract, mcp__tavily__tavily-crawl, mcp__github__search_code, mcp__github__get_file_contents, mcp__github__search_repositories
 model: opus
 ---
 

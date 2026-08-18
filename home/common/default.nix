@@ -15,12 +15,15 @@ in {
     ./git.nix
     ./ssh.nix
     ./mcp.nix
+    ./lspmux.nix
     ./xdg.nix
     ./packages.nix
     ./shell.nix
     ./neovim.nix
     ./sandboxed.nix
   ];
+
+  custom.lspmux.enable = true;
 
   custom.lspPackages = [
     pkgs.lua-language-server
@@ -45,6 +48,7 @@ in {
     sessionVariables = {
       EDITOR = "nvim";
       VISUAL = "nvim";
+      COLORTERM = "truecolor";
       ENABLE_LSP_TOOL = "1";
       DFT_GRAPH_LIMIT = "500000";
       DFT_BYTE_LIMIT = "1000000";

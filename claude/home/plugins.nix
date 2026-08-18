@@ -6,6 +6,7 @@
   ...
 }: let
   homeDir = config.home.homeDirectory;
+  lspmux = config.custom.lspmux;
   claudePluginsBase = ".claude/plugins/marketplaces";
   nixPluginsPath = "${claudePluginsBase}/nix-plugins";
 
@@ -138,18 +139,27 @@
     {
       name = "rust-analyzer-lsp";
       description = "Rust language server (rust-analyzer) for code intelligence";
-      lspServers."rust-analyzer" = {
-        command = lib.getExe pkgs.rust-analyzer;
-        extensionToLanguage.".rs" = "rust";
-      };
+      # Routed through lspmux so concurrent sessions in one worktree attach to a
+      # single rust-analyzer instead of each indexing the workspace again. The
+      # settings come from the shared set in home/common/lspmux.nix because the
+      # first client to spawn an instance fixes its config for the rest.
+      lspServers."rust-analyzer" =
+        lspmux.servers.rust-analyzer
+        // {
+          extensionToLanguage.".rs" = "rust";
+          initializationOptions = lspmux.rustAnalyzerSettings;
+          restartOnCrash = false;
+          shutdownTimeout = 5000;
+        };
     }
     {
       name = "gopls-lsp";
       description = "Go language server (gopls) for code intelligence";
-      lspServers.gopls = {
-        command = lib.getExe pkgs.gopls;
-        extensionToLanguage.".go" = "go";
-      };
+      lspServers.gopls =
+        lspmux.servers.gopls
+        // {
+          extensionToLanguage.".go" = "go";
+        };
     }
     {
       name = "lua-lsp";

@@ -79,8 +79,12 @@ in {
 
   services.earlyoom = {
     enable = true;
-    freeMemThreshold = 5;
-    freeSwapThreshold = 10;
+
+    # earlyoom kills only when memory AND swap are both under threshold, so a
+    # deep swap keeps it inert until the box is already thrashing. 100 makes
+    # the swap term always true — memory pressure alone triggers it.
+    freeMemThreshold = 10;
+    freeSwapThreshold = 100;
 
     # earlyoom ranks victims by oom_score, not by RSS, and oom_score folds in
     # oom_score_adj — so an 11 MiB `systemd --user` (adj 100) outranks a 12 GB

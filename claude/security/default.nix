@@ -487,7 +487,7 @@ in {
           "mcp__tavily__tavily-crawl"
           "mcp__tavily__tavily-map"
           "mcp__context7__resolve-library-id"
-          "mcp__context7__get-library-docs"
+          "mcp__context7__query-docs"
           "mcp__memory__read_graph"
           "mcp__memory__search_nodes"
           "mcp__memory__open_nodes"

@@ -14,14 +14,19 @@
 
   youtube-mcp-package = inputs.mcp-youtube.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
-  # Shared programs used by both Desktop and Code
-  commonPrograms = {
-    context7.enable = true;
-  };
+  context7-mcp-package = inputs.mcp-servers-nix.packages.${pkgs.stdenv.hostPlatform.system}.context7-mcp;
 
   # Shared custom servers used by both Desktop and Code
   commonServers =
     {
+      context7 = {
+        command = "${pkgs.writeShellScript "context7-mcp-wrapper" ''
+          ${lib.optionalString (cfg.secrets.context7-key != null) ''
+            export CONTEXT7_API_KEY="''${CONTEXT7_API_KEY:-$(cat ${cfg.secrets.context7-key})}"
+          ''}
+          exec ${lib.getExe context7-mcp-package}
+        ''}";
+      };
       github = {
         command = "${pkgs.writeShellScript "github-mcp-wrapper" ''
           export GITHUB_PERSONAL_ACCESS_TOKEN="''${GITHUB_PERSONAL_ACCESS_TOKEN:-$(${lib.getExe pkgs.gh} auth token)}"
@@ -108,13 +113,12 @@
 
   # Claude Desktop: all servers
   desktopMcpConfig = {
-    programs = commonPrograms // desktopOnlyPrograms;
+    programs = desktopOnlyPrograms;
     settings.servers = commonServers // desktopOnlyServers;
   };
 
   # Claude Code: dev-focused servers only
   codeMcpConfig = {
-    programs = commonPrograms;
     settings.servers = commonServers;
   };
 
@@ -134,12 +138,16 @@
           ${codeMcpModule.config.configFile} > $out
       ''
     else codeMcpModule.config.configFile;
+  codexServerEnvVars = {
+    tavily = ["TAVILY_API_KEY"];
+    context7 = ["CONTEXT7_API_KEY"];
+  };
   codexMcpServers = lib.mapAttrs (name: server:
     lib.filterAttrs (_: value: value != null && value != {}) {
       command = server.command or null;
       args = server.args or [];
       env = server.env or {};
-      env_vars = lib.optionals (name == "tavily") ["TAVILY_API_KEY"];
+      env_vars = codexServerEnvVars.${name} or [];
     })
   codeMcpModule.config.settings.servers;
 in {

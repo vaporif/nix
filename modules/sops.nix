@@ -22,7 +22,7 @@ in {
       sshKeyPaths = [];
     };
     gnupg.sshKeyPaths = [];
-    secrets = lib.genAttrs (import ./secrets.nix) (_: ownership);
+    secrets = lib.genAttrs (import ./secrets.nix lib).available (_: ownership);
 
     # matterhorn takes the host as a literal in config.ini — unlike the token,
     # there is no `hostcmd` to defer the read to runtime. Render the file at

@@ -15,12 +15,15 @@ in {
     ./git.nix
     ./ssh.nix
     ./mcp.nix
+    ./lspmux.nix
     ./xdg.nix
     ./packages.nix
     ./shell.nix
     ./neovim.nix
     ./sandboxed.nix
   ];
+
+  custom.lspmux.enable = true;
 
   custom.lspPackages = [
     pkgs.lua-language-server

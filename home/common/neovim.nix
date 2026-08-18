@@ -18,5 +18,7 @@ in {
     enable = true;
     nixConfigPath = cfg.configPath;
     inherit (cfg) lspPackages;
+    rustAnalyzerCmd = [cfg.lspmux.servers.rust-analyzer.command] ++ cfg.lspmux.servers.rust-analyzer.args;
+    rustAnalyzerSettings = cfg.lspmux.rustAnalyzerSettings;
   };
 }

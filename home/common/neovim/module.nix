@@ -64,12 +64,31 @@ in {
       ];
       description = "LSP packages to add to neovim's PATH";
     };
+
+    # rust-analyzer command for rustaceanvim. Empty leaves rustaceanvim's own
+    # discovery in place, which is what the standalone package wants; HM sets it
+    # to the lspmux client so neovim windows share one server with each other
+    # and with Claude Code. See home/common/lspmux.nix.
+    rustAnalyzerCmd = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      description = "Command and args for rust-analyzer, empty to let rustaceanvim decide";
+    };
+
+    rustAnalyzerSettings = lib.mkOption {
+      type = lib.types.attrs;
+      default = {
+        files.excludeDirs = [".direnv"];
+      };
+      description = "rust-analyzer settings passed to rustaceanvim";
+    };
   };
 
   config = {
     settings = {
       config_directory = ../../../config/nvim;
       info_plugin_name = "nix-info";
+      inherit (config) rustAnalyzerCmd rustAnalyzerSettings;
     };
 
     info.configPath = config.nixConfigPath;

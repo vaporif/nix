@@ -120,7 +120,7 @@ in {
         enable = lib.mkEnableOption "sops-managed secrets";
       }
       // lib.genAttrs
-      (import ./secrets.nix)
+      (import ./secrets.nix lib).all
       (name:
         lib.mkOption {
           type = lib.types.nullOr lib.types.str;
@@ -216,7 +216,7 @@ in {
     # Lives here, not in modules/sops.nix, because both system and HM modules
     # consume custom.secrets.* and only options.nix is in both scopes.
     secrets = lib.mkIf config.custom.secrets.enable (
-      lib.genAttrs (import ./secrets.nix) (name: "/run/secrets/${name}")
+      lib.genAttrs (import ./secrets.nix lib).available (name: "/run/secrets/${name}")
     );
   };
 }

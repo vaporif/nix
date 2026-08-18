@@ -14,6 +14,10 @@
         file = cfg.secrets.tavily-key;
       }
       {
+        env = "CONTEXT7_API_KEY";
+        file = cfg.secrets.context7-key;
+      }
+      {
         env = "HF_TOKEN";
         file = cfg.secrets.hf-token-scan-injection;
       }

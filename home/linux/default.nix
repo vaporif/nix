@@ -1,5 +1,7 @@
-{...}: {
+{pkgs, ...}: {
   imports = [./sandboxed.nix];
+
+  home.packages = [pkgs.ghostty.terminfo];
 
   # Shell-only VMs have no GUI, so skip dconf entirely. Stylix enables GTK
   # theming (which writes dconf settings) by default; home-manager's

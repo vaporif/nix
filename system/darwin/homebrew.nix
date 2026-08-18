@@ -25,6 +25,7 @@ in {
 
     casks =
       [
+        "ghostty"
         "supercollider"
         "spotify"
         "blackhole-2ch"

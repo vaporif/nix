@@ -156,6 +156,12 @@ in {
         # close pane without confirmation prompt
         bind x kill-pane
 
+        bind m switch-client -T movewin
+        bind -T movewin n swap-window -t -1 \; switch-client -T movewin
+        bind -T movewin i swap-window -t +1 \; switch-client -T movewin
+        bind -T movewin Escape switch-client -T root
+        bind -T movewin Enter switch-client -T root
+
         # Alt-1..9 select window 1..9 (no prefix)
         bind -n M-1 select-window -t 1
         bind -n M-2 select-window -t 2

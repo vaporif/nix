@@ -9,7 +9,8 @@ _: {
         # AppleScript trampoline — Hyper's held modifiers make that applet pop a run/quit dialog.
         # --env additionally suppresses Firefox's Troubleshoot Mode prompt.
         hyper - r : /usr/bin/open --env MOZ_DISABLE_SAFE_MODE_KEY=1 "$HOME/Applications/Home Manager Apps/LibreWolf.app" # lib[r]ewolf
-        hyper - t : /usr/bin/open "$HOME/Applications/Home Manager Apps/WezTerm.app" # [t]erminal
+        # hyper - t : /usr/bin/open "$HOME/Applications/Home Manager Apps/WezTerm.app" # [t]erminal
+        hyper - t : open -a "Ghostty"               # [t]erminal
         hyper - c : open -a "Claude"                # [c]laude
         hyper - s : open -a "Slack"                 # [s]lack
         hyper - b : open -a "Brave Browser"         # [b]rave

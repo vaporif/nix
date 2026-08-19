@@ -108,6 +108,8 @@ in {
         set -g history-limit 50000
         set -g set-clipboard on
         set -g allow-passthrough on
+        set -g set-titles on
+        set -g set-titles-string "#T"
         setw -g monitor-activity on
         setw -g mode-keys vi
         bind -T copy-mode-vi v send -X begin-selection

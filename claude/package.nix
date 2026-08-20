@@ -10,7 +10,7 @@
   socat,
   binName ? "claude",
 }: let
-  version = "2.1.235";
+  version = "2.1.237";
 
   platformMap = {
     "aarch64-darwin" = "darwin-arm64";
@@ -24,10 +24,10 @@
     or (throw "Claude Code is not supported on ${stdenv.hostPlatform.system}. Supported: aarch64-darwin, x86_64-darwin, x86_64-linux, aarch64-linux");
 
   nativeHashes = {
-    "darwin-arm64" = "0j3pgf3inmfv142gvwb8v08lfdr3dj764ip2rwba7vpjyq3gif43";
-    "darwin-x64" = "1wal3asjn1sjxan3j0h60aaphdm2wkf8ir9wj4d3da3b2sy2snij";
-    "linux-x64" = "1mfmfhrc002srgj7idn3i44a3f9q76zslx3021m2njzrvgi0mkxz";
-    "linux-arm64" = "0jcm8v1yv5fapk8rzazh7gi48gcc3calz1r1mkvb0b99m8pmkyfg";
+    "darwin-arm64" = "0hxynpcd70mp5q0mxb1qcx81nb5328zgqrwcffap9wag3lsh329k";
+    "darwin-x64" = "0ki2hqhxhsjrppj2qfikqb2dkm13clxpmqylqvmmzfd7ajbph04z";
+    "linux-x64" = "05irzfmk91s58z9gbgkf8nwfnmqng2a4jqfndz7r71hhy1km35vk";
+    "linux-arm64" = "0xq1qxxhqlbxbk1xbb5ypn71ba4chy650iyfyg3an0s7pfvcy0d7";
   };
 
   # Primary host is the Anthropic-branded CDN; the GCS bucket is the direct

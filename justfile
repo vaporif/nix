@@ -87,7 +87,7 @@ switch host="":
         sudo ./result/activate
     else
         host="{{host}}"
-        [[ -z "$host" ]] && host="$(hostname -s)"
+        [[ -n "$host" ]] || host="$(hostname -s)"
         nom build ".#nixosConfigurations.${host}.config.system.build.toplevel"
         [[ -e /run/current-system ]] && nvd diff /run/current-system ./result || true
         sudo -H nix-env --profile /nix/var/nix/profiles/system --set ./result
@@ -131,7 +131,7 @@ cache host="":
         nix build ".#darwinConfigurations.burnedapple.system"
     else
         host="{{host}}"
-        [[ -z "$host" ]] && host="$(hostname -s)"
+        [[ -n "$host" ]] || host="$(hostname -s)"
         cachix_name=$(nix eval --raw ".#nixosConfigurations.${host}.config.custom.cachix.name")
         nix build ".#nixosConfigurations.${host}.config.system.build.toplevel"
     fi

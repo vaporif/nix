@@ -18,17 +18,16 @@ case "$event" in
   Notification) glyph="?" ;;
   Stop) glyph="✓" ;;
   SessionStart) glyph="·" ;;
-  SessionEnd) glyph="" ;;
+  # Empty title = hand the window back (see the reset note below).
+  SessionEnd) title="" ;;
   *) exit 0 ;;
 esac
 
-label="claude"
-if [ -n "$cwd" ]; then
-  label=$(basename "$cwd")
-fi
-
-title="$label"
-if [ -n "$glyph" ]; then
+if [ -n "${glyph:-}" ]; then
+  label="claude"
+  if [ -n "$cwd" ]; then
+    label=$(basename "$cwd")
+  fi
   title="$glyph $label"
 fi
 
@@ -82,6 +81,9 @@ terminal=$(resolve_terminal) || exit 0
 #   ESC k      renames the tmux window (#W) — what the status bar actually
 #              draws for every window, focused or not. Needs `allow-rename
 #              on`; terminals that aren't tmux ignore it.
+#
+# An empty title is the reset: a rename pins automatic-rename off for that
+# window, and only an empty rename string clears the override again.
 {
   printf '\033]2;%s\007' "$title"
   # shellcheck disable=SC1003  # the \\ is printf's escape for the ST byte

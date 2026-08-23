@@ -155,12 +155,6 @@
           init-solana = "nix flake init -t github:vaporif/nix-devshells#solana";
           init-rust = "nix flake init -t github:vaporif/nix-devshells#rust";
         }
-        // lib.optionalAttrs config.custom.claude.enable (let
-          claudeSandboxed = lib.getExe config.custom.sandboxedPackages.claude;
-        in {
-          a = "${claudeSandboxed} --dangerously-skip-permissions --model opus";
-          ar = "${claudeSandboxed} --dangerously-skip-permissions --resume --model opus";
-        })
         // lib.optionalAttrs config.custom.codex.enable (let
           codexSandboxed = lib.getExe config.custom.sandboxedPackages.codex;
         in {
@@ -181,6 +175,37 @@
           bindkey '^F' fzf-file-widget
           bindkey -r '^T'
         ''
+        + lib.optionalString config.custom.claude.enable (let
+          claude = "${lib.getExe config.custom.sandboxedPackages.claude} --dangerously-skip-permissions --model opus";
+        in
+          if config.custom.claude.tabState.enable
+          then ''
+
+            # A hard exit (crash, killed pane, dropped ssh) never fires the
+            # SessionEnd hook that clears the tab-state glyph, so the launching
+            # shell clears it too — `always` runs even on a signal.
+            claude-tab-reset() {
+              [[ -n "''${TMUX:-}" ]] || return 0
+              tmux set -wu automatic-rename 2>/dev/null
+              tmux select-pane -T "" 2>/dev/null
+              return 0
+            }
+
+            a() {
+              {
+                ${claude} "$@"
+              } always {
+                claude-tab-reset
+              }
+            }
+
+            ar() { a --resume "$@" }
+          ''
+          else ''
+
+            a() { ${claude} "$@" }
+            ar() { a --resume "$@" }
+          '')
         + lib.optionalString config.custom.gitlab.enable ''
 
           if [[ -z "''${CLAUDE_SANDBOX:-}" && -z "''${CODEX_SANDBOX:-}" && -r /run/secrets/gitlab-token && -r /run/secrets/gitlab-api-url ]]; then

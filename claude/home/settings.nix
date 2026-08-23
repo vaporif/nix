@@ -22,6 +22,35 @@
       '';
     };
 
+  # Rewrites the tab title on every state transition, so a background tab
+  # shows whether that session is working, waiting on you, or done. `ps` is
+  # for the pty lookup when the hook has no controlling terminal of its own;
+  # on darwin the wrapper keeps the inherited PATH, which finds /bin/ps.
+  tabStateScript = let
+    script = pkgs.writeShellScriptBin "claude-tab-state" (builtins.readFile ../tab-state.sh);
+  in
+    pkgs.symlinkJoin {
+      name = "claude-tab-state";
+      paths = [script];
+      buildInputs = [pkgs.makeWrapper];
+      postBuild = ''
+        wrapProgram $out/bin/claude-tab-state \
+          --prefix PATH : ${lib.makeBinPath ([pkgs.jq pkgs.coreutils] ++ lib.optional pkgs.stdenv.isLinux pkgs.procps)}
+      '';
+    };
+
+  tabState = cfg.claude.tabState.enable;
+
+  tabStateHook = matcher: {
+    inherit matcher;
+    hooks = [
+      {
+        command = "${tabStateScript}/bin/claude-tab-state";
+        type = "command";
+      }
+    ];
+  };
+
   parryHook = {
     hooks = [
       {
@@ -46,9 +75,15 @@ in {
           type = "command";
           command = "${statuslineScript}/bin/claude-statusline";
         };
-        env = {
-          CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
-        };
+        env =
+          {
+            CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
+          }
+          // lib.optionalAttrs tabState {
+            # The tab-state hooks own OSC 2; without this Claude keeps
+            # repainting the title with the conversation topic.
+            CLAUDE_CODE_DISABLE_TERMINAL_TITLE = "1";
+          };
         hooks = {
           PreToolUse =
             sec.hooks.PreToolUse
@@ -68,13 +103,18 @@ in {
                 matcher = "Edit|Write";
               }
             ]
+            ++ lib.optional tabState (tabStateHook "")
             ++ lib.optionals isDarwin [
               (parryHook // {matcher = "Read|WebFetch|Bash|mcp__github__get_file_contents|mcp__filesystem__read_file|mcp__filesystem__read_text_file";})
             ];
 
-          inherit (sec.hooks) Notification SessionStart;
+          Notification = sec.hooks.Notification ++ lib.optional tabState (tabStateHook "");
+          SessionStart = sec.hooks.SessionStart ++ lib.optional tabState (tabStateHook "");
+          Stop = lib.optional tabState (tabStateHook "");
+          SessionEnd = lib.optional tabState (tabStateHook "");
           UserPromptSubmit =
             sec.hooks.UserPromptSubmit
+            ++ lib.optional tabState (tabStateHook "")
             ++ lib.optionals isDarwin [
               (parryHook // {matcher = "";})
             ];

@@ -146,6 +146,11 @@ in {
         default = true;
         description = "Wrap the claude/codex CLIs in a bubblewrap sandbox (Linux only). Disable per host where bwrap can't run (e.g. an unprivileged container, since bwrap can't nest in rootless podman) to fall back to the plain CLI.";
       };
+      tabState.enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Write a state glyph into the terminal tab title from Claude Code hooks (working / waiting on you / done), so a background tab shows what that session needs. Takes the tab title over from Claude's own topic title.";
+      };
     };
     tmux.autoAttach = lib.mkEnableOption "auto-attach to a persistent tmux session on interactive SSH logins, keeping the shell and running programs alive across disconnects (e.g. the work VM)";
     gitlab.enable = lib.mkEnableOption "the read-only GitLab MCP server (work VM only); reads its API URL and token from the gitlab-api-url and gitlab-token sops secrets";

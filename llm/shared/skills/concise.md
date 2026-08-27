@@ -2,8 +2,8 @@
 name: concise
 description: >
   Plain professional tone. Drop filler, hedging, pleasantries. Keep grammar and articles.
-  Switch to visual format (Mermaid, tables, ASCII trees) when prose grows long or
-  involves 3+ components, sequences, or comparisons. Code blocks unchanged.
+  Switch to visual format (ASCII diagrams, tables, ASCII trees) when prose grows long or
+  involves 3+ components, sequences, or comparisons. Never Mermaid. Code blocks unchanged.
   Activate when user says "concise mode", "be brief", "less fluff", "use concise",
   invokes /concise, or when explanation needs visual aid.
 ---
@@ -46,15 +46,19 @@ Switch from prose to visual when any of these hits:
 - Comparison of 3+ options on shared attributes
 - Hierarchy or tree structure
 
+**Every diagram is ASCII.** Mermaid is banned — never emit a `mermaid` fence, and never suggest one as an alternative. Terminal output has no Mermaid renderer, so a fenced graph shows up as raw source. Same rule for other render-dependent formats (PlantUML, Graphviz/DOT, D2): if it needs a renderer, write ASCII instead.
+
 Pick the right format:
 
 | Content | Format |
 |---------|--------|
-| Process, flow, sequence, state transitions | Mermaid `flowchart` / `sequenceDiagram` / `stateDiagram` |
+| Process, flow, sequence, state transitions | ASCII boxes + arrows, in a plain code block |
 | Comparison of N options across M attributes | Markdown table |
 | Hierarchy, file structure, nesting | ASCII tree |
 | Small structural relationship (2-3 boxes) | Inline ASCII |
 | Cause/effect chain | Arrow notation `A → B → C` |
+
+Drawing kit: `─ │ ┌ ┐ └ ┘ ├ ┤ ┬ ┴ ┼ → ← ↑ ↓ ▼ ▲` plus `[box]`, `{decision?}`, `(state)`. Keep diagrams under ~76 columns so they survive terminal wrapping. Label branch edges (`yes` / `no` / `err`).
 
 Pattern: **1-2 sentence intro → diagram → 1-sentence takeaway**. Don't repeat in prose what the diagram already shows.
 
@@ -63,16 +67,38 @@ Examples:
 **Flow** (auth middleware bug):
 > Token validation runs before expiry check, so expired tokens with valid signatures still pass.
 >
-> ```mermaid
-> flowchart LR
->   Req --> SigCheck{Signature valid?}
->   SigCheck -->|no| Reject
->   SigCheck -->|yes| ExpiryCheck{Expired?}
->   ExpiryCheck -->|yes| Reject
->   ExpiryCheck -->|no| Allow
+> ```
+> Req → {signature valid?} ──no──→ Reject
+>            │
+>           yes
+>            ▼
+>       {expired?} ──yes──→ Reject
+>            │
+>            no
+>            ▼
+>          Allow
 > ```
 >
 > Fix: swap the two checks — fail-fast on expiry.
+
+**Sequence** (retry on 429):
+> ```
+> Client        Gateway        Upstream
+>   │              │              │
+>   │──request────→│──forward────→│
+>   │              │←──429────────│
+>   │              │  (backoff 1s)│
+>   │              │──retry──────→│
+>   │              │←──200────────│
+>   │←──200────────│              │
+> ```
+
+**State** (job lifecycle):
+> ```
+> (queued) → (running) ─ok──→ (done)
+>                │
+>                └─err─→ (failed) ──retry──→ (queued)
+> ```
 
 **Comparison** (state libs):
 
@@ -112,4 +138,5 @@ Resume after the clear part lands.
 - **Code, commit messages, PR descriptions**: write normal full-prose tone
 - **Documentation files** (`*.md`, `docs/`, ADRs, READMEs): write normal — these are read by humans outside this session
 - **Chat replies**: concise mode applies
+- **Diagrams**: ASCII only, everywhere — chat, docs, commit bodies. Mermaid/PlantUML/Graphviz/D2 are never emitted, even when the user's markdown viewer would render them
 - **Disable**: "stop concise" or "normal mode" reverts to default tone

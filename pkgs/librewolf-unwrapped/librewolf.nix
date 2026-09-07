@@ -22,6 +22,10 @@ in rec {
       "--enable-lto=thin,cross"
     ];
 
+  extraPreConfigure = ''
+    export MOZ_TELEMETRY_REPORTING=
+  '';
+
   extraPostPatch = ''
     # disable-data-reporting-at-compile-time.patch edits the vendored glean-core
     # crate, so cargo's directory-source checksums must be updated to match or

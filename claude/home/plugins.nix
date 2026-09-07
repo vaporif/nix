@@ -237,11 +237,19 @@
       allPlugins);
   };
 
-  pluginFiles = builtins.listToAttrs (map (p: {
-      name = "${nixPluginsPath}/${p.name}";
-      value.source = p.source;
-    })
-    allPlugins);
+  # Claude Code rejects a plugin whose resolved path leaves the marketplace
+  # directory, so every plugin is copied into one tree that gets linked in as a
+  # single symlink at the marketplace root. Per-plugin symlinks resolve straight
+  # into /nix/store and fail with "does not stay inside its marketplace directory".
+  nixPluginsTree = pkgs.runCommand "claude-nix-plugins-marketplace" {} ''
+    mkdir -p $out/.claude-plugin
+    cp ${pkgs.writeText "marketplace.json" nixPluginsMarketplace} $out/.claude-plugin/marketplace.json
+    ${lib.concatMapStringsSep "\n" (p: ''
+        cp -r ${p.source} $out/${p.name}
+        chmod -R u+w $out/${p.name}
+      '')
+      allPlugins}
+  '';
 
   # Plugins to keep installed but disabled (skills/commands/agents not loaded).
   # Toggle by adding/removing names here — no rebuild of plugin sources needed.
@@ -285,12 +293,10 @@ in {
   config = lib.mkIf config.custom.claude.enable {
     custom.claude.enabledPlugins = enabledPlugins;
 
-    home.file =
-      {
-        "${nixPluginsPath}/.claude-plugin/marketplace.json".text = nixPluginsMarketplace;
-        ".claude/plugins/installed_plugins.json".text = installedPlugins;
-        ".claude/plugins/known_marketplaces.json".text = knownMarketplaces;
-      }
-      // pluginFiles;
+    home.file = {
+      "${nixPluginsPath}".source = nixPluginsTree;
+      ".claude/plugins/installed_plugins.json".text = installedPlugins;
+      ".claude/plugins/known_marketplaces.json".text = knownMarketplaces;
+    };
   };
 }

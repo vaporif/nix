@@ -67,7 +67,7 @@
     '';
   };
 
-  claudeDarwin = mkSandboxed "claude" [
+  claudeDarwin = mkSandboxed "claude-sandboxed" [
     inputs.sandnix.sandnixModules.git
     inputs.sandnix.sandnixModules.gh
     {
@@ -107,7 +107,7 @@
     (darwinExtras "CLAUDE_SANDBOX")
   ];
 
-  codexDarwin = mkSandboxed "codex" [
+  codexDarwin = mkSandboxed "codex-sandboxed" [
     inputs.sandnix.sandnixModules.git
     inputs.sandnix.sandnixModules.gh
     {

@@ -4,7 +4,6 @@
   inputs,
   ...
 }: let
-  inherit (pkgs) lib;
   testSystem =
     if pkgs.stdenv.hostPlatform.isDarwin
     then "aarch64-darwin"
@@ -13,7 +12,6 @@
     if pkgs.stdenv.hostPlatform.isDarwin
     then "/Users/testuser"
     else "/home/testuser";
-  codexSandboxed = pkgs.writeShellScriptBin "codex" "";
 
   hm = home-manager.lib.homeManagerConfiguration {
     inherit pkgs;
@@ -40,7 +38,6 @@
             trustedRepoNames = ["ibc-attestor" "kingdom"];
           };
           secrets.tavily-key = toString (pkgs.writeText "tavily-key" "test-tavily-key");
-          sandboxedPackages.codex = codexSandboxed;
         };
       }
     ];
@@ -49,11 +46,10 @@
   codexConfig = hm.config.home.file.".codex/config.toml".source;
   conciseSkill = hm.config.home.file.".codex/skills/concise/SKILL.md".source;
   rustAgent = hm.config.home.file.".codex/agents/rust-engineer.md".source;
-  codexBin = lib.getExe codexSandboxed;
 in
-  assert hm.config.programs.zsh.shellAliases.o == "${codexBin} --dangerously-bypass-approvals-and-sandbox";
-  assert hm.config.programs.zsh.shellAliases."or" == "${codexBin} resume --dangerously-bypass-approvals-and-sandbox";
-  assert hm.config.programs.zsh.shellAliases.ox == "${codexBin} exec";
+  assert hm.config.programs.zsh.shellAliases.o == "codex-sandboxed --dangerously-bypass-approvals-and-sandbox";
+  assert hm.config.programs.zsh.shellAliases."or" == "codex-sandboxed resume --dangerously-bypass-approvals-and-sandbox";
+  assert hm.config.programs.zsh.shellAliases.ox == "codex-sandboxed exec";
     pkgs.runCommand "codex-config" {} ''
       grep -q '^\[mcp_servers.context7\]$' ${codexConfig}
       grep -q '^\[mcp_servers.github\]$' ${codexConfig}

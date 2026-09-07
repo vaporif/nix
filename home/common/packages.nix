@@ -93,9 +93,15 @@ in {
     ++ lib.optionals cfg.claude.enable [
       pkgs.claude-code
       pkgs.claude_formatter
+      # The sandbox wrapper goes on PATH under its own name so the `a` shell
+      # function can resolve it by name instead of baking a store path into
+      # zshrc — a long-lived shell kept launching whatever version was current
+      # when it started.
+      cfg.sandboxedPackages.claude
     ]
     ++ lib.optionals cfg.codex.enable [
       pkgs.codex
+      cfg.sandboxedPackages.codex
     ]
     ++ lib.optionals cfg.gitlab.enable [
       pkgs.glab

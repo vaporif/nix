@@ -113,7 +113,7 @@ in {
     sandboxedPackages = lib.mkOption {
       type = lib.types.attrsOf lib.types.package;
       default = {};
-      description = "Sandboxed package wrappers (populated on darwin only)";
+      description = "Sandboxed CLI wrappers, set per platform by home/{darwin,linux}/sandboxed.nix. Each wrapper's binary is named `<attr>-sandboxed` and goes on PATH, so shell shorthands invoke it by name rather than by store path.";
     };
     secrets =
       {

@@ -155,13 +155,11 @@
           init-solana = "nix flake init -t github:vaporif/nix-devshells#solana";
           init-rust = "nix flake init -t github:vaporif/nix-devshells#rust";
         }
-        // lib.optionalAttrs config.custom.codex.enable (let
-          codexSandboxed = lib.getExe config.custom.sandboxedPackages.codex;
-        in {
-          o = "${codexSandboxed} --dangerously-bypass-approvals-and-sandbox";
-          "or" = "${codexSandboxed} resume --dangerously-bypass-approvals-and-sandbox";
-          ox = "${codexSandboxed} exec";
-        });
+        // lib.optionalAttrs config.custom.codex.enable {
+          o = "codex-sandboxed --dangerously-bypass-approvals-and-sandbox";
+          "or" = "codex-sandboxed resume --dangerously-bypass-approvals-and-sandbox";
+          ox = "codex-sandboxed exec";
+        };
       initContent =
         ''
           ulimit -Sn 4096
@@ -176,7 +174,10 @@
           bindkey -r '^T'
         ''
         + lib.optionalString config.custom.claude.enable (let
-          claude = "${lib.getExe config.custom.sandboxedPackages.claude} --dangerously-skip-permissions --model opus";
+          # Resolved through PATH, not a baked-in store path: a shell that has
+          # been open across a `just switch` would otherwise keep launching the
+          # version that was current when it started.
+          claude = "claude-sandboxed --dangerously-skip-permissions --model opus";
         in
           if config.custom.claude.tabState.enable
           then ''

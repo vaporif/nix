@@ -10,7 +10,7 @@
   claude = lib.getExe pkgs.claude-code;
   codex = lib.getExe pkgs.codex;
 
-  claudeLinux = pkgs.writeShellScriptBin "claude" ''
+  claudeLinux = pkgs.writeShellScriptBin "claude-sandboxed" ''
     bind_ro() { [[ -e "$1" ]] && args+=(--ro-bind "$1" "$1"); }
     bind_rw() { [[ -e "$1" ]] && args+=(--bind "$1" "$1"); }
     pass_env() { [[ -n "''${!1:-}" ]] && args+=(--setenv "$1" "''${!1}"); }
@@ -131,7 +131,7 @@
     exec ${bwrap} "''${args[@]}" ${claude} "$@"
   '';
 
-  codexLinux = pkgs.writeShellScriptBin "codex" ''
+  codexLinux = pkgs.writeShellScriptBin "codex-sandboxed" ''
     bind_ro() { [[ -e "$1" ]] && args+=(--ro-bind "$1" "$1"); }
     bind_rw() { [[ -e "$1" ]] && args+=(--bind "$1" "$1"); }
     pass_env() { [[ -n "''${!1:-}" ]] && args+=(--setenv "$1" "''${!1}"); }
@@ -241,8 +241,8 @@
   '';
 
   # Passthrough wrappers when custom.claude.sandbox = false (bwrap can't nest).
-  claudePlain = pkgs.writeShellScriptBin "claude" ''exec ${claude} "$@"'';
-  codexPlain = pkgs.writeShellScriptBin "codex" ''exec ${codex} "$@"'';
+  claudePlain = pkgs.writeShellScriptBin "claude-sandboxed" ''exec ${claude} "$@"'';
+  codexPlain = pkgs.writeShellScriptBin "codex-sandboxed" ''exec ${codex} "$@"'';
 in {
   config.custom.sandboxedPackages = lib.mkMerge [
     (lib.mkIf cfg.claude.enable {

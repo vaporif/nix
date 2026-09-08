@@ -222,11 +222,11 @@
     "difftastic-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1788732733,
-        "narHash": "sha256-WK8PP8Y4QR3wkybUb6Q/C3uOJOilehLIYfsm5jphtYc=",
+        "lastModified": 1788857330,
+        "narHash": "sha256-v/LpZAcvVYIRmlw76TKMlx0Hh3MWrRpa7N0/xNtgdOA=",
         "owner": "Wilfred",
         "repo": "difftastic",
-        "rev": "440aa71fa0168b6bca1ccabc645c13d7e7f016a2",
+        "rev": "274d0a8f57291477cfbfb27bace0d82395d15c97",
         "type": "github"
       },
       "original": {
@@ -869,11 +869,11 @@
     },
     "nixpkgs_5": {
       "locked": {
-        "lastModified": 1788686502,
-        "narHash": "sha256-C5ETRqK0ji2SGGVpjdsAIv+Yd6m4vB6DOiGPQXP/M34=",
+        "lastModified": 1788775869,
+        "narHash": "sha256-JRf1lSypbvKj6AzUZHpUA6YC1DirVuitZWOnRwcm+Ww=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "94a0f8d9ca5da101ec1cddbdfecfdc1ae1766d04",
+        "rev": "58973d74f1893afe13f5902919803a0e99da0ca4",
         "type": "github"
       },
       "original": {

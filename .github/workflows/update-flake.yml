@@ -14,7 +14,7 @@ jobs:
 
       - uses: DeterminateSystems/magic-nix-cache-action@v13
 
-      - uses: DeterminateSystems/update-flake-lock@v28
+      - uses: DeterminateSystems/update-flake-lock@v29
         with:
           pr-title: "flake.lock: daily update"
           pr-labels: dependencies

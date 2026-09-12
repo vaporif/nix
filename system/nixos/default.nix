@@ -94,7 +94,7 @@ in {
     # `dbus-broker-lau` and `.claude-unwrapp` rather than their full names.
     extraArgs = [
       "--avoid"
-      "^(systemd|dbus-broker|dbus-broker-lau|sshd|sshd-session|tmux|zsh)$"
+      "^(systemd|dbus-broker|dbus-broker-lau|sshd|sshd-session|tmux|zsh|lspmux)$"
       "--prefer"
       "^(\\.claude-unwrapp|node|rust-analyzer|cargo|rustc)$"
     ];

@@ -31,14 +31,28 @@
         env = "GITLAB_API_URL";
         file = cfg.secrets.gitlab-api-url;
       }
+      # glab reads the same two secrets under its own variable names, and
+      # wants the bare host rather than the /api/v4 endpoint the MCP server
+      # takes. Mirrors the non-sandbox exports in home/common/shell.nix.
+      {
+        env = "GITLAB_TOKEN";
+        file = cfg.secrets.gitlab-token;
+      }
+      {
+        env = "GITLAB_HOST";
+        file = cfg.secrets.gitlab-api-url;
+        transform = ''GITLAB_HOST="''${GITLAB_HOST%/api/v4}"'';
+      }
     ]
   );
 
-  # Generate pre-load script for secrets (runs before sandbox)
+  # Generate pre-load script for secrets (runs before sandbox). An entry may
+  # carry a `transform` snippet to reshape the value once it has been read.
   secretPreload = lib.concatStringsSep "\n" (map (s: ''
       ${s.env}=""
       if [ -r ${s.file} ]; then
         ${s.env}="$(cat ${s.file})"
+        ${lib.optionalString (s ? transform) s.transform}
       fi
       export ${s.env}
     '')

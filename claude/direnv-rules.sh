@@ -44,7 +44,7 @@ _claude_rules_link() {
 
   if [[ ! -e "${src}" ]]; then
     log_error "claude-rules: ${name}.md not found in ${CLAUDE_RULES_STORE}"
-    return
+    return 1
   fi
 
   ln -sf "${src}" "${dst}"
@@ -76,8 +76,9 @@ use_claude_rules() {
 
   # Link each rule
   for name in "${names[@]}"; do
-    _claude_rules_link "${name}"
-    linked+=("${name}.md")
+    if _claude_rules_link "${name}"; then
+      linked+=("${name}.md")
+    fi
   done
 
   if [[ ${#linked[@]} -gt 0 ]]; then

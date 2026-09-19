@@ -5,7 +5,7 @@
   ...
 }: let
   cfg = config.custom;
-  inherit (pkgs.stdenv) isDarwin;
+  inherit (pkgs.stdenv.hostPlatform) isDarwin;
 
   sec = config.programs.claude-code.security.settingsFragment;
 
@@ -35,7 +35,7 @@
       buildInputs = [pkgs.makeWrapper];
       postBuild = ''
         wrapProgram $out/bin/claude-tab-state \
-          --prefix PATH : ${lib.makeBinPath ([pkgs.jq pkgs.coreutils] ++ lib.optional pkgs.stdenv.isLinux pkgs.procps)}
+          --prefix PATH : ${lib.makeBinPath ([pkgs.jq pkgs.coreutils] ++ lib.optional pkgs.stdenv.hostPlatform.isLinux pkgs.procps)}
       '';
     };
 

@@ -16,6 +16,26 @@
 
   context7-mcp-package = inputs.mcp-servers-nix.packages.${pkgs.stdenv.hostPlatform.system}.context7-mcp;
 
+  # github-mcp-server ships 85 tools and defaults to a 44-tool set; every one of
+  # those names is spent in each session's prompt. Drop the `copilot` toolset,
+  # then exclude the write tools that duplicate the git/gh CLI. Those writes also
+  # route around the `Bash(git push:*)` deny in claude/security, so excluding
+  # them keeps the MCP surface consistent with it. Yields 31 tools.
+  githubToolsets = ["context" "repos" "issues" "pull_requests" "users"];
+  githubExcludeTools = [
+    "create_or_update_file"
+    "delete_file"
+    "push_files"
+    "create_branch"
+    "merge_pull_request"
+    "create_repository"
+    "fork_repository"
+    "list_repository_collaborators"
+    "list_issue_fields"
+    "list_issue_types"
+    "sub_issue_write"
+  ];
+
   # Shared custom servers used by both Desktop and Code
   commonServers =
     {
@@ -30,7 +50,9 @@
       github = {
         command = "${pkgs.writeShellScript "github-mcp-wrapper" ''
           export GITHUB_PERSONAL_ACCESS_TOKEN="''${GITHUB_PERSONAL_ACCESS_TOKEN:-$(${lib.getExe pkgs.gh} auth token)}"
-          exec ${lib.getExe pkgs.github-mcp-server} stdio
+          exec ${lib.getExe pkgs.github-mcp-server} stdio \
+            --toolsets=${lib.concatStringsSep "," githubToolsets} \
+            --exclude-tools=${lib.concatStringsSep "," githubExcludeTools}
         ''}";
       };
       nixos = {

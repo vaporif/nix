@@ -47,6 +47,14 @@
       enableZshIntegration = true;
       nix-direnv.enable = true;
       config.global.hide_env_diff = true;
+      # Link project-scoped Claude agents on entry to every direnv project, so
+      # an .envrc need not opt in per repo. Detection is depth-bounded and a
+      # non-matching project links nothing and leaves no directory behind, so
+      # this is a no-op everywhere the agents do not apply. See
+      # claude/direnv-agents.sh; `use claude_agents <name>` still forces one.
+      stdlib = ''
+        use_claude_agents
+      '';
     };
 
     atuin = {

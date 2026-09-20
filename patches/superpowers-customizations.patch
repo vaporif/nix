@@ -1,8 +1,8 @@
 diff --git orig/skills/brainstorming/SKILL.md mod/skills/brainstorming/SKILL.md
-index b56a3b5..5854fe0 100644
+index e3f1788..c9547a5 100644
 --- orig/skills/brainstorming/SKILL.md
 +++ mod/skills/brainstorming/SKILL.md
-@@ -95,12 +95,69 @@ your path and complete them in order.
+@@ -130,12 +130,69 @@ your path and complete them in order.
  1. **Explore project context** — check files, docs, recent commits
  2. **Offer the visual companion just-in-time** — NOT upfront. The first time a question would genuinely be clearer shown than described, offer it then (its own message); on approval its browser tab opens for you. If no visual question ever arises, never offer it. See the Visual Companion section below.
  3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
@@ -77,7 +77,7 @@ index b56a3b5..5854fe0 100644
  
  ## Process Flow
  
-@@ -118,10 +175,15 @@ digraph brainstorming {
+@@ -153,10 +210,15 @@ digraph brainstorming {
      "Propose 2-3 approaches" [shape=box];
      "Present design sections" [shape=box];
      "User approves design?" [shape=diamond];
@@ -96,7 +96,7 @@ index b56a3b5..5854fe0 100644
      "Hidden complexity? Upgrade path" [shape=box];
  
      "Classify: spike / bounded / architectural" -> "Present question + probe (2-3 sentences)" [label="spike"];
-@@ -138,20 +200,31 @@ digraph brainstorming {
+@@ -173,20 +235,31 @@ digraph brainstorming {
      "Propose 2-3 approaches" -> "Present design sections";
      "Present design sections" -> "User approves design?";
      "User approves design?" -> "Present design sections" [label="no, revise"];
@@ -136,7 +136,7 @@ index b56a3b5..5854fe0 100644
  
  ## The Process
  
-@@ -177,6 +250,8 @@ is the whole process.
+@@ -212,6 +285,8 @@ is the whole process.
  - Present options conversationally with your recommendation and reasoning
  - Lead with your recommended option and explain why
  - YAGNI ruthlessly - remove unnecessary features from every approach and design
@@ -145,7 +145,7 @@ index b56a3b5..5854fe0 100644
  
  **Presenting the design:**
  
-@@ -185,6 +260,7 @@ is the whole process.
+@@ -220,6 +295,7 @@ is the whole process.
  - Ask after each section whether it looks right so far
  - Cover: architecture, components, data flow, error handling, testing
  - Be ready to go back and clarify if something doesn't make sense
@@ -153,7 +153,7 @@ index b56a3b5..5854fe0 100644
  
  **Design for isolation and clarity:**
  
-@@ -203,32 +279,114 @@ is the whole process.
+@@ -238,32 +314,114 @@ is the whole process.
  
  **Documentation:**
  
@@ -293,23 +293,24 @@ index 6099312..0cb45cb 100644
  ```
  Subagent (general-purpose):
 diff --git orig/skills/executing-plans/SKILL.md mod/skills/executing-plans/SKILL.md
-index b51d97d..63eb128 100644
+index 49077ad..eeab57c 100644
 --- orig/skills/executing-plans/SKILL.md
 +++ mod/skills/executing-plans/SKILL.md
-@@ -7,32 +7,93 @@ description: Use when you have a written implementation plan to execute in a sep
+@@ -1,10 +1,39 @@
+ ---
+ name: executing-plans
+-description: Use when executing an implementation plan in the current session as the implementer yourself — your human partner chose inline execution, or no subagent tool is available
++description: Use when you have a written implementation plan to execute — routes the plan to its execution sub-skill (subagents by default) rather than executing it inline
+ ---
  
- ## Overview
+ # Executing Plans
  
--Load plan, review critically, execute all tasks, report when complete.
 +This skill is a **router**. It reads the plan, picks the execution strategy, and hands off to a subagent-based sub-skill. It does NOT execute tasks itself in the controller's session — multi-agent execution is the default and the only normal path.
- 
--**Announce at start:** "I'm using the executing-plans skill to implement this plan."
++
 +**Announce at start:** "I'm using the executing-plans skill to route this plan to its execution sub-skill."
- 
--**Note:** Tell your human partner that Superpowers works much better with access to subagents (Claude Code, Codex CLI, Codex App, Copilot CLI, and Gemini CLI all qualify; see the per-platform tool refs in `../using-superpowers/references/`). If subagents are available, use superpowers:subagent-driven-development instead of this skill.
++
 +## Routing
- 
--## The Process
++
 +Read the plan's header. Resolve the execution strategy in this order:
 +
 +1. **User override in this conversation** — if the user explicitly asked for a specific method (e.g. "use a team", "spawn /team-feature", "run it inline because subagents are broken"), honour that. Quote what they said when announcing the choice.
@@ -322,97 +323,156 @@ index b51d97d..63eb128 100644
 +
 +> "Routing: **<strategy>**. Reason: <plan section / user request / default>. Switching to <sub-skill>."
 +
-+After the announcement, invoke the sub-skill. **The router stops here.** Do not continue into the steps below unless the inline-degraded path applies.
++After the announcement, invoke the sub-skill. **The router stops here.** Do not continue into the sections below unless the inline-degraded path applies.
 +
 +## Inline-Degraded Path (very rare)
 +
-+Only run the controller-inline serial process below when BOTH are true:
++Everything from here to the end of this skill runs only when BOTH are true:
++
 +- The platform genuinely has no subagent support (e.g. raw CLI, no Task tool), AND
 +- The user has been told subagents are unavailable and accepted the degraded path.
 +
 +In every other case, hand off to `subagent-driven-development` or `/team-feature` per Routing above. If you find yourself in this section by default rather than by necessity, stop and route correctly instead.
++
+ Execute the plan yourself, task by task, in this session: no implementer
+ subagent per task, no reviewer per task. One fresh-context review of the
+ whole branch at the end.
+@@ -44,24 +73,25 @@ those, stop and ask.
  
- ### Step 1: Load and Review Plan
- 1. Ensure an isolated workspace: use superpowers:using-git-worktrees to create one or verify the existing one
- 2. Read plan file
- 3. Review critically - identify any questions or concerns about the plan
--4. If concerns: Raise them with your human partner before starting
--5. If no concerns: Create todos for the plan items and proceed
-+4. **Scan checkbox state**: every `- [x]` in the plan is a step that has already been verified by a previous session. Do NOT redo it. Treat it as completed and skip past it. Every `- [ ]` is pending. If a whole task is `- [x]` across all its steps, the task is done; move to the next pending task. If checkbox state looks wrong (e.g. later steps `- [x]` but earlier ones `- [ ]`, or `- [x]` next to obviously-broken code), pause and ask the partner before resuming.
-+5. If concerns: Raise them with your human partner before starting
-+6. If no concerns: Create TodoWrite seeded only with the **pending** (`- [ ]`) steps, and proceed
+ ## When to Use
  
- ### Step 2: Execute Tasks
+-- You have a plan from superpowers:writing-plans and your human partner
+-  chose inline execution at the handoff.
++Only under the gate above. Concretely:
++
+ - Your harness has no subagent tool (see the per-platform references in
+   `../using-superpowers/references/`). Never fabricate a dispatch; run
+   the plan here.
++- The user asked for inline execution in this conversation, overriding
++  the plan's `## Execution Strategy`.
+ - Tasks are mostly independent — the same precondition as
+   superpowers:subagent-driven-development.
  
- For each task:
--1. Mark as in_progress
--2. Follow each step exactly (plan has bite-sized steps)
--3. Run verifications as specified
--4. Mark as completed
-+1. Mark as in_progress (TodoWrite)
-+2. For each step inside the task:
-+   1. Skip if its line already reads `- [x]` (re-verify quickly that the side effect is in place; if not, restore the `- [ ]` and execute it)
-+   2. Otherwise, follow the step exactly (plan has bite-sized steps) and run verifications as specified
-+   3. **Once the step's verification passes, immediately edit the plan file**: change that step's leading `- [ ]` to `- [x]` (use Edit on the exact line). Do this BEFORE moving to the next step — this is the durable progress log that lets a later session resume cleanly. Do not batch the flips at the end; one flip per verified step.
-+3. After all steps pass, do a prose cleanup pass on changed files. Trim comments hard, then humanize what survives:
-+   - Cut every low-value comment, not just AI-slop. Anything that restates the code, narrates the obvious, or decorates goes — whoever wrote it. You have license to delete; when in doubt, delete.
-+   - Strip AI-obvious comments ("Ensures proper...", "Leverages...", "Facilitates...").
-+   - Keep only genuine *why* comments (hidden constraint, workaround, invariant, external reference).
-+   - Then humanize the survivors plus docstrings and error messages — direct and specific, no filler. Trim first, humanize second.
-+4. Mark as completed (TodoWrite). At this point every step under the task should already be `- [x]` in the plan file.
+ A fully specified plan makes inline execution transcription plus testing:
+ it runs well on a mid-tier session model, and the one place the most
+ capable model earns its cost is the final review, which this skill
+-dispatches separately. Tell your human partner so when they choose inline.
++dispatches separately. Tell your human partner so when inline is forced.
  
--### Step 3: Complete Development
-+**Checkbox-flip rules:**
-+- Edit only the literal `- [ ]` → `- [x]` on the step line. Do not reformat surrounding lines, do not re-indent, do not restructure the plan.
-+- If a step is partly done (e.g. tests written but failing), leave it `- [ ]`. Half-done is not done.
-+- If a verification fails after you flipped the box (regression discovered later), flip it back to `- [ ]` and treat the step as pending.
-+- Commit the plan-file edits along with the implementation commit for that step (or as their own commit if the implementation hadn't changed any other files yet) so the resume point survives across sessions.
+-Prefer superpowers:subagent-driven-development when your human partner
+-wants a review gate on every task, or when the plan is long enough that
+-its later tasks would run on a compacted context. Inline execution over a
+-long plan still works — the ledger is what makes it recoverable — but the
+-last tasks get the least of you.
++Otherwise route to superpowers:subagent-driven-development, which gates
++every task on a review and keeps later tasks off a compacted context.
++Inline execution over a long plan still works — the ledger is what makes
++it recoverable — but the last tasks get the least of you.
  
--After all tasks complete and verified:
-+### Step 3: Post-Implementation Polish (always, via subagent named in the plan)
-+
-+After all tasks complete and verified, but before finishing the branch, **always** run the post-implementation-polish pipeline as a single dispatched subagent. Do not run polish inline in this session, do not skip it, and do not ask the user.
-+
-+Read the `Polish: post-implementation-polish → <agent type>` line from the plan's `## Agent Assignments` section and dispatch using that agent type. If the plan has no Polish line, fall back to `general-purpose` and note the gap so writing-plans can fix it next time.
-+
-+```
-+Task tool (<agent type from plan's Polish line>):
-+  description: "Run post-implementation polish on the full diff"
-+  prompt: |
-+    You own the post-implementation-polish skill end-to-end for this branch.
-+
-+    Plan: <path to plan file>
-+    Spec: <path to spec file, if any>
-+    Base SHA: <git merge-base HEAD main>
-+    Head SHA: <git rev-parse HEAD>
-+
-+    Load the post-implementation-polish skill and execute ALL six phases
-+    in order: three code review rounds (+ fixes), idiomatic pass, /cleanup,
-+    then strip + humanize comments. Skip later review rounds only if the
-+    previous round was clean. Commit between phases. Report back the phases
-+    you ran, what you committed, and any unresolved Critical/Important
-+    findings.
-+```
-+
-+If the polish subagent reports unresolved Critical/Important findings, dispatch a fix subagent and re-run polish. Loop until clean (max 10 iterations across the polish stage), then surface to the user.
-+
-+### Step 4: Complete Development
-+
-+Once polish reports DONE:
- - Announce: "I'm using the finishing-a-development-branch skill to complete this work."
- - **REQUIRED SUB-SKILL:** Use superpowers:finishing-a-development-branch
- - Follow that skill to verify tests, present options, execute choice
-@@ -57,6 +118,8 @@ After all tasks complete and verified:
+ ## The Process
  
- ## Remember
- - Review plan critically first
-+- Read existing `- [x]` marks before doing anything — they are skip-this signals from prior sessions
-+- Flip `- [ ]` → `- [x]` in the plan file the moment a step's verification passes, one at a time
- - Follow plan steps exactly
- - Don't skip verifications
- - Reference skills when plan says to
+@@ -146,6 +176,14 @@ authority the plan argues from, and conflicts inside the plan resolve
+ against it. A plan with no reachable spec gets a ledger note saying so —
+ rulings made without one are provisional.
+ 
++**Checkbox state.** The plan file is a second, durable progress log that
++outlives the workspace: every `- [x]` is a step some session already
++verified — do not redo it — and every `- [ ]` is pending. Seed the todos
++from the pending steps only. The ledger and the checkboxes must agree; if
++they disagree (a task with a `complete` ledger line whose steps are still
++`- [ ]`, or an `- [x]` next to obviously-broken code), trust neither and
++ask your human partner before resuming.
++
+ **REQUIRED SUB-SKILL:** load superpowers:test-driven-development now,
+ before Task 1. It governs every step of every task below; a plan whose
+ steps already say "write the failing test first" does not exempt you
+@@ -204,6 +242,13 @@ read its output, and compare. Three outcomes:
+ Commit as the plan's commit steps say. A task that spans several commits
+ is fine; BASE is what the review range is cut from, never `HEAD~1`.
+ 
++The moment a step's verification passes, edit the plan file to flip that
++step's leading `- [ ]` to `- [x]` — that exact line, nothing around it
++reformatted — and let the edit ride along with the step's commit. One flip
++per verified step, never batched at the end: this is what a later session
++resumes from. A step that is only partly done stays `- [ ]`, and a step
++whose verification regresses later flips back.
++
+ ### 3. The completion contract
+ 
+ Before a task's ledger line, all of the following are true, with evidence
+@@ -288,6 +333,27 @@ A finding you decide not to fix is a ruling — `Final: Ruling: <finding> —
+ <why the code stands> — <cost if wrong>` — and reaches your human partner
+ in the rulings list. There is no second fix pass.
+ 
++## Post-Implementation Polish (always)
++
++After the final review is clean and its fixes are committed, but BEFORE
++deleting the workspace or finishing the branch, run the
++post-implementation-polish pipeline over the whole branch. Do not skip it
++and do not ask the user.
++
++You are inline because no subagent tool exists, so you run it yourself:
++load post-implementation-polish and execute all six phases in order —
++three review rounds with fixes, the idiomatic pass, /cleanup, then strip
++and humanize comments. Skip a later review round only when the previous
++round came back clean. Commit between phases, and ledger each phase as
++`Polish: <phase> — <result>`. If a phase surfaces a Critical or Important
++finding, fix it under TDD like any other finding and re-run that phase;
++after 10 iterations across the whole stage, stop and surface to your human
++partner.
++
++If a subagent tool is in fact available, you should not be in this skill —
++route to superpowers:subagent-driven-development, which dispatches polish
++using the agent type named on the plan's `Polish:` line.
++
+ ## Finish
+ 
+ Before you delete anything, collect every ledger line containing
+@@ -297,9 +363,10 @@ line under "Deferred minors". Both lists are exhaustive. Your final
+ message is the only place the decisions you took on your human partner's
+ behalf — and the findings you chose not to act on — reach them.
+ 
+-When the final review is clean and its fixes are committed, delete this
+-plan's workspace directory — the git history is the record now. Sibling
+-directories belong to other plans; leave them alone.
++When the final review is clean, its fixes are committed, and polish
++reports DONE, delete this plan's workspace directory — the git history
++is the record now. Sibling directories belong to other plans; leave them
++alone.
+ 
+ Use superpowers:finishing-a-development-branch.
+ 
+@@ -319,6 +386,9 @@ Use superpowers:finishing-a-development-branch.
+ | "The reviewer said Minor, so it's Minor" | The label graded the spec's silence. Grade what the person gets. Re-grade, then gate. |
+ | "The fix is obvious, no need for a failing test first" | The failing test is the only proof the finding was real and is now gone. Without it you have a diff and a hope. |
+ | "I'll fix the minors too while I'm in there" | Every minor you fix is a test, a fix, and a suite run your partner did not ask for. Ledger them; your partner decides. |
++| "Running this inline is faster than dispatching subagents" | Inline is the degraded path, not a shortcut you pick. No subagent tool, or the user asked. Otherwise route. |
++| "I'll flip all the checkboxes once the task is done" | The flip is the resume point. Batched at the end, it records nothing a crashed session can use. |
++| "Polish is optional when the review came back clean" | Polish always runs. A clean review says the code is correct, not that it reads like a person wrote it. |
+ 
+ ## Example Workflow
+ 
+@@ -326,8 +396,8 @@ Use superpowers:finishing-a-development-branch.
+ You: I'm using the executing-plans skill to implement this plan inline.
+ 
+ [Setup: worktree verified]
+-[Read plan once: docs/superpowers/plans/feature-plan.md; spec read]
+-[Resolve workspace: sdd-workspace docs/superpowers/plans/feature-plan.md — no ledger inside, fresh start]
++[Read plan once: docs/plans/feature-plan.md; spec read]
++[Resolve workspace: sdd-workspace docs/plans/feature-plan.md — no ledger inside, fresh start]
+ [Pre-flight scan: 2 shared-interface rows, 4 self-consistency rows, clean; written to ledger]
+ [Create todos for all tasks]
+ 
+@@ -367,6 +437,7 @@ Deferred minors:
+ - README lacks a usage example
+ - recovery.js could split verify/repair into two files
+ 
++[Polish: 3 review rounds (round 2 clean), idiomatic pass, /cleanup, comment strip + humanize — 4 commits]
+ [Delete this plan's workspace — the record now lives in git]
+ 
+ Using superpowers:finishing-a-development-branch.
 diff --git orig/skills/requesting-code-review/SKILL.md mod/skills/requesting-code-review/SKILL.md
-index fa4f2f9..a56058a 100644
+index 6d995da..100a7f6 100644
 --- orig/skills/requesting-code-review/SKILL.md
 +++ mod/skills/requesting-code-review/SKILL.md
 @@ -57,7 +57,7 @@ HEAD_SHA=$(git rev-parse HEAD)
@@ -425,7 +485,7 @@ index fa4f2f9..a56058a 100644
    HEAD_SHA: 3df7661
  
 diff --git orig/skills/subagent-driven-development/SKILL.md mod/skills/subagent-driven-development/SKILL.md
-index aac35b9..7408da7 100644
+index f7bbf6a..7251255 100644
 --- orig/skills/subagent-driven-development/SKILL.md
 +++ mod/skills/subagent-driven-development/SKILL.md
 @@ -218,6 +218,68 @@ that implementer. Single-file mechanical fixes also take the cheapest tier.
@@ -560,9 +620,9 @@ index aac35b9..7408da7 100644
  
  [Setup: worktree verified]
 -[Read plan file once: docs/superpowers/plans/feature-plan.md]
--[Resolve workspace: scripts/sdd-workspace docs/superpowers/plans/feature-plan.md — no ledger inside, fresh start]
+-[Resolve workspace: bash scripts/sdd-workspace docs/superpowers/plans/feature-plan.md — no ledger inside, fresh start]
 +[Read plan file once: docs/plans/feature-plan.md]
-+[Resolve workspace: scripts/sdd-workspace docs/plans/feature-plan.md — no ledger inside, fresh start]
++[Resolve workspace: bash scripts/sdd-workspace docs/plans/feature-plan.md — no ledger inside, fresh start]
  [Create todos for all tasks]
  
  Task 1: Hook installation script
@@ -644,7 +704,7 @@ index 5c8ecd6..81cf422 100644
  
      Review your work with fresh eyes. Ask yourself:
 diff --git orig/skills/writing-plans/SKILL.md mod/skills/writing-plans/SKILL.md
-index f74605b..fb86a8a 100644
+index 78c7126..98b2fe0 100644
 --- orig/skills/writing-plans/SKILL.md
 +++ mod/skills/writing-plans/SKILL.md
 @@ -7,7 +7,7 @@ description: Use when you have a spec or requirements for a multi-step task, bef
@@ -718,7 +778,7 @@ index f74605b..fb86a8a 100644
  ## Global Constraints
  
  [The spec's project-wide requirements — version floors, dependency limits,
-@@ -120,14 +148,25 @@ def function(input):
+@@ -132,14 +160,25 @@ def function(input):
  Run: `pytest tests/path/test.py::test_name -v`
  Expected: PASS
  
@@ -750,7 +810,7 @@ index f74605b..fb86a8a 100644
  ## No Placeholders
  
  Every step must contain the actual content an engineer needs. These are **plan failures** — never write them:
-@@ -150,22 +189,70 @@ After writing the complete plan, look at the spec with fresh eyes and check the
+@@ -164,29 +203,70 @@ After writing the complete plan, look at the spec with fresh eyes and check the
  
  If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
  
@@ -806,30 +866,37 @@ index f74605b..fb86a8a 100644
 +
  ## Execution Handoff
  
--After saving the plan, offer execution choice:
-+The plan's `## Execution Strategy` section is authoritative. Do NOT re-ask the user. After saving the plan, announce:
+-After saving and self-reviewing the plan, link it for your human partner
+-to read. If they have already explicitly supplied an execution method, ask
+-them to review the plan and confirm it captures what they want; wait for that
+-review before implementation, then use the preserved method. Otherwise, ask
+-them to review the plan and choose an execution method before implementation.
++After saving and self-reviewing the plan, link it for your human partner to read. The plan's `## Execution Strategy` section is authoritative for *how* the work runs — do NOT re-ask the user to pick an execution method. Announce:
  
--**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Two execution options:**
+-**When no execution method has already been supplied:**
 +> "Plan complete and saved to `docs/plans/<filename>.md`. Strategy: **<strategy>**. <N> tasks parallelisable in <K> batches, <M> sequential. Proceeding with <sub-skill>."
  
--**1. Subagent-Driven (recommended)** - I dispatch a fresh subagent per task, review between tasks, fast iteration
+-**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Please review the plan. Which execution approach would you prefer?**
 +Then transition directly based on the strategy. **If the strategy is missing or unrecognised, default to Subagents.** Only an explicit user request in the current conversation overrides this default.
  
--**2. Inline Execution** - Execute tasks in this session using executing-plans, batch execution with checkpoints
+-- **Subagent-driven** - A fresh subagent implements each task and a fresh reviewer checks it before the next one starts, then a whole-branch review at the end. Most thorough; costs a fresh context per task and per review.
+-- **Native** - I implement every task myself in this session, the way this harness runs work, then one fresh reviewer on the most capable model checks the whole branch. Cheapest and fastest; no independent review until the end. Runs well with a mid-tier session model, since the plan carries the design.
 -
--**Which approach?"**
+-**For this plan I recommend <one of the two>, because <one sentence from the plan: how much the tasks depend on each other's interfaces, how many there are, what a shipped mistake would cost>. Does the plan capture what you want, and which approach should we use?"**
 -
--**If Subagent-Driven chosen:**
+-**When an execution method has already been supplied:**
+-
+-**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Please review the plan. Does it capture what you want?"**
+-
+-**If Subagent-driven chosen:**
 +**Subagents (default):**
  - **REQUIRED SUB-SKILL:** Use superpowers:subagent-driven-development
--- Fresh subagent per task + two-stage review
 +- Read `## Task Dependency Graph` to compute batches: tasks in a batch dispatch in parallel; later batches wait for the prior batch's reviews to pass.
 +- Each task gets a fresh subagent + two-stage review (spec compliance, then code quality).
 +- Use the agent types listed in `## Agent Assignments`.
  
--**If Inline Execution chosen:**
+-**If Native chosen:**
 -- **REQUIRED SUB-SKILL:** Use superpowers:executing-plans
--- Batch execution with checkpoints for review
 +**Agent teams:**
 +- Spawn via `/team-feature`
 +- The team-lead reads `## Task Dependency Graph` for batching and `## Agent Assignments` for implementer roles, and enforces the two-stage review gates documented in brainstorming's Implementation section.

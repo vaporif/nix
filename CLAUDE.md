@@ -34,7 +34,7 @@ flake.nix                    # Entry point (inputs + module composition)
 ├── modules/                 # Shared: options.nix, nix.nix, theme.nix
 ├── system/{darwin,nixos}/   # Platform system configs
 ├── home/{common,darwin,linux}/ # Home Manager configs
-├── claude/                  # Everything Claude: home/, security/, overrides/, package.nix, update.sh, statusline.sh, direnv-rules.sh
+├── claude/                  # Everything Claude: home/, security/, overrides/, package.nix, update.sh, statusline.sh, direnv-rules.sh, direnv-agents.sh
 ├── config/                  # Dotfiles: nvim/, wezterm/, yazi/, karabiner/
 ├── llm/                     # Shared assistant content (rules/skills/agents/commands consumed by claude + codex)
 ├── scripts/                 # Helper scripts (setup, git-meta, git-bare-clone, keymaps, update-codex)
@@ -58,6 +58,8 @@ flake.nix                    # Entry point (inputs + module composition)
 - **Git worktree tools**: `git bclone` (bare clone → `.bare/` + sibling worktrees) and `git meta` (syncs shared `.meta/` config into each worktree: `.envrc`/`external` are symlinked, `docs/specs`+`docs/plans` are real per-worktree dirs copied up into `.meta` with no overwrite) installed via `home/packages.nix`.
 - **Sandbox wrappers on PATH**: `config.custom.sandboxedPackages.{claude,codex}` (set per platform in `home/{darwin,linux}/sandboxed.nix`) install binaries named `claude-sandboxed` / `codex-sandboxed` via `home/common/packages.nix`. The `a`/`ar` shell functions and the `o`/`or`/`ox` aliases invoke those names, never `lib.getExe` — a store path baked into zshrc makes a long-lived shell keep launching the version that was current when it started. Plain `claude`/`codex` on PATH remain the unsandboxed CLIs.
 - **Claude rules (direnv)**: Language rules stored in `~/.config/claude-rules/` (nix-managed). Use `use claude_rules` in `.envrc` to symlink relevant rules into project-local `.claude/rules/`. Auto-detects languages when called without args. Explicit: `use claude_rules go nix`. See `claude/direnv-rules.sh`.
+- **Claude agents (direnv)**: Agents from `llm/shared/agents/` are stored in `~/.config/claude-agents/`, deliberately *not* `~/.claude/agents/` — a globally installed agent spends prompt tokens in every session, including projects it can never apply to. `programs.direnv.stdlib` calls `use_claude_agents` from `~/.config/direnv/direnvrc`, so every direnv project links its relevant agents into project-local `.claude/agents/` with no `.envrc` line. Detection is by project shape (Cargo.toml → `rust-engineer`, a `bevy` dep → `bevy-engineer`, `Anchor.toml`/`anchor-lang` → `solana-developer`, Unity layout or any `.asmdef` → `unity-csharp-engineer`); probes are depth-bounded because this runs on entry to every project. A project that matches nothing links nothing and leaves no directory behind. Override explicitly with `use claude_agents rust-engineer` in `.envrc`. See `claude/direnv-agents.sh`. Codex is unaffected; it still installs all agents to `~/.codex/agents/`.
+- **MCP tool-surface budget**: Every MCP tool name is spent in each session's prompt, so servers are narrowed at the wrapper. `github` runs with `--toolsets`/`--exclude-tools` (44 default tools → 31, see `home/common/mcp.nix`); `gitlab` is gated behind `custom.gitlab.enable` (work host only) and runs read-only.
 
 ## Secrets Management
 

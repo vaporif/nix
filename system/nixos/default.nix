@@ -27,7 +27,7 @@ in {
 
   time.timeZone = cfg.timezone;
 
-  services.journald.storage = "persistent";
+  services.journald.settings.Journal.Storage = "persistent";
 
   console.keyMap = "colemak";
 

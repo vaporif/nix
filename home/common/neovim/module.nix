@@ -30,9 +30,6 @@ inputs: {
     cargoLock.lockFile = "${inputs.difftastic-nvim}/Cargo.lock";
   };
 
-  # The plugin normally shells out to `go build` on first use and drops the
-  # binary in stdpath("data"). Building it here keeps the runtime read-only and
-  # makes `server.binary_provided` skip the plugin's own build/version dance.
   gitlab-nvim-server = pkgs.buildGoModule {
     pname = "gitlab-nvim-server";
     version = "4.1.2";
@@ -97,9 +94,6 @@ in {
       description = "rust-analyzer settings passed to rustaceanvim";
     };
 
-    # gitlab.nvim ships a Go server, so it is opt-in per host rather than part
-    # of the baked standalone package: building it everywhere buys nothing on a
-    # host that never opens a GitLab merge request.
     gitlab = {
       enable = lib.mkEnableOption "gitlab.nvim, in-editor merge-request review (discussion tree, line comments, approvals)";
       tokenPath = lib.mkOption {
@@ -124,8 +118,6 @@ in {
         inherit (config.gitlab) enable;
         token_path = config.gitlab.tokenPath;
         url_path = config.gitlab.urlPath;
-        # Only referenced when enabled, so a host without GitLab never pulls
-        # the Go server into its closure.
         binary =
           if config.gitlab.enable
           then "${gitlab-nvim-server}/bin/gitlab.nvim"

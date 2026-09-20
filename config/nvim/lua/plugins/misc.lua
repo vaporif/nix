@@ -55,8 +55,6 @@ require('lze').load {
   {
     'diffview.nvim',
     cmd = { 'DiffviewOpen', 'DiffviewFileHistory', 'DiffviewClose' },
-    -- gitlab.nvim pulls in diffview.async at require time, before any Diffview
-    -- command has run.
     on_require = 'diffview',
   },
   {

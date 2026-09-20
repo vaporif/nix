@@ -1,8 +1,3 @@
--- Merge/pull request review under <leader>cv.
---
--- Two halves: the local ones work in any git repo on any forge, the gitlab.nvim
--- ones only exist on a host that set wrappers.neovim.gitlab.enable (work VM).
-
 local settings = (_G.nixInfo and _G.nixInfo.settings or {}).gitlab or {}
 
 local function git(args)
@@ -12,9 +7,6 @@ local function git(args)
   end
   return vim.trim(res.stdout)
 end
-
---- The branch an MR would merge into: origin/HEAD when the remote publishes it,
---- otherwise the first of the usual suspects that actually exists.
 local function base_ref()
   local head = git { 'symbolic-ref', '--quiet', 'refs/remotes/origin/HEAD' }
   if head then
@@ -27,9 +19,6 @@ local function base_ref()
   end
   return nil
 end
-
---- Refresh the base branch before diffing against it. A stale origin/main moves
---- the merge-base, which silently puts other people's commits in your review.
 local function with_base(fn)
   local base = base_ref()
   if not base then
@@ -102,9 +91,6 @@ end
 local function map(lhs, rhs, desc, mode)
   vim.keymap.set(mode or 'n', lhs, rhs, { desc = desc })
 end
-
--- Three dots, always: `base..HEAD` also drags in whatever landed on the base
--- branch since you forked, which is not what the MR changes.
 map('<leader>cvb', function()
   with_base(function(base)
     vim.cmd('DiffviewOpen ' .. base .. '...HEAD --imply-local')
@@ -138,9 +124,6 @@ end, 'open MR in [w]eb')
 if not settings.enable then
   return
 end
-
---- gitlab.nvim reads the token from a `.gitlab.nvim` file or $GITLAB_TOKEN;
---- neither exists here, so feed it the sops secrets directly.
 local function auth_provider()
   local function slurp(path)
     if path == nil or path == '' then
@@ -157,7 +140,6 @@ local function auth_provider()
 
   local token = slurp(settings.token_path) or vim.env.GITLAB_TOKEN
   if not token then
-    -- state.set_plugin_configuration() swallows a returned error, so say it here.
     vim.notify('No GitLab token: ' .. tostring(settings.token_path) .. ' is unreadable and $GITLAB_TOKEN is unset', vim.log.levels.ERROR)
     return nil, nil, 'missing token'
   end
@@ -191,10 +173,7 @@ require('lze').load {
     after = function()
       require('gitlab').setup {
         auth_provider = auth_provider,
-        -- Prebuilt by nix; without this the plugin runs `go build` on first use.
         server = { binary = settings.binary },
-        -- The global defaults squat on `glr`/`glm`/… — everything lives under
-        -- <leader>cv here. The buffer-local maps inside its own trees stay.
         keymaps = { global = { disable_all = true } },
       }
     end,

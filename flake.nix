@@ -105,6 +105,12 @@
       url = "github:syz51/go-mod.nvim";
       flake = false;
     };
+    # Pinned to a tag: the Lua and the Go server are versioned together, so an
+    # unpinned bump would need a matching vendorHash in neovim/module.nix.
+    gitlab-nvim = {
+      url = "github:harrisoncramer/gitlab.nvim/v4.1.2";
+      flake = false;
+    };
 
     yamb-yazi = {
       url = "github:h-hg/yamb.yazi";

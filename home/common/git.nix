@@ -7,6 +7,19 @@
   cfg = config.custom;
   homeDir = config.home.homeDirectory;
   hasSigningKey = cfg.git.signingKey != "";
+  glabAliases = pkgs.writeText "glab-aliases.yml" ''
+    # glab ships these two
+    ci: pipeline ci
+    co: mr checkout
+    ml: mr list
+    mv: mr view --web
+    md: mr diff
+    mm: mr merge
+    ma: mr approve
+    mn: mr note
+    # Open MRs waiting on my review
+    ms: mr list --reviewer=@me
+  '';
 in {
   programs = {
     gh = {
@@ -89,6 +102,19 @@ in {
       maintenance.enable = true;
     };
   };
+
+  # glab keeps aliases in a file of their own, so they can be managed here
+  # without fighting config.yml, which glab rewrites on login and on every
+  # update check. It has to be a real 0600 copy rather than an xdg.configFile
+  # symlink: glab refuses to read any config file it does not own outright
+  # ("has the permissions 444, but glab requires 600") and then fails every
+  # command, not just the aliases.
+  #
+  # Mirrors the gh aliases above, with m for merge request where gh uses p for
+  # pull request. A `glab alias set` survives until the next switch.
+  home.activation.glabAliases = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    $DRY_RUN_CMD install -Dm600 ${glabAliases} "$HOME/.config/glab-cli/aliases.yml"
+  '';
 
   home.file = lib.mkIf hasSigningKey {
     ".ssh/signing_key.pub".text = cfg.git.signingKey + "\n";

@@ -30,6 +30,20 @@ inputs: {
     cargoLock.lockFile = "${inputs.difftastic-nvim}/Cargo.lock";
   };
 
+  # The plugin normally shells out to `go build` on first use and drops the
+  # binary in stdpath("data"). Building it here keeps the runtime read-only and
+  # makes `server.binary_provided` skip the plugin's own build/version dance.
+  gitlab-nvim-server = pkgs.buildGoModule {
+    pname = "gitlab-nvim-server";
+    version = "4.1.2";
+    src = inputs.gitlab-nvim;
+    vendorHash = "sha256-OLAKTdzqynBDHqWV5RzIpfc3xZDm6uYyLD4rxbh0DMg=";
+    subPackages = ["cmd"];
+    postInstall = "mv $out/bin/cmd $out/bin/gitlab.nvim";
+  };
+
+  gitlab-nvim-plugin = mkPluginNoCheck "gitlab.nvim" inputs.gitlab-nvim;
+
   difftastic-nvim-plugin = (mkPluginNoCheck "difftastic.nvim" inputs.difftastic-nvim).overrideAttrs (old: {
     postInstall =
       (old.postInstall or "")
@@ -82,6 +96,23 @@ in {
       };
       description = "rust-analyzer settings passed to rustaceanvim";
     };
+
+    # gitlab.nvim ships a Go server, so it is opt-in per host rather than part
+    # of the baked standalone package: building it everywhere buys nothing on a
+    # host that never opens a GitLab merge request.
+    gitlab = {
+      enable = lib.mkEnableOption "gitlab.nvim, in-editor merge-request review (discussion tree, line comments, approvals)";
+      tokenPath = lib.mkOption {
+        type = lib.types.str;
+        default = "";
+        description = "Path to a file holding the GitLab personal access token. Empty falls back to GITLAB_TOKEN or a project .gitlab.nvim file.";
+      };
+      urlPath = lib.mkOption {
+        type = lib.types.str;
+        default = "";
+        description = "Path to a file holding the GitLab instance URL. Empty falls back to GITLAB_URL, then gitlab.com.";
+      };
+    };
   };
 
   config = {
@@ -89,6 +120,17 @@ in {
       config_directory = ../../../config/nvim;
       info_plugin_name = "nix-info";
       inherit (config) rustAnalyzerCmd rustAnalyzerSettings;
+      gitlab = {
+        inherit (config.gitlab) enable;
+        token_path = config.gitlab.tokenPath;
+        url_path = config.gitlab.urlPath;
+        # Only referenced when enabled, so a host without GitLab never pulls
+        # the Go server into its closure.
+        binary =
+          if config.gitlab.enable
+          then "${gitlab-nvim-server}/bin/gitlab.nvim"
+          else "";
+      };
     };
 
     info.configPath = config.nixConfigPath;
@@ -155,12 +197,18 @@ in {
         ];
       };
 
+      # nvim-lspconfig is data, not behaviour: its lsp/*.lua files are what give
+      # every vim.lsp.config its filetypes and root_markers. core/lsp.lua runs
+      # vim.lsp.enable at startup, so the files have to be on the runtimepath by
+      # then — lazy-loading them let servers attach to any buffer at all.
+      lspconfig = {
+        lazy = false;
+        data = pkgs.vimPlugins.nvim-lspconfig;
+      };
+
       lsp = {
         lazy = true;
-        data = with pkgs.vimPlugins; [
-          nvim-lspconfig
-          conform-nvim
-        ];
+        data = pkgs.vimPlugins.conform-nvim;
       };
 
       navigation = {
@@ -183,7 +231,8 @@ in {
             gitsigns-nvim
             diffview-nvim
           ])
-          ++ [difftastic-nvim-plugin];
+          ++ [difftastic-nvim-plugin]
+          ++ lib.optional config.gitlab.enable gitlab-nvim-plugin;
       };
 
       ui = {

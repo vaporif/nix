@@ -114,6 +114,9 @@ in {
         # hook needs this: it runs in the VM over ssh, where the tmux CLI is
         # unreachable, so the state glyph can only arrive as an escape.
         set -g allow-rename on
+        # Size windows to the clients viewing them, not the smallest client
+        # attached; otherwise a second client makes full-screen TUIs tear.
+        setw -g aggressive-resize on
         setw -g monitor-activity on
         setw -g mode-keys vi
         bind -T copy-mode-vi v send -X begin-selection

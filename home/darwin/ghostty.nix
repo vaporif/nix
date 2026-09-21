@@ -2,9 +2,17 @@
   config,
   inputs,
   lib,
+  pkgs,
   ...
 }: let
-  tmuxAttach = "${lib.getExe config.programs.tmux.package} new-session -A -s main";
+  tmux = lib.getExe config.programs.tmux.package;
+  # Every tab runs this, so it joins main's session *group* rather than
+  # attaching to `main`: clients of one session share its current window and
+  # its size. destroy-unattached reaps the per-tab session on close.
+  tmuxAttach = pkgs.writeShellScript "ghostty-tmux" ''
+    ${tmux} new-session -d -s main 2>/dev/null || true
+    exec ${tmux} new-session -t main \; set-option destroy-unattached on
+  '';
   tmuxWindowKeys = lib.concatLists (lib.imap1 (n: name: [
     "super+physical:${name}=text:\\x1b${toString n}"
     "super+${toString n}=text:\\x1b${toString n}"
@@ -16,7 +24,7 @@ in {
     enableZshIntegration = true;
 
     settings = {
-      command = tmuxAttach;
+      command = "${tmuxAttach}";
       custom-shader = "${inputs.ghostty-cursor-shaders}/cursor_warp.glsl";
       font-family = lib.mkForce [config.stylix.fonts.monospace.name];
       font-size = lib.mkForce config.stylix.fonts.sizes.terminal;

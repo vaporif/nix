@@ -226,10 +226,13 @@
         + lib.optionalString config.custom.tmux.autoAttach ''
 
           # Persistent session: on an interactive SSH login, replace the shell
-          # with a tmux session (attach if it exists, else create). Keeps the
-          # shell and running programs alive across disconnects and terminal close.
+          # with a tmux session. Keeps the shell and running programs alive
+          # across disconnects and terminal close. Each login joins `main`'s
+          # session *group* rather than attaching to `main`, so a second login
+          # gets its own current window instead of dragging the first around.
           if [[ -n "''${SSH_TTY:-}" && -z "''${TMUX:-}" ]] && command -v tmux >/dev/null; then
-            exec tmux new-session -A -s main
+            tmux new-session -d -s main 2>/dev/null || true
+            exec tmux new-session -t main \; set-option destroy-unattached on
           fi
         '';
     };

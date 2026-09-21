@@ -133,9 +133,13 @@
     flake-utils.url = "github:numtide/flake-utils";
     mac-app-util = {
       url = "github:hraban/mac-app-util";
-      # Don't override nixpkgs — upstream pins an older revision deliberately,
-      # because their lisp deps (named-readtables, cl-interpol) regressed on
-      # SBCL 2.6.x. See hraban/mac-app-util#42, NixOS/nixpkgs#491773.
+      # Must follow our nixpkgs: upstream's pin builds against SBCL 2.6.4, whose
+      # static space fails to map at its fixed address on macOS 27, so every
+      # invocation dies with "failed to allocate 1048576 bytes at 0x300100000"
+      # and breaks activation. 2.6.7+ maps fine, and the lisp-dep regression
+      # that motivated upstream's pin (hraban/mac-app-util#42,
+      # NixOS/nixpkgs#491773) no longer reproduces there.
+      inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-utils.follows = "flake-utils";
     };
   };

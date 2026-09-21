@@ -95,8 +95,13 @@
 
   # Desktop-only programs
   desktopOnlyPrograms = {
+    # mcp-servers-nix pins the upstream monorepo at 2026.7.10, whose npm build
+    # fails against this flake's nixpkgs (tsc cannot find @types/node, so
+    # `process` is undefined). nixpkgs ships a newer, cached 2026.8.18 that
+    # builds; use it until mcp-servers-nix bumps its pin.
     filesystem = {
       enable = true;
+      package = pkgs.mcp-server-filesystem;
       args = [
         "${homeDir}/Documents"
         cfg.configPath
@@ -107,7 +112,10 @@
         "${homeDir}/.local/share"
       ];
     };
-    sequential-thinking.enable = true;
+    sequential-thinking = {
+      enable = true;
+      package = pkgs.mcp-server-sequential-thinking;
+    };
     time = {
       enable = true;
       args = ["--local-timezone" cfg.timezone];

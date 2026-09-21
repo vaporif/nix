@@ -20,5 +20,10 @@ in {
     inherit (cfg) lspPackages;
     rustAnalyzerCmd = [cfg.lspmux.servers.rust-analyzer.command] ++ cfg.lspmux.servers.rust-analyzer.args;
     rustAnalyzerSettings = cfg.lspmux.rustAnalyzerSettings;
+    gitlab = {
+      inherit (cfg.gitlab) enable;
+      tokenPath = lib.optionalString (cfg.secrets.gitlab-token != null) cfg.secrets.gitlab-token;
+      urlPath = lib.optionalString (cfg.secrets.gitlab-api-url != null) cfg.secrets.gitlab-api-url;
+    };
   };
 }

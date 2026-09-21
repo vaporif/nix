@@ -523,6 +523,23 @@
         "type": "github"
       }
     },
+    "gitlab-nvim": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1789391770,
+        "narHash": "sha256-Auw7UBhS89R1v98mc8AGaphe/39AMknnjLMRNyQUmP4=",
+        "owner": "harrisoncramer",
+        "repo": "gitlab.nvim",
+        "rev": "519023eb56dcf3625e2d795b4fc06cc377859bd8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "harrisoncramer",
+        "ref": "v4.1.2",
+        "repo": "gitlab.nvim",
+        "type": "github"
+      }
+    },
     "gnome-shell": {
       "flake": false,
       "locked": {
@@ -941,6 +958,7 @@
         "ferrex": "ferrex",
         "flake-utils": "flake-utils",
         "ghostty-cursor-shaders": "ghostty-cursor-shaders",
+        "gitlab-nvim": "gitlab-nvim",
         "go-mod-nvim": "go-mod-nvim",
         "home-manager": "home-manager",
         "humanizer": "humanizer",

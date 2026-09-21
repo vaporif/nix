@@ -46,6 +46,7 @@ require('lze').load {
           { '<leader>b', group = '[b]uffer' },
           { '<leader>t', group = '[t]est' },
           { '<leader>h', group = '[h]unk', mode = { 'n', 'v' } },
+          { '<leader>cv', group = 're[v]iew', mode = { 'n', 'v' } },
         },
       }
     end,

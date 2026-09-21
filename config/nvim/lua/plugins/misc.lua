@@ -1,5 +1,4 @@
 require('lze').load {
-  { 'nvim-lspconfig', event = 'BufReadPre' },
   {
     'guess-indent.nvim',
     event = 'BufReadPre',
@@ -56,6 +55,7 @@ require('lze').load {
   {
     'diffview.nvim',
     cmd = { 'DiffviewOpen', 'DiffviewFileHistory', 'DiffviewClose' },
+    on_require = 'diffview',
   },
   {
     'crates.nvim',

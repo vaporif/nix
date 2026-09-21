@@ -105,6 +105,10 @@
       url = "github:syz51/go-mod.nvim";
       flake = false;
     };
+    gitlab-nvim = {
+      url = "github:harrisoncramer/gitlab.nvim/v4.1.2";
+      flake = false;
+    };
 
     yamb-yazi = {
       url = "github:h-hg/yamb.yazi";

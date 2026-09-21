@@ -7,6 +7,17 @@
   cfg = config.custom;
   homeDir = config.home.homeDirectory;
   hasSigningKey = cfg.git.signingKey != "";
+  glabAliases = pkgs.writeText "glab-aliases.yml" ''
+    ci: pipeline ci
+    co: mr checkout
+    ml: mr list
+    mv: mr view --web
+    md: mr diff
+    mm: mr merge
+    ma: mr approve
+    mn: mr note
+    ms: mr list --reviewer=@me
+  '';
 in {
   programs = {
     gh = {
@@ -89,6 +100,10 @@ in {
       maintenance.enable = true;
     };
   };
+
+  home.activation.glabAliases = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    $DRY_RUN_CMD install -Dm600 ${glabAliases} "$HOME/.config/glab-cli/aliases.yml"
+  '';
 
   home.file = lib.mkIf hasSigningKey {
     ".ssh/signing_key.pub".text = cfg.git.signingKey + "\n";

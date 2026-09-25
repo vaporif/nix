@@ -704,19 +704,17 @@ index 5c8ecd6..81cf422 100644
  
      Review your work with fresh eyes. Ask yourself:
 diff --git orig/skills/writing-plans/SKILL.md mod/skills/writing-plans/SKILL.md
-index 78c7126..98b2fe0 100644
+index 4cf0275..4baab03 100644
 --- orig/skills/writing-plans/SKILL.md
 +++ mod/skills/writing-plans/SKILL.md
-@@ -7,7 +7,7 @@ description: Use when you have a spec or requirements for a multi-step task, bef
+@@ -7,13 +7,13 @@ description: Use when you have a spec or requirements for a multi-step task, bef
  
  ## Overview
  
--Write comprehensive implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
-+Write comprehensive implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. KISS. Frequent commits.
+-Write implementation plans for an engineer who has not seen this codebase or this spec. Assume they write idiomatic code in the project's language once they know the exact interface and the exact test, and that they will make a reasonable choice wherever the plan leaves one open. What they cannot know is what you decided: which files, which names and signatures, which values from the spec, which tests prove each task. Document those. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
++Write implementation plans for an engineer who has not seen this codebase or this spec. Assume they write idiomatic code in the project's language once they know the exact interface and the exact test, and that they will make a reasonable choice wherever the plan leaves one open. What they cannot know is what you decided: which files, which names and signatures, which values from the spec, which tests prove each task. Document those. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. KISS. Frequent commits.
  
- Assume they are a skilled developer, but know almost nothing about our toolset or problem domain. Assume they don't know good test design very well.
- 
-@@ -15,7 +15,7 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
+ **Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
  
  **Context:** If working in an isolated worktree, it should have been created via the `superpowers:using-git-worktrees` skill at execution time.
  
@@ -725,7 +723,7 @@ index 78c7126..98b2fe0 100644
  - (User preferences for plan location override this default)
  
  ## Scope Check
-@@ -49,7 +49,6 @@ independently testable deliverable.
+@@ -47,7 +47,6 @@ independently testable deliverable.
  - "Run it to make sure it fails" - step
  - "Implement the minimal code to make the test pass" - step
  - "Run the tests and make sure they pass" - step
@@ -733,7 +731,7 @@ index 78c7126..98b2fe0 100644
  
  ## Plan Document Header
  
-@@ -58,7 +57,7 @@ independently testable deliverable.
+@@ -56,7 +55,7 @@ independently testable deliverable.
  ```markdown
  # [Feature Name] Implementation Plan
  
@@ -742,7 +740,7 @@ index 78c7126..98b2fe0 100644
  
  **Goal:** [One sentence describing what this builds]
  
-@@ -69,6 +68,35 @@ independently testable deliverable.
+@@ -67,6 +66,35 @@ independently testable deliverable.
  **Spec:** [path to the spec/design doc this plan implements — the plan
  argues from the spec, so the spec travels with it; executors read both]
  
@@ -778,7 +776,7 @@ index 78c7126..98b2fe0 100644
  ## Global Constraints
  
  [The spec's project-wide requirements — version floors, dependency limits,
-@@ -132,14 +160,25 @@ def function(input):
+@@ -129,14 +157,25 @@ algorithm they do not determine.
  Run: `pytest tests/path/test.py::test_name -v`
  Expected: PASS
  
@@ -807,10 +805,10 @@ index 78c7126..98b2fe0 100644
 +- On load, scan for `- [x]` and skip those steps.
 +- On step verify, immediately edit the plan file to flip `- [ ]` → `- [x]` for that exact line. Commit periodically — the file is the cross-session resume point.
 +
- ## No Placeholders
+ ## What a Step Contains
  
- Every step must contain the actual content an engineer needs. These are **plan failures** — never write them:
-@@ -164,29 +203,70 @@ After writing the complete plan, look at the spec with fresh eyes and check the
+ A step is done when the implementer can write exactly one reasonable thing
+@@ -176,29 +215,70 @@ After writing the complete plan, look at the spec with fresh eyes and check the
  
  If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
  

@@ -10,9 +10,5 @@
   # theming has no effect without a desktop anyway.
   dconf.enable = false;
 
-  # Rofi is unused here, and stylix's target still writes the renamed
-  # `programs.rofi.font`.
-  stylix.targets.rofi.enable = false;
-
   # Qdrant runs on macOS host, NixOS connects over UTM network
 }

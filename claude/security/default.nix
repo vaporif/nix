@@ -276,7 +276,7 @@ in {
 
       deniedBashCommands = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = ["git push" "git push *"];
+        default = ["git push"];
         description = "Bash commands to deny. Each generates a Bash(<cmd>:*) deny rule.";
       };
 

@@ -63,6 +63,10 @@ in {
   # own the tmux layout via extraConfig; still uses stylix's palette via `c`
   stylix.targets.tmux.enable = false;
 
+  # Rofi is unused, and stylix's target still writes the renamed
+  # `programs.rofi.font`.
+  stylix.targets.rofi.enable = false;
+
   programs = {
     home-manager.enable = true;
 

@@ -62,6 +62,15 @@
 in {
   config = lib.mkIf cfg.claude.enable {
     home.file = {
+      ".claude/keybindings.json".text = builtins.toJSON {
+        "$schema" = "https://www.schemastore.org/claude-code-keybindings.json";
+        "$docs" = "https://code.claude.com/docs/en/keybindings";
+        bindings = map (context: {
+          inherit context;
+          bindings."ctrl+q" = "scroll:bottom";
+        }) ["Scroll" "Transcript"];
+      };
+
       ".claude/settings.json".text = builtins.toJSON {
         "$schema" = "https://json.schemastore.org/claude-code-settings.json";
         theme = "light";

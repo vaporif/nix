@@ -15,8 +15,26 @@ cwd=$(jq -r '.cwd // ""' <<<"$input" 2>/dev/null)
 
 case "$event" in
   UserPromptSubmit | PreToolUse | PostToolUse | SubagentStop) glyph="⠿" ;;
-  Notification) glyph="?" ;;
-  Stop) glyph="✓" ;;
+  Notification)
+    # Only prompts that need an answer count as waiting. idle_prompt is the
+    # "still there?" reminder, which also fires while agents run in the
+    # background; the rest are informational.
+    case "$(jq -r '.notification_type // ""' <<<"$input" 2>/dev/null)" in
+      idle_prompt | auth_success | agent_completed | elicitation_complete | elicitation_response) exit 0 ;;
+    esac
+    glyph="?"
+    ;;
+  Stop)
+    # Stop also fires when the turn ends with agents still in flight; Claude
+    # resumes once they report back, so that is still working. Shell and
+    # monitor tasks don't count: a dev server would spin forever.
+    if jq -e '[.background_tasks[]? | select(.type | IN("subagent", "workflow", "teammate", "cloud session"))] | length > 0' \
+      <<<"$input" >/dev/null 2>&1; then
+      glyph="⠿"
+    else
+      glyph="✓"
+    fi
+    ;;
   SessionStart) glyph="·" ;;
   # Empty title = hand the window back (see the reset note below).
   SessionEnd) title="" ;;

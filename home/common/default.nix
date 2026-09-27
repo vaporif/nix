@@ -82,6 +82,9 @@ in {
       ENABLE_LSP_TOOL = "1";
       DFT_GRAPH_LIMIT = "500000";
       DFT_BYTE_LIMIT = "1000000";
+      # Silence Boehm GC's "repeated allocation of very large block" noise
+      # during nix evaluation; it is a heuristic, not a leak.
+      GC_LARGE_ALLOC_WARN_INTERVAL = "1000";
     };
     file = {
       ".envrc".text = ''

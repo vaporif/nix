@@ -84,8 +84,14 @@ terminal=$(resolve_terminal) || exit 0
 #
 # An empty title is the reset: a rename pins automatic-rename off for that
 # window, and only an empty rename string clears the override again.
+#
+# A waiting session also rings the bell: tmux flags the window with its bell
+# style until you visit it, and passes the bell on to ghostty.
 {
   printf '\033]2;%s\007' "$title"
   # shellcheck disable=SC1003  # the \\ is printf's escape for the ST byte
   printf '\033k%s\033\\' "$title"
+  if [ "$event" = Notification ]; then
+    printf '\a'
+  fi
 } >"$terminal" 2>/dev/null || true

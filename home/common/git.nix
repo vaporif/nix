@@ -59,13 +59,19 @@ in {
           pager = "delta";
         };
         alias = {
-          co = "checkout";
-          cob = "checkout -b";
+          c = "checkout";
+          p = "push";
+          pl = "pull";
+          d = "diff";
+          ds = "diff --staged";
+          undo = "reset --soft HEAD~1";
+          upd = "!git add -A && git commit -m upd";
           discard = "reset HEAD --hard";
           fp = "fetch --all --prune";
           bclone = "!git-bare-clone";
           wb = "!git-worktree-new";
           wr = "!git-worktree-remove";
+          wl = "worktree list";
         };
         pull.ff = "only";
         push.autoSetupRemote = true;

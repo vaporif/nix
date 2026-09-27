@@ -7,6 +7,36 @@
 }: let
   cfg = config.custom;
   c = config.lib.stylix.colors.withHashtag;
+
+  # Claude session state in the tmux status bar. claude/tab-state.sh can only
+  # reach tmux in-band, so the state arrives as a glyph prefixed to the window
+  # name (⠿ working, ? waiting, ✓ done, · started); these formats match it,
+  # color it, and animate the working one.
+  #
+  # tmux has no clock in formats, but status formats pass through strftime
+  # first: %S becomes the second and %% a literal %, so the tick below is
+  # "second mod frame count" by the time the format engine sees it.
+  spinFrames = ["⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏"];
+  spinTick = "#{e|%%:%S,${toString (builtins.length spinFrames)}}";
+  spinner =
+    lib.foldr
+    (i: rest: "#{?#{==:${spinTick},${toString i}},${builtins.elemAt spinFrames i},${rest}}")
+    (lib.last spinFrames)
+    (lib.range 0 (builtins.length spinFrames - 2));
+  isState = glyph: "#{m:${glyph} *,#{window_name}}";
+  claudeGlyph = lib.concatStrings [
+    "#{?${isState "⠿"},#[fg=${c.base0B}]${spinner} ,"
+    "#{?${isState "[?]"},#[fg=${c.base08}#,bold]? ,"
+    "#{?${isState "✓"},#[fg=${c.base0C}]✓ ,"
+    "#{?${isState "·"},#[fg=${c.base03}]· ,"
+    "}}}}"
+  ];
+  windowName = "#{s/^(⠿|[?]|✓|·) //:window_name}";
+  countState = glyph: "#{n:#{W:#{?${isState glyph},x,}}}";
+  claudeSummary = lib.concatStrings [
+    "#{?#{!=:${countState "[?]"},0},#[fg=${c.base08}#,bold]${countState "[?]"} waiting#[nobold]  ,}"
+    "#{?#{!=:${countState "⠿"},0},#[fg=${c.base0B}]${countState "⠿"} working  ,}"
+  ];
 in {
   imports = [
     ./llm
@@ -136,7 +166,8 @@ in {
 
         # ── ultra-minimal status bar (colors from stylix palette) ──
         set -g status-position bottom
-        set -g status-interval 5
+        # 1s drives the Claude spinner; tmux can't redraw the bar any faster
+        set -g status-interval 1
         set -g status-justify left
         set -g status-style "bg=default,fg=${c.base04}"
 
@@ -144,13 +175,13 @@ in {
         set -g status-left " "
         set -g status-left-length 1
 
-        set -g status-right "#[fg=${c.base03}]%H:%M "
-        set -g status-right-length 12
+        set -g status-right "${claudeSummary}#[fg=${c.base03}]%H:%M "
+        set -g status-right-length 40
 
         # tabs: dim inactive, bold accent active, no backgrounds
         set -g window-status-separator "  "
-        set -g window-status-format "#[fg=${c.base03}]#I #[fg=${c.base04}]#W"
-        set -g window-status-current-format "#[fg=${c.base0C},bold]#I #W"
+        set -g window-status-format "#[fg=${c.base03}]#I ${claudeGlyph}#[fg=${c.base04}#,nobold]${windowName}"
+        set -g window-status-current-format "#[fg=${c.base0C},bold]#I ${claudeGlyph}#[fg=${c.base0C},bold]${windowName}"
         set -g window-status-activity-style "fg=${c.base09}"
         set -g window-status-bell-style "fg=${c.base08},bold"
 

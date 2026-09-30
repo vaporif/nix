@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workshop Book</title>
+<style>
+:root {
+  --bg: #ffffff;
+  --ink: #26221c;
+  --dim: #6c6253;
+  --rule: #ddd3c2;
+  --panel: #f7f2e8;
+  --toffee: #95560c;
+  --olive: #4b6319;
+  --brick: #a3301f;
+  --teal: #16605a;
+  --term-bg: #231f1a;
+  --term-ink: #ece4d5;
+  --sans: "Inter", "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --serif: "Source Serif 4", "Charter", "Georgia", serif;
+  --mono: "JetBrains Mono", "Iosevka", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1b1916; --ink: #ece4d5; --dim: #a39884; --rule: #3a342b; --panel: #242019;
+    --toffee: #e0a050; --olive: #a4c060; --brick: #ea7a62; --teal: #62c0b4;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1b1916; --ink: #ece4d5; --dim: #a39884; --rule: #3a342b; --panel: #242019;
+  --toffee: #e0a050; --olive: #a4c060; --brick: #ea7a62; --teal: #62c0b4;
+}
+@page { size: A4; margin: 18mm 17mm 20mm; }
+@page :first { margin: 0; }
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 10.6pt;
+  line-height: 1.52;
+  margin: 0;
+}
+main { max-width: 760px; margin: 0 auto; padding: 0 16px 60px; }
+@media print { main { max-width: none; padding: 0; } }
+
+h1, h2, h3, h4, .kicker, th, .meta, .tag { font-family: var(--sans); }
+h1 { font-size: 30pt; line-height: 1.08; letter-spacing: -.02em; margin: 0 0 10px; }
+h2 {
+  font-size: 18pt; letter-spacing: -.01em; margin: 0 0 6px;
+  padding-top: 4px;
+}
+h2 .n { color: var(--toffee); font-family: var(--mono); font-size: 13pt; margin-right: 8px; }
+h3 { font-size: 12.5pt; margin: 20px 0 6px; break-after: avoid; }
+h3 + p, h3 + pre, h3 + table { break-before: avoid; }
+h4 { font-size: 10.5pt; margin: 14px 0 4px; text-transform: uppercase; letter-spacing: .06em; color: var(--dim); }
+p { margin: 0 0 9px; }
+ul, ol { margin: 0 0 10px; padding-left: 20px; }
+li { margin-bottom: 3px; }
+a { color: var(--teal); }
+code {
+  font-family: var(--mono); font-size: 8.9pt;
+  background: var(--panel); padding: 1px 4px; border-radius: 3px;
+}
+pre {
+  background: var(--term-bg); color: var(--term-ink);
+  font-family: var(--mono); font-size: 8.4pt; line-height: 1.5;
+  padding: 10px 13px; border-radius: 6px;
+  white-space: pre-wrap; word-break: break-word;
+  margin: 6px 0 12px;
+  break-inside: avoid;
+}
+pre code { background: none; padding: 0; font-size: inherit; color: inherit; }
+pre .c { color: #9c907d; }
+
+table { border-collapse: collapse; width: 100%; margin: 6px 0 14px; break-inside: avoid; }
+th, td { text-align: left; vertical-align: top; padding: 5px 8px; border-bottom: 1px solid var(--rule); font-size: 9.6pt; }
+th { font-size: 8pt; text-transform: uppercase; letter-spacing: .06em; color: var(--dim); font-weight: 600; }
+td:first-child { white-space: nowrap; }
+table.wrap td:first-child { white-space: normal; }
+
+.chapter { break-before: page; padding-top: 2px; }
+.lead { font-size: 11.5pt; color: var(--dim); margin-bottom: 16px; }
+.kicker { font-size: 8.5pt; letter-spacing: .1em; text-transform: uppercase; color: var(--toffee); margin-bottom: 4px; }
+
+.box {
+  border: 1px solid var(--rule); border-left: 3px solid var(--toffee);
+  background: var(--panel); border-radius: 4px;
+  padding: 9px 13px; margin: 10px 0 14px; break-inside: avoid;
+}
+.box.say { border-left-color: var(--teal); }
+.box.warn { border-left-color: var(--brick); }
+.box.ok { border-left-color: var(--olive); }
+.box > :last-child { margin-bottom: 0; }
+.box .tag { font-size: 7.8pt; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; display: block; margin-bottom: 3px; color: var(--toffee); }
+.box.say .tag { color: var(--teal); }
+.box.warn .tag { color: var(--brick); }
+.box.ok .tag { color: var(--olive); }
+
+.module-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-bottom: 2px solid var(--ink); padding-bottom: 4px; margin: 26px 0 10px;
+  break-after: avoid;
+}
+.module-head h3 { margin: 0; font-size: 14pt; }
+.module-head .meta { font-size: 9pt; color: var(--dim); font-family: var(--mono); }
+.module { break-inside: auto; }
+
+.check { list-style: none; padding-left: 0; }
+.check li { padding-left: 22px; position: relative; }
+.check li::before { content: "☐"; position: absolute; left: 0; color: var(--toffee); font-family: var(--sans); }
+
+.toc { list-style: none; padding: 0; columns: 1; }
+.toc li { display: flex; gap: 10px; border-bottom: 1px dotted var(--rule); padding: 4px 0; font-family: var(--sans); font-size: 10.5pt; }
+.toc .n { color: var(--toffee); font-family: var(--mono); width: 26px; }
+
+/* cover */
+.cover {
+  height: 297mm; padding: 34mm 22mm 22mm;
+  display: flex; flex-direction: column;
+  background: #f4efe4; color: #26221c;
+  break-after: page;
+}
+.cover .kicker { color: #95560c; }
+.cover .strip { display: flex; gap: 5px; margin: 26px 0 0; flex-wrap: wrap; }
+.cover .strip span {
+  font-family: var(--mono); font-size: 8.5pt; padding: 4px 8px;
+  border: 1px solid #d3c7b2; border-radius: 4px; background: #fbf8f1;
+}
+.cover .strip span.h { border-color: #16605a; color: #16605a; }
+.cover .spacer { flex: 1; }
+.cover .who { font-family: var(--sans); font-size: 10pt; color: #6c6253; }
+@media screen {
+  .cover { height: auto; min-height: 70vh; margin: 0 -16px 40px; }
+}
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div class="kicker">Facilitator's workshop book</div>
+  <h1>From Issue to Merged PR<br>with a Team of Agents</h1>
+  <p style="font-size:13pt; color:#6c6253; max-width:140mm">A hands-on workshop that takes one real issue through an agent-assisted workflow: isolated worktrees, guarded sandboxes, spec-first design, subagent builds, automated polish and a human review at the end.</p>
+  <div class="strip">
+    <span>pick</span><span>isolate</span><span class="h">design</span><span>plan</span><span>build</span><span>polish</span><span class="h">review</span><span class="h">ship</span><span>remember</span>
+  </div>
+  <div class="spacer"></div>
+  <p class="who">Format: 2 h 30 min · 6–20 people · talk + live demo + hands-on<br>Companion: <code>deck.html</code> (open in a browser, ← → to navigate, F for fullscreen)</p>
+</section>
+
+<main>
+
+<!-- ============ 0 ============ -->
+<section>
+  <div class="kicker">Before anything else</div>
+  <h2><span class="n">00</span>How to use this book</h2>
+  <p class="lead">This is a run sheet. Each module lists what to say, what to type and what should appear, and what to do if it doesn't. Read it once end to end, then keep it open on a second screen during the session.</p>
+
+  <p>The workshop is about <b>what the workflow lets you do when you pick up an issue</b>, not about how the dotfiles are wired. Show config only when someone asks. People should leave thinking “I can run three issues at once and only look at them when they need me,” not “I need to learn Nix.”</p>
+
+  <table>
+    <tr><th>Marker</th><th>Meaning</th></tr>
+    <tr><td><span style="color:var(--teal);font-weight:700">SAY</span></td><td>Talking points. Paraphrase, don't read aloud.</td></tr>
+    <tr><td><span style="color:var(--toffee);font-weight:700">DO</span></td><td>Exact commands and prompts for the live demo.</td></tr>
+    <tr><td><span style="color:var(--olive);font-weight:700">EXPECT</span></td><td>What a successful run looks like.</td></tr>
+    <tr><td><span style="color:var(--brick);font-weight:700">IF IT BREAKS</span></td><td>Fallback. Agents are nondeterministic, so every live step has one.</td></tr>
+  </table>
+
+  <h3>Contents</h3>
+  <ul class="toc">
+    <li><span class="n">01</span>Workshop at a glance: outcomes, audience, agenda</li>
+    <li><span class="n">02</span>Preparation: demo repo, machine, fallbacks, checklists</li>
+    <li><span class="n">03</span>Run sheet: nine modules, minute by minute</li>
+    <li><span class="n">04</span>Hands-on lab for attendees</li>
+    <li><span class="n">05</span>Take-home kit: the workflow without Nix</li>
+    <li><span class="n">06</span>Facilitation: pacing, hard questions, FAQ</li>
+    <li><span class="n">07</span>Troubleshooting</li>
+    <li><span class="n">08</span>Appendix: cheat sheet and presenter file map</li>
+  </ul>
+</section>
+
+<!-- ============ 1 ============ -->
+<section class="chapter">
+  <div class="kicker">Chapter 1</div>
+  <h2><span class="n">01</span>Workshop at a glance</h2>
+
+  <h3>Outcomes</h3>
+  <p>By the end, attendees can:</p>
+  <ol>
+    <li>Run an agent on an issue in its <b>own worktree</b>, so it never touches their working copy.</li>
+    <li>Explain why a <b>sandbox and guard hooks</b> make it reasonable to turn permission prompts off.</li>
+    <li>Get a <b>spec and a plan</b> from the agent before code, and use the plan to resume after a crash.</li>
+    <li>Review agent output in their editor as a <b>normal branch diff</b>.</li>
+    <li>Set up at least one of the take-home pieces on their own machine the same day.</li>
+  </ol>
+
+  <h3>Audience</h3>
+  <p>Working developers who have tried an AI coding agent at least once. No Nix, Neovim or Rust knowledge needed: the demo repo is small enough to follow without knowing Rust, and every idea gets a tool-agnostic version in Chapter 5.</p>
+
+  <h3>Agenda (2 h 30 min)</h3>
+  <table>
+    <tr><th>Time</th><th>Block</th><th>Deck slides</th><th>Mode</th></tr>
+    <tr><td>0:00</td><td>Opening: why a bare agent gets in its own way</td><td>1–3</td><td>talk</td></tr>
+    <tr><td>0:10</td><td>M1 Pick: read the issue, recall context</td><td>4</td><td>demo</td></tr>
+    <tr><td>0:18</td><td>M2 Isolate: worktree, direnv, scoped agents</td><td>5–6</td><td>demo</td></tr>
+    <tr><td>0:30</td><td>M3 Unattended and safe: sandbox and guard hooks</td><td>7</td><td>demo</td></tr>
+    <tr><td>0:42</td><td>M4 Parallel: three issues, tab states, statusline</td><td>8</td><td>demo</td></tr>
+    <tr><td>0:50</td><td>M5 Design: brainstorm, spec, <code>/spec-review</code></td><td>9</td><td>demo</td></tr>
+    <tr><td>1:05</td><td><b>Break</b> (let the build run during it)</td><td>–</td><td>–</td></tr>
+    <tr><td>1:15</td><td>M6 Plan and build: task graph, subagents, resume</td><td>10–11</td><td>demo</td></tr>
+    <tr><td>1:25</td><td>M7 Polish: three review rounds, cleanup</td><td>12</td><td>demo</td></tr>
+    <tr><td>1:32</td><td>M8 Review and ship: diff in editor, <code>/commit</code>, <code>/pr</code></td><td>13–14</td><td>demo</td></tr>
+    <tr><td>1:42</td><td>M9 Remember: memory across sessions</td><td>15–16</td><td>demo</td></tr>
+    <tr><td>1:50</td><td><b>Hands-on lab</b> (Chapter 4)</td><td>17–18</td><td>attendees</td></tr>
+    <tr><td>2:20</td><td>Wrap-up, Q&amp;A, feedback</td><td>–</td><td>talk</td></tr>
+  </table>
+
+  <div class="box">
+    <span class="tag">Timing trick</span>
+    <p>The build (M6) is the only slow part. Start it <b>just before the break</b> so the agent works while people get coffee. After the break the plan checkboxes show what got done, which itself demonstrates “the plan is the progress log.”</p>
+  </div>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="chapter">
+  <div class="kicker">Chapter 2</div>
+  <h2><span class="n">02</span>Preparation</h2>
+  <p class="lead">Most workshop failures happen before anyone arrives. Build the demo repo a week early and run the whole flow once, end to end, on the machine you'll present from.</p>
+
+  <h3>2.1 The demo repo: <code>tally</code></h3>
+  <p>A tiny Rust CLI that counts lines, words and bytes from a file or stdin. It's small enough to read in a minute and big enough for a real spec. Rust makes direnv link the <code>rust-engineer</code> agent automatically, which is itself something to show.</p>
+  <p>Create it as a public GitHub repo you control with <b>three seeded issues</b>. You'll fix #1 live; the other two exist to show parallel work.</p>
+
+<pre><code><span class="c"># one-time setup, a week before</span>
+cargo new tally &amp;&amp; cd tally
+<span class="c"># write src/main.rs: read path arg or stdin, print "lines words bytes".
+# Deliberately compute average words per line as words / lines
+# so empty input divides by zero and panics.</span>
+cat &gt; .envrc &lt;&lt;'EOF'
+use flake   <span class="c"># or: use nix / layout rust. Anything that puts cargo on PATH</span>
+EOF
+git add -A &amp;&amp; git commit -m "init tally"
+gh repo create tally --public --source . --push
+
+gh issue create -t "Panics on empty input" \
+  -b "echo -n '' | tally  →  thread 'main' panicked: attempt to divide by zero"
+gh issue create -t "Add --json output" \
+  -b "Scripts want machine-readable output: {\"lines\":..,\"words\":..,\"bytes\":..}"
+gh issue create -t "Count unicode words correctly" \
+  -b "Words split on ASCII whitespace only; NBSP-separated words count as one."</code></pre>
+
+  <div class="box warn">
+    <span class="tag">Reset between rehearsals</span>
+    <p>Tag the seed commit (<code>git tag seed</code>). Before every rehearsal and before the real session, delete the old checkout and worktrees and re-clone. Stale <code>docs/specs</code> or leftover memory entries give the audience a different demo from the one you rehearsed.</p>
+  </div>
+
+  <h3>2.2 Machine setup</h3>
+  <table class="wrap">
+    <tr><th style="width:32%">Item</th><th>Why</th></tr>
+    <tr><td>Terminal font 18–20 pt, light theme</td><td>Projectors wash out dark themes. The statusline palette was built for light backgrounds.</td></tr>
+    <tr><td>tmux with 3 windows, named by issue</td><td>Makes the tab-state glyphs (⠿ ? ✓) visible to the room.</td></tr>
+    <tr><td>Browser tab with the GitHub issue list</td><td>Shows the issue before the agent reads it.</td></tr>
+    <tr><td>Phone with the ntfy app, screen mirrored or in hand</td><td>M4: a notification arriving on the phone always gets a reaction.</td></tr>
+    <tr><td>Notifications off (Slack, mail)</td><td>Screen privacy and focus.</td></tr>
+    <tr><td>Signed in: <code>gh auth status</code>, Claude subscription</td><td>An auth prompt in the middle of a demo stalls everything.</td></tr>
+    <tr><td>Rate limits checked on the statusline</td><td>Don't start a live demo near a 5 h limit.</td></tr>
+  </table>
+
+  <h3>2.3 Record fallbacks</h3>
+  <p>Record each demo module once while rehearsing (<code>asciinema rec m5-spec.cast</code>, or a screen recording). If a live step stalls for more than ~60 s, say “this is the recording from yesterday's run” and play it. Nobody minds, and it's better than a silent minute.</p>
+  <p>Also keep <b>finished artefacts</b> in a branch <code>demo/done</code>: a completed spec, plan and fixed code. If the build is still running when you need to review, check that branch out.</p>
+
+  <h3>2.4 Screen hygiene</h3>
+  <div class="box warn">
+    <span class="tag">Never on screen</span>
+    <ul>
+      <li>The <code>secrets/</code> directory, <code>~/.config/sops</code>, any <code>/run/secrets/*</code> path.</li>
+      <li>The ntfy topic (it's effectively a password for your notifications).</li>
+      <li>Work GitLab instances, MR titles or anything from the employer's repos.</li>
+      <li>Your private <code>~/.claude/CLAUDE.md</code>. Read it first if you want to show it.</li>
+      <li>Memory search results from real projects. Use a clean namespace for <code>tally</code>.</li>
+    </ul>
+  </div>
+
+  <h3>2.5 Checklists</h3>
+  <div class="grid2">
+    <div>
+      <h4>T–7 days</h4>
+      <ul class="check">
+        <li>Demo repo and three issues created</li>
+        <li>Full end-to-end rehearsal, timed</li>
+        <li>Fallback recordings captured</li>
+        <li><code>demo/done</code> branch pushed</li>
+        <li>Take-home kit (Ch. 5) tested on a clean machine</li>
+      </ul>
+      <h4>T–1 day</h4>
+      <ul class="check">
+        <li><code>custom.claude.bashGuard.enable = true</code> on the presenting host. It's <b>off by default</b> and M3 depends on it</li>
+        <li><code>just switch</code> done, nothing pending</li>
+        <li>Second rehearsal from a fresh clone</li>
+        <li>Share link to the take-home kit ready</li>
+      </ul>
+    </div>
+    <div>
+      <h4>T–30 min</h4>
+      <ul class="check">
+        <li>Fresh clone at <code>seed</code>, old worktrees removed</li>
+        <li>tmux windows open and named</li>
+        <li>Deck open, fullscreen tested on the projector</li>
+        <li>Font size checked from the back row</li>
+        <li>Statusline shows healthy rate limits</li>
+        <li>Wi-Fi works; phone hotspot as a fallback</li>
+        <li>Water</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="chapter">
+  <div class="kicker">Chapter 3</div>
+  <h2><span class="n">03</span>Run sheet</h2>
+  <p class="lead">Nine modules, each one stage in the life of an issue. Keep the lifecycle strip (deck slide 3) in mind. Every module starts by saying which stage it is.</p>
+
+  <div class="module-head"><h3>Opening</h3><span class="meta">0:00 · 10 min · slides 1–3</span></div>
+  <div class="box say"><span class="tag">Say</span>
+    <p>“Agents can already write the code. What stops you giving one a real issue and walking away is everything around the code: it edits the checkout you're in, it asks permission every thirty seconds, it forgets everything, and it hands you a diff full of narrating comments.”</p>
+    <p>“Today we take one issue from the tracker to a merged PR. You'll see the nine stages, and you'll see that I step in at only four of them.”</p>
+  </div>
+  <p>On slide 2, ask the room: <i>“Hands up if an agent has ever edited a file you had open.”</i> It gets people talking early.</p>
+
+  <!-- M1 -->
+  <div class="module-head"><h3>M1 · Pick</h3><span class="meta">0:10 · 8 min · slide 4</span></div>
+  <div class="box say"><span class="tag">Say</span>
+    <p>The agent reads the issue itself, through the GitHub MCP server. At work the same thing happens against GitLab, read-only. Then it checks memory in case we've been near this code before.</p>
+  </div>
+  <div class="box"><span class="tag">Do</span>
+<pre><code>cd ~/demo/tally/main
+a                               <span class="c"># sandboxed Claude</span>
+› read issue #1 in this repo and tell me what's actually being asked.
+  Don't fix anything yet.
+› /recall empty input</code></pre>
+  </div>
+  <div class="box ok"><span class="tag">Expect</span>
+    <p>An <code>issue_read</code> tool call and a two-line summary that mentions the divide-by-zero. <code>/recall</code> returns nothing the first time. Say so: <i>“Empty now. Watch it fill up by M9.”</i></p>
+  </div>
+  <div class="box warn"><span class="tag">If it breaks</span>
+    <p>MCP auth failure: paste the issue body into the prompt and move on. The point is the stage, not the plumbing.</p>
+  </div>
+
+  <!-- M2 -->
+  <div class="module-head"><h3>M2 · Isolate</h3><span class="meta">0:18 · 12 min · slides 5–6</span></div>
+  <div class="box say"><span class="tag">Say</span>
+    <p>Every issue gets its own directory. This is a bare clone with sibling worktrees: one git database, several real checkouts. An agent working on #1 can't touch #2's files.</p>
+    <p>When I <code>cd</code> in, direnv loads the Rust toolchain and <b>links a Rust specialist agent into the project</b>. It isn't installed globally, because every globally installed agent costs tokens in every session.</p>
+  </div>
+  <div class="box"><span class="tag">Do</span>
+<pre><code>exit                              <span class="c"># leave the agent</span>
+cd ~/demo &amp;&amp; rm -rf tally
+git bclone git@github.com:&lt;you&gt;/tally.git
+cd tally/main
+git wb fix/1-empty-input          <span class="c"># new worktree off origin/main</span>
+git meta init &amp;&amp; git meta link    <span class="c"># share .envrc across worktrees</span>
+cd ../fix/1-empty-input
+<span class="c"># direnv: loading .envrc …</span>
+ls -la .claude/agents/            <span class="c"># → rust-engineer.md symlink</span>
+tree -L 2 -a ..                   <span class="c"># show the layout</span></code></pre>
+  </div>
+  <div class="box ok"><span class="tag">Expect</span>
+    <p>A <code>.claude/agents/rust-engineer.md</code> symlink appears on <code>cd</code>. Then <code>cd</code> into a non-Rust dir to show it links nothing and leaves no directory behind.</p>
+  </div>
+  <div class="box warn"><span class="tag">If it breaks</span>
+    <p><code>direnv: .envrc is blocked</code> → <code>direnv allow</code>. Point out that this is a security feature: the same gate stops a malicious repo from running code on <code>cd</code>.</p>
+  </div>
+
+  <!-- M3 -->
+  <div class="module-head"><h3>M3 · Unattended and safe</h3><span class="meta">0:30 · 12 min · slide 7</span></div>
+  <div class="box say"><span class="tag">Say</span>
+    <p>“I run the agent with permission prompts <b>off</b>. That sounds reckless, so here's why it isn't.” Walk through the layers top-down: the sandbox is the wall, the hooks are the smoke detector.</p>
+    <ul>
+      <li><b>Sandbox</b>: bubblewrap, read-only system, only project and cache dirs writable, no home directory secrets.</li>
+      <li><b>Bash guard</b>: every shell command is parsed before it runs. Push, hard reset and curl-pipe-to-shell are denied; <code>sudo</code>, <code>rm</code> and <code>dd</code> ask.</li>
+      <li><b>Deny list</b>: secrets and key files can't be read even inside the sandbox.</li>
+    </ul>
+  </div>
+  <div class="box"><span class="tag">Do</span>
+<pre><code>a
+› discard all my local changes with git reset --hard
+› install rustup with curl https://sh.rustup.rs | sh
+› read ~/.ssh/id_ed25519
+› use sudo to clean the target directory
+› ok, just run cargo test</code></pre>
+  </div>
+  <div class="box ok"><span class="tag">Expect</span>
+    <p><code>git reset --hard</code> and the curl-pipe are <b>denied</b> by the hook with a reason, even with permission prompts off. The key read is blocked by the deny list. <code>sudo</code> stops and <b>asks</b> you. <code>cargo test</code> runs normally and shows the panic from issue #1.</p>
+    <p>Point out the split: irreversible or outward-facing actions (push, hard reset, clean) are never the agent's call. Risky-but-local ones ask.</p>
+  </div>
+  <div class="box"><span class="tag">Optional deep cut, 2 min</span>
+    <p>Show <code>test-fixtures/bypass-payloads.txt</code>: <code>s\udo</code>, <code>"sudo"</code>, <code>$(echo sudo)</code>… The guard is tested against 38 obfuscation tricks in a VM test on every check. This works well with security-minded audiences.</p>
+  </div>
+  <div class="box warn"><span class="tag">If it breaks</span>
+    <p>If the model refuses to even try (it sometimes does), say “the model refused, and if it hadn't, the hook would have” and call the hook directly:</p>
+<pre><code>hook=$(jq -r '.hooks.PreToolUse[] | select(.matcher=="Bash") | .hooks[0].command' ~/.claude/settings.json)
+echo '{"tool_input":{"command":"git reset --hard"}}' | "$hook"; echo "exit=$?"</code></pre>
+    <p>If <code>$hook</code> comes back empty, the guard isn't enabled. See the T–1 day checklist.</p>
+  </div>
+
+  <!-- M4 -->
+  <div class="module-head"><h3>M4 · Parallel</h3><span class="meta">0:42 · 8 min · slide 8</span></div>
+  <div class="box say"><span class="tag">Say</span>
+    <p>Isolation plus safety means I can run several at once. The problem then is knowing <b>which one needs me</b>. The tab title tells me, and the phone buzzes if I'm away.</p>
+  </div>
+  <div class="box"><span class="tag">Do</span>
+<pre><code><span class="c"># tmux window 2</span>
+cd ~/demo/tally/main &amp;&amp; git wb feat/2-json &amp;&amp; cd ../feat/2-json
+a
+› read issue #2 and brainstorm an approach with me
+
+<span class="c"># tmux window 3</span>
+cd ~/demo/tally/main &amp;&amp; git wb fix/3-unicode &amp;&amp; cd ../fix/3-unicode
+a
+› read issue #3 and write a failing test that reproduces it</code></pre>
+  </div>
+  <div class="box ok"><span class="tag">Expect</span>
+    <p>Window titles cycle <code>⠿</code> (working) → <code>?</code> (window 2 asks a brainstorm question) → <code>✓</code> (window 3 finishes). Point at the statusline: context used, branch, 5 h / 7 d limits. Mention lspmux: three agents, <b>one</b> rust-analyzer.</p>
+  </div>
+  <div class="box warn"><span class="tag">If it breaks</span>
+    <p>Glyphs not changing: the terminal may be overriding the title. Show the statusline instead and move on.</p>
+  </div>
+
+  <!-- M5 -->
+  <div class="module-head"><h3>M5 · Design</h3><span class="meta">0:50 · 15 min · slide 9</span></div>
+  <div class="box say"><span class="tag">Say</span>
+    <p>“The biggest time sink with agents isn't bad code. It's <b>good code for the wrong design</b>. So before any code, we get a spec, and then a separate review checks the spec against the real codebase.”</p>
+    <p>Stress the split: fixes with no downside are applied automatically, and anything with a real trade-off is <b>parked for me</b>. I only see the decisions that are mine.</p>
+  </div>
+  <div class="box"><span class="tag">Do</span>
+<pre><code><span class="c"># back in window 1, fix/1-empty-input</span>
+› let's fix issue #1. brainstorm with me first.
+  <span class="c">(answer its questions live, and ask the room for one of them:
+   "empty input: exit 0 with zeros, or exit 1 with an error?")</span>
+› /spec-review</code></pre>
+  </div>
+  <div class="box ok"><span class="tag">Expect</span>
+    <p>A file <code>docs/specs/YYYY-MM-DD-empty-input-design.md</code> with options, pros and cons. <code>/spec-review</code> announces <i>Round 1/3</i>, runs two finders (doc quality, codebase validation), verifies findings, then shows a diff of the spec plus a short list of parked human-calls.</p>
+  </div>
+  <div class="box"><span class="tag">Room moment</span>
+    <p>Letting the audience vote on the empty-input behaviour makes them co-owners of the spec. They'll watch the rest much more closely.</p>
+  </div>
+  <div class="box warn"><span class="tag">If it breaks</span>
+    <p>Spec review over 4 min: move on to the break and come back to the result. If it's truly stuck, check out <code>demo/done</code> and show the finished spec.</p>
+  </div>
+
+  <div class="module-head"><h3>Break</h3><span class="meta">1:05 · 10 min</span></div>
+  <div class="box"><span class="tag">Do, right before the break</span>
+<pre><code>› write the implementation plan, then execute it with subagents</code></pre>
+    <p>Leave the screen on the tmux window so people see <code>⠿</code> while they're away.</p>
+  </div>
+
+  <!-- M6 -->
+  <div class="module-head"><h3>M6 · Plan and build</h3><span class="meta">1:15 · 10 min · slides 10–11</span></div>
+  <div class="box say"><span class="tag">Say</span>
+    <p>Open the plan file. Show the dependency graph, the agent assignments and the checkboxes that ticked during the break. “If my laptop had died during the break, a new session would read this file and continue from the first empty box. The plan is the progress log.”</p>
+    <p>Each task went to a fresh subagent with only the plan and spec: the main session stays small. Tests first, then code, and every task reviewed before the next batch.</p>
+  </div>
+  <div class="box"><span class="tag">Do</span>
+<pre><code>bat docs/plans/*.md                <span class="c"># or open in the editor</span>
+git log --oneline origin/main..HEAD
+› /checkpoint                      <span class="c"># show what gets saved before a context clear</span></code></pre>
+  </div>
+  <div class="box warn"><span class="tag">If it breaks</span>
+    <p>The build is still running: show the plan with partial checkboxes. That actually makes the point better. Continue with M7 on <code>demo/done</code>.</p>
+  </div>
+
+  <!-- M7 -->
+  <div class="module-head"><h3>M7 · Polish</h3><span class="meta">1:25 · 7 min · slide 12</span></div>
+  <div class="box say"><span class="tag">Say</span>
+    <p>“After the build, and before I look at anything, a polish pipeline runs: three review rounds, each fixing what the last one found, then an idioms pass, then a cleanup that removes dead code and AI artefacts, then comments get trimmed and the survivors rewritten to read like a person wrote them.”</p>
+    <p>“Why three rounds? Each round of fixes can introduce new issues. Returns fall off after three. It stops early if a round comes back clean.”</p>
+  </div>
+  <div class="box"><span class="tag">Do</span>
+<pre><code>git log --oneline origin/main..HEAD   <span class="c"># point at the review-fix commits</span>
+› /cleanup                            <span class="c"># if polish didn't run, show it standalone</span></code></pre>
+  </div>
+
+  <!-- M8 -->
+  <div class="module-head"><h3>M8 · Review and ship</h3><span class="meta">1:32 · 10 min · slides 13–14</span></div>
+  <div class="box say"><span class="tag">Say</span>
+    <p>“Now it's my turn, and it looks exactly like reviewing a colleague's branch.” The diff is always against the merge base (three dots), so work that landed on main in the meantime doesn't clutter it.</p>
+  </div>
+  <div class="box"><span class="tag">Do</span>
+<pre><code>nvim
+␣cvb      <span class="c"># whole branch vs base</span>
+␣cvl      <span class="c"># commit by commit</span>
+␣cvf      <span class="c"># difftastic: structural diff</span>
+␣cvq      <span class="c"># close</span>
+
+a
+› /commit                 <span class="c"># if anything is left unstaged</span>
+› /pr
+gh pr create --fill       <span class="c"># or let the agent create it</span>
+
+cd ../main &amp;&amp; git wr fix/1-empty-input   <span class="c"># after merge</span></code></pre>
+  </div>
+  <div class="box ok"><span class="tag">Expect</span>
+    <p>A one-line conventional commit (<code>fix(parser): handle empty input</code>) that you confirm, and a PR description built from the whole branch. <code>git wr</code> keeps the branch if it's unmerged, so show that safety too.</p>
+  </div>
+  <div class="box"><span class="tag">Mention, don't demo</span>
+    <p>At work, GitLab MR review happens in the same editor: discussion tree, line comments, suggestions, approve, pipeline status (<code>␣cvr ␣cvc ␣cva ␣cvp</code>). Don't show work MRs on screen.</p>
+  </div>
+
+  <!-- M9 -->
+  <div class="module-head"><h3>M9 · Remember</h3><span class="meta">1:42 · 8 min · slides 15–16</span></div>
+  <div class="box say"><span class="tag">Say</span>
+    <p>“The decision the room voted on (empty input exits 0) is exactly what a future session would get wrong. So we store it.”</p>
+  </div>
+  <div class="box"><span class="tag">Do</span>
+<pre><code>› /remember tally treats empty input as valid: exit 0, all counts zero
+<span class="c"># new session in window 2 (feat/2-json)</span>
+› /recall empty input
+› /reflect</code></pre>
+  </div>
+  <div class="box ok"><span class="tag">Expect</span>
+    <p>The fact comes back in a different worktree, in a different session. Go back to slide 16: four points where you step in, and between them “you're on another issue in another tab.”</p>
+  </div>
+</section>
+
+<!-- ============ 4 ============ -->
+<section class="chapter">
+  <div class="kicker">Chapter 4</div>
+  <h2><span class="n">04</span>Hands-on lab</h2>
+  <p class="lead">30 minutes. Attendees work in pairs on their own laptops with whatever agent they already use: Claude Code, Codex, Cursor, anything. The goal is to feel the workflow, not to install this setup.</p>
+
+  <h3>Lab brief (put it on screen)</h3>
+  <div class="box">
+    <ol>
+      <li><b>Fork</b> <code>tally</code> and pick issue #2 or #3.</li>
+      <li><b>Isolate</b>: <code>git worktree add -b &lt;branch&gt; ../&lt;branch&gt; origin/main</code>. Work only there.</li>
+      <li><b>Design</b>: ask the agent to write a spec to <code>docs/specs/</code>, then ask it (in a fresh session, if you can) to critique that spec against the code. Make one decision yourself.</li>
+      <li><b>Plan</b>: have it write a checkbox plan to <code>docs/plans/</code> and tick boxes as it goes.</li>
+      <li><b>Crash test</b>: halfway through, quit the agent. Start a new session with only “continue the plan in docs/plans/”. Does it resume?</li>
+      <li><b>Review</b>: <code>git diff origin/main...HEAD</code>. Would you merge it from a colleague?</li>
+    </ol>
+  </div>
+
+  <h3>Facilitator's role during the lab</h3>
+  <ul>
+    <li>Walk the room. The two most common blockers are worktree paths (“fatal: already exists”) and agents that skip the spec and start coding. For the second, tell them to say “stop, spec first” explicitly.</li>
+    <li>Pick one pair who hit an interesting problem and ask if they'll show it in the debrief.</li>
+    <li>At 20 min, give a 10-minute warning. At 28 min, call time.</li>
+  </ul>
+
+  <h3>Debrief questions (5 min)</h3>
+  <ul>
+    <li>Did the spec review catch anything you'd have missed?</li>
+    <li>Did the crash test resume cleanly? What did the plan need to make that work?</li>
+    <li>Which of the four intervention points felt most valuable?</li>
+  </ul>
+
+  <h3>Stretch goals for fast pairs</h3>
+  <ul>
+    <li>Run both issues at once in two worktrees and two agent sessions.</li>
+    <li>Add the guard hook from Chapter 5 and try to get <code>sudo</code> past it.</li>
+  </ul>
+</section>
+
+<!-- ============ 5 ============ -->
+<section class="chapter">
+  <div class="kicker">Chapter 5</div>
+  <h2><span class="n">05</span>Take-home kit</h2>
+  <p class="lead">Every idea from the talk in its smallest form. No Nix, no custom tooling. Share this chapter as a link after the session.</p>
+
+  <h3>5.1 Worktree per issue</h3>
+<pre><code>git config --global alias.wb '!f() { git fetch origin &amp;&amp; git worktree add -b "$1" "../$1" origin/main; }; f'
+git config --global alias.wr '!f() { git worktree remove "../$1" &amp;&amp; git branch -d "$1"; }; f'
+git config --global alias.wl 'worktree list'
+
+git wb fix/42      <span class="c"># → ../fix/42, a fresh checkout on a new branch</span>
+git wr fix/42      <span class="c"># remove it; keeps the branch if unmerged</span></code></pre>
+
+  <h3>5.2 Bash guard hook (Claude Code)</h3>
+  <p><code>~/.claude/settings.json</code>:</p>
+<pre><code>{
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": "Bash",
+        "hooks": [{ "type": "command", "command": "~/.claude/hooks/guard.sh" }] }
+    ]
+  }
+}</code></pre>
+  <p><code>~/.claude/hooks/guard.sh</code> (<code>chmod +x</code>, needs <code>jq</code>):</p>
+<pre><code>#!/usr/bin/env bash
+cmd=$(jq -r '.tool_input.command // empty')
+[ -z "$cmd" ] &amp;&amp; exit 0
+<span class="c"># strip quotes and backslashes so "s\udo" and 'sudo' don't slip through</span>
+norm=$(printf '%s' "$cmd" | tr -d "\\\\'\"")
+if grep -Eq '(^|[;&amp;|(` ])sudo([ );&amp;|]|$)|rm +-[a-z]*r[a-z]*f|curl[^|]*\| *(ba|z)?sh' &lt;&lt;&lt;"$norm"; then
+  echo "blocked by guard hook: $cmd" &gt;&amp;2
+  exit 2          <span class="c"># exit 2 = deny; stderr is shown to the agent</span>
+fi
+exit 0</code></pre>
+  <div class="box warn"><span class="tag">Be honest about it</span>
+    <p>A regex guard stops accidents, not someone determined to get past it. If you turn permission prompts off, also run the agent in a sandbox (a container, a VM, or Claude Code's built-in sandbox). The hook is the smoke detector; the sandbox is the wall.</p>
+  </div>
+
+  <h3>5.3 Scoped agents</h3>
+  <p>Put specialist agents in the <b>project's</b> <code>.claude/agents/</code> rather than <code>~/.claude/agents/</code>. Everything global costs prompt tokens in every session. Same for MCP servers: enable per project, and disable tools you never call.</p>
+
+  <h3>5.4 Spec before code</h3>
+<pre><code>Before writing any code, write a design spec to docs/specs/&lt;date&gt;-&lt;topic&gt;.md:
+problem, options (with pros and cons for each), chosen approach, test plan.
+Stop and wait for my approval.</code></pre>
+  <p>Then, in a <b>fresh</b> session:</p>
+<pre><code>Review docs/specs/&lt;file&gt;. For every claim it makes about the codebase, verify it
+by reading the code and cite file:line. List logic gaps and false assumptions.
+Fix what has no trade-off; list the rest for me to decide.</code></pre>
+
+  <h3>5.5 Plan as progress log</h3>
+<pre><code>Write a plan to docs/plans/&lt;topic&gt;.md as a checkbox list of small tasks,
+each with its test. Mark a box [x] only after its test passes, and commit
+after each task. If you're restarted, resume from the first unchecked box.</code></pre>
+
+  <h3>5.6 Know when to look</h3>
+<pre><code>{
+  "hooks": {
+    "Notification": [{ "matcher": "", "hooks": [{ "type": "command",
+      "command": "notify-send 'Agent' 'needs you'" }] }],
+    "Stop": [{ "matcher": "", "hooks": [{ "type": "command",
+      "command": "notify-send 'Agent' 'done'" }] }]
+  }
+}</code></pre>
+  <p>On macOS use <code>osascript -e 'display notification "needs you" with title "Agent"'</code>. For a phone: <code>curl -d "needs you" ntfy.sh/&lt;a-long-random-topic&gt;</code>.</p>
+
+  <h3>5.7 Clean before review</h3>
+<pre><code>Review git diff origin/main...HEAD. Remove: comments that restate the code,
+dead code, unused imports, abstractions used once, "AI narration". Keep only
+comments that explain why. Match the surrounding code's style. Commit.</code></pre>
+</section>
+
+<!-- ============ 6 ============ -->
+<section class="chapter">
+  <div class="kicker">Chapter 6</div>
+  <h2><span class="n">06</span>Facilitation</h2>
+
+  <h3>Pacing</h3>
+  <ul>
+    <li><b>Say the stage name out loud</b> at the start of every module (“We're at <i>Isolate</i>”). The lifecycle is what people will remember.</li>
+    <li><b>Talk while the agent works.</b> Plan what you'll say during each wait. Silence while a spinner turns loses the room.</li>
+    <li><b>Cut from the middle, not the end.</b> If you're 10 min behind, drop M4 (parallel) to a slide-only mention and shorten M7. Never cut the hands-on lab or M8.</li>
+  </ul>
+
+  <h3>Hard questions, and honest answers</h3>
+  <table class="wrap">
+    <tr><th style="width:34%">Question</th><th>Answer</th></tr>
+    <tr><td>“Isn't skipping permissions dangerous?”</td><td>Without a sandbox, yes. The claim isn't that the hook is enough. The sandbox limits what's reachable, and the hook catches the obvious mistakes early with a readable reason. Show the layers slide again.</td></tr>
+    <tr><td>“What does this cost?”</td><td>Be concrete about your own plan and usage. The statusline shows rate limits for exactly this reason. Spec review and three polish rounds do spend tokens; the trade is fewer wasted build cycles on a wrong design.</td></tr>
+    <tr><td>“Does the code quality hold up?”</td><td>It holds up as well as your review does. The polish pipeline raises the floor, but the human diff review is not optional, and it's one of the four points where you step in.</td></tr>
+    <tr><td>“Will this replace developers?”</td><td>Look at where the time went today: deciding the design, answering trade-offs, reviewing. The typing moved to the agent; the judgement didn't.</td></tr>
+    <tr><td>“Why worktrees, not branches?”</td><td>A branch switch changes files under a running agent. A worktree is a separate directory, so two agents never share files.</td></tr>
+    <tr><td>“Does it work with Codex / Cursor / …?”</td><td>The ideas do. In this setup the same shared commands, rules and agents feed both Claude Code and Codex from one source.</td></tr>
+    <tr><td>“What about private code and data?”</td><td>Memory is a local vector DB. For the model provider's data handling, point to your org's policy, and don't improvise legal answers.</td></tr>
+  </table>
+
+  <h3>When a demo goes wrong</h3>
+  <p>Say what happened in one sentence, then switch to the fallback. Agent failures are useful teaching moments. If the agent does something silly, ask the room: <i>“Which stage should have caught that?”</i> Usually it's the spec review or the polish, which reinforces the lifecycle.</p>
+</section>
+
+<!-- ============ 7 ============ -->
+<section class="chapter">
+  <div class="kicker">Chapter 7</div>
+  <h2><span class="n">07</span>Troubleshooting</h2>
+  <table class="wrap">
+    <tr><th style="width:36%">Symptom</th><th>Fix</th></tr>
+    <tr><td><code>direnv: .envrc is blocked</code></td><td><code>direnv allow</code> in that worktree.</td></tr>
+    <tr><td>No <code>.claude/agents/</code> after <code>cd</code></td><td>direnv didn't load (check the <code>direnv:</code> line), or the project doesn't match a detector. Force it with <code>use claude_agents rust-engineer</code> in <code>.envrc</code>.</td></tr>
+    <tr><td><code>git wb</code>: “already exists”</td><td>A leftover worktree from a rehearsal. Run <code>git wl</code>, then <code>git wr &lt;branch&gt;</code> or <code>git worktree prune</code>.</td></tr>
+    <tr><td><code>git fetch</code> in a bare clone doesn't update <code>origin/*</code></td><td>The clone predates <code>git bclone</code>'s refspec fix: <code>git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'</code>.</td></tr>
+    <tr><td>MCP server “failed to connect”</td><td>Run <code>/mcp</code> in the agent to see status. Usually expired auth: <code>gh auth status</code>. Fallback: paste the issue text.</td></tr>
+    <tr><td><code>/recall</code> errors</td><td>The vector DB isn't running. Start qdrant, or skip M9's live part and describe it.</td></tr>
+    <tr><td>Tab glyphs never change</td><td>The terminal is overriding titles, or you're outside tmux. Show the statusline instead.</td></tr>
+    <tr><td>Blocked commands just run</td><td>The bash guard is off by default. Set <code>custom.claude.bashGuard.enable = true</code> for the host and <code>just switch</code>.</td></tr>
+    <tr><td>Agent refuses to try a blocked command</td><td>Pipe a payload into the hook directly (see M3 fallback).</td></tr>
+    <tr><td>Rate limit hit mid-demo</td><td>Switch to recordings for the remaining modules. Check the statusline during setup next time.</td></tr>
+    <tr><td>Build still running after the break</td><td>Show the partial plan checkboxes, then check out <code>demo/done</code>.</td></tr>
+    <tr><td>Projector too small for nvim diff</td><td>Use <code>git diff origin/main...HEAD</code> in the terminal with a big font, or <code>difft</code>.</td></tr>
+  </table>
+</section>
+
+<!-- ============ 8 ============ -->
+<section class="chapter">
+  <div class="kicker">Chapter 8</div>
+  <h2><span class="n">08</span>Appendix</h2>
+
+  <h3>8.1 Cheat sheet</h3>
+  <table class="wrap">
+    <tr><th style="width:18%">Stage</th><th style="width:40%">Command</th><th>What it does</th></tr>
+    <tr><td>Pick</td><td><code>/recall &lt;query&gt;</code></td><td>Search project memory (filters: <code>type:</code> <code>entity:</code> <code>date:7d</code>)</td></tr>
+    <tr><td>Isolate</td><td><code>git bclone &lt;url&gt;</code></td><td>Bare clone + worktree for the default branch</td></tr>
+    <tr><td></td><td><code>git wb &lt;branch&gt;</code> / <code>git wr &lt;branch&gt;</code> / <code>git wl</code></td><td>New / remove / list worktrees</td></tr>
+    <tr><td></td><td><code>git meta init|link|status</code></td><td>Share <code>.envrc</code>, archive specs and plans</td></tr>
+    <tr><td></td><td><code>a</code> / <code>ar</code></td><td>Sandboxed Claude / resume a session</td></tr>
+    <tr><td></td><td><code>o</code> / <code>or</code> / <code>ox</code></td><td>Sandboxed Codex / resume / exec</td></tr>
+    <tr><td>Design</td><td>“brainstorm with me”</td><td>Questions, options, spec in <code>docs/specs/</code></td></tr>
+    <tr><td></td><td><code>/spec-review</code></td><td>Up to 3 rounds: find, verify, autofix, park trade-offs</td></tr>
+    <tr><td>Plan/Build</td><td>“write the plan, execute with subagents”</td><td>Task graph, agent assignment, checkboxes</td></tr>
+    <tr><td></td><td><code>/checkpoint</code></td><td>Save session state before a context clear</td></tr>
+    <tr><td>Polish</td><td><code>/cleanup</code></td><td>Simplify, remove AI artefacts, question the decisions made</td></tr>
+    <tr><td>Review</td><td><code>␣cvb</code> <code>␣cvl</code> <code>␣cvf</code> <code>␣cvo</code> <code>␣cvw</code></td><td>Branch diff, commit walk, difftastic, pick MR, open in web</td></tr>
+    <tr><td></td><td><code>/code-review</code></td><td>Review agent over the branch</td></tr>
+    <tr><td>Ship</td><td><code>/commit</code> · <code>/pr</code></td><td>One-line conventional commit · PR from the whole branch</td></tr>
+    <tr><td>Remember</td><td><code>/remember</code> · <code>/docs</code> · <code>/reflect</code> · <code>/forget</code></td><td>Store · update docs · audit · delete</td></tr>
+  </table>
+
+  <h3>8.2 Presenter file map</h3>
+  <p>For when someone asks “how is that done?”. Paths are relative to the dotfiles repo.</p>
+  <table class="wrap">
+    <tr><th style="width:36%">Feature</th><th>Where</th></tr>
+    <tr><td>Worktree tooling</td><td><code>scripts/git-bare-clone.sh</code>, <code>git-worktree-new.sh</code>, <code>git-worktree-remove.sh</code>, <code>git-meta.sh</code>; aliases in <code>home/common/git.nix</code></td></tr>
+    <tr><td>Scoped agents and rules</td><td><code>claude/direnv-agents.sh</code>, <code>claude/direnv-rules.sh</code>; sources in <code>llm/shared/{agents,rules}/</code></td></tr>
+    <tr><td>Sandbox</td><td><code>home/linux/sandboxed.nix</code>, <code>home/darwin/sandboxed.nix</code></td></tr>
+    <tr><td>Guard hooks, deny list</td><td><code>claude/security/default.nix</code>, <code>claude/security/scripts/check-bash-command.sh</code></td></tr>
+    <tr><td>Bypass tests</td><td><code>claude/security/scripts/test-fixtures/</code>, <code>tests/claude-security.nix</code></td></tr>
+    <tr><td>Tab state, statusline</td><td><code>claude/tab-state.sh</code>, <code>claude/statusline.sh</code></td></tr>
+    <tr><td>Shared LSP</td><td><code>home/common/lspmux.nix</code></td></tr>
+    <tr><td>MCP servers</td><td><code>home/common/mcp.nix</code></td></tr>
+    <tr><td>Slash commands</td><td><code>llm/shared/commands/</code></td></tr>
+    <tr><td>Spec review, polish</td><td><code>llm/shared/skills/spec-review.md</code>, <code>post-implementation-polish.md</code></td></tr>
+    <tr><td>Brainstorm/plan/build flow</td><td>superpowers plugin + <code>patches/superpowers-customizations.patch</code></td></tr>
+    <tr><td>Editor review</td><td><code>config/nvim/lua/plugins/review.lua</code></td></tr>
+    <tr><td>Memory</td><td>ferrex MCP in <code>home/common/mcp.nix</code>, qdrant in <code>home/common/qdrant.nix</code></td></tr>
+  </table>
+
+  <h3>8.3 Feedback form (send within 24 h)</h3>
+  <ol>
+    <li>Which stage will you try first on your own work?</li>
+    <li>What was the most confusing part?</li>
+    <li>Was the pace: too slow / right / too fast?</li>
+    <li>What would you cut? What would you add?</li>
+    <li>Did anything from the take-home kit not work on your machine?</li>
+  </ol>
+</section>
+
+</main>
+</body>
+</html>

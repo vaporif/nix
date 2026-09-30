@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Issue to Merge</title>
+<style>
+:root {
+  --bg: #f4efe4;
+  --panel: #fbf8f1;
+  --ink: #2a251f;
+  --dim: #6f6556;
+  --rule: #d9cfbd;
+  --olive: #4b6319;
+  --toffee: #95560c;
+  --brick: #a3301f;
+  --teal: #16605a;
+  --plum: #7a2552;
+  --term-bg: #231f1a;
+  --term-ink: #e9e1d2;
+  --term-dim: #9c907d;
+  --sans: "Inter", "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", "Iosevka", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1b1916; --panel: #242019; --ink: #ece4d5; --dim: #a39884; --rule: #3a342b;
+    --olive: #a4c060; --toffee: #e0a050; --brick: #ea7a62; --teal: #62c0b4; --plum: #d884b4;
+    --term-bg: #12100d;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1b1916; --panel: #242019; --ink: #ece4d5; --dim: #a39884; --rule: #3a342b;
+  --olive: #a4c060; --toffee: #e0a050; --brick: #ea7a62; --teal: #62c0b4; --plum: #d884b4;
+  --term-bg: #12100d;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+#stage {
+  position: fixed; inset: 0;
+  display: grid; place-items: center;
+}
+#canvas {
+  width: 1280px; height: 720px;
+  position: relative;
+  transform-origin: center center;
+}
+.slide {
+  position: absolute; inset: 0;
+  padding: 64px 80px 72px;
+  display: none;
+  flex-direction: column;
+}
+.slide.active { display: flex; }
+
+.kicker {
+  font-family: var(--mono);
+  font-size: 15px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--toffee);
+  margin-bottom: 14px;
+}
+h1 { font-size: 64px; line-height: 1.05; letter-spacing: -.02em; font-weight: 750; }
+h2 { font-size: 42px; line-height: 1.1; letter-spacing: -.015em; font-weight: 700; margin-bottom: 28px; }
+h3 { font-size: 21px; font-weight: 650; margin-bottom: 8px; }
+p, li { font-size: 22px; line-height: 1.45; }
+.lede { font-size: 26px; color: var(--dim); max-width: 900px; line-height: 1.4; }
+.small { font-size: 17px; color: var(--dim); line-height: 1.45; }
+ul.clean { list-style: none; }
+ul.clean li { padding-left: 28px; position: relative; margin-bottom: 12px; }
+ul.clean li::before { content: "›"; position: absolute; left: 4px; color: var(--toffee); font-weight: 700; }
+code, .mono { font-family: var(--mono); font-size: .88em; }
+p code, li code, td code {
+  background: color-mix(in srgb, var(--toffee) 13%, transparent);
+  padding: 1px 6px; border-radius: 4px;
+}
+.accent { color: var(--toffee); }
+.ok { color: var(--olive); }
+.bad { color: var(--brick); }
+.teal { color: var(--teal); }
+
+.cols { display: grid; gap: 40px; flex: 1; min-height: 0; }
+.cols.two { grid-template-columns: 1fr 1fr; }
+.cols.two-wide { grid-template-columns: 1.15fr .85fr; }
+.cols.three { grid-template-columns: repeat(3, 1fr); gap: 28px; }
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 22px 24px;
+}
+.card p, .card li { font-size: 18px; }
+.card .num { font-family: var(--mono); color: var(--toffee); font-size: 14px; margin-bottom: 6px; }
+
+.term {
+  background: var(--term-bg);
+  color: var(--term-ink);
+  font-family: var(--mono);
+  font-size: 17px;
+  line-height: 1.55;
+  border-radius: 10px;
+  padding: 20px 24px;
+  white-space: pre;
+  overflow: hidden;
+}
+.term .p { color: #d9a04f; }
+.term .c { color: var(--term-dim); }
+.term .g { color: #9fc065; }
+.term .r { color: #ec7b63; }
+.term .t { color: #6fc5b9; }
+
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--rule); font-size: 18px; vertical-align: top; }
+th { font-size: 14px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--dim); font-weight: 500; }
+
+/* lifecycle strip */
+.loop { display: flex; gap: 8px; align-items: stretch; margin-top: 18px; }
+.loop .step {
+  flex: 1;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 14px 10px;
+  text-align: center;
+}
+.loop .step > b { display: block; font-size: 18px; margin-bottom: 4px; }
+.loop .step span { font-size: 13.5px; color: var(--dim); line-height: 1.35; display: block; }
+.loop .step.on { border-color: var(--toffee); box-shadow: inset 0 3px 0 var(--toffee); }
+.loop .step.human { background: color-mix(in srgb, var(--teal) 10%, var(--panel)); }
+.legend { margin-top: 18px; font-size: 16px; color: var(--dim); }
+.legend i { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -2px; margin-right: 6px; border: 1px solid var(--rule); }
+
+/* mini progress strip on every stage slide */
+.where { display: flex; gap: 4px; position: absolute; top: 28px; right: 80px; }
+.where span {
+  font-family: var(--mono); font-size: 11px; color: var(--dim);
+  padding: 3px 7px; border-radius: 4px; border: 1px solid var(--rule);
+}
+.where span.on { color: var(--bg); background: var(--toffee); border-color: var(--toffee); }
+
+.pill {
+  display: inline-block; font-family: var(--mono); font-size: 13px;
+  border: 1px solid var(--rule); border-radius: 999px; padding: 3px 10px; color: var(--dim);
+  margin-right: 6px;
+}
+.bigquote { font-size: 34px; line-height: 1.3; font-weight: 600; max-width: 980px; }
+.spacer { flex: 1; }
+.foot { position: absolute; left: 80px; bottom: 30px; font-family: var(--mono); font-size: 13px; color: var(--dim); }
+
+.layers { display: flex; flex-direction: column; gap: 10px; }
+.layer {
+  display: grid; grid-template-columns: 170px 1fr; gap: 18px; align-items: center;
+  background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 18px;
+}
+.layer b { font-family: var(--mono); font-size: 15px; color: var(--toffee); }
+.layer p { font-size: 18px; }
+
+.pipeline { display: flex; align-items: stretch; gap: 10px; flex-wrap: nowrap; }
+.pipeline .box {
+  background: var(--panel); border: 1px solid var(--rule); border-radius: 8px;
+  padding: 16px 14px; flex: 1; min-height: 132px;
+}
+.pipeline .box > b { display: block; font-size: 17px; margin-bottom: 6px; }
+.pipeline .box span { font-size: 14.5px; color: var(--dim); line-height: 1.4; display: block; }
+.pipeline .arrow { color: var(--toffee); font-size: 22px; flex: none; align-self: center; }
+
+/* chrome */
+#bar { position: fixed; left: 0; bottom: 0; height: 3px; background: var(--toffee); transition: width .25s; }
+#count {
+  position: fixed; right: 18px; bottom: 12px; font-family: var(--mono); font-size: 12px; color: var(--dim);
+}
+#hint {
+  position: fixed; left: 18px; bottom: 12px; font-family: var(--mono); font-size: 12px; color: var(--dim); opacity: .7;
+}
+
+@media print {
+  @page { size: 1280px 720px; margin: 0; }
+  body { overflow: visible; }
+  #stage { position: static; display: block; }
+  #canvas { transform: none !important; width: auto; height: auto; }
+  .slide { display: flex !important; position: relative; width: 1280px; height: 720px; page-break-after: always; break-after: page; }
+  #bar, #count, #hint { display: none; }
+}
+</style>
+</head>
+<body>
+<div id="stage"><div id="canvas">
+
+<!-- 1 -->
+<section class="slide">
+  <div class="kicker">Workshop · agent-assisted development</div>
+  <h1>From issue to merged PR<br>with a team of agents</h1>
+  <p class="lede" style="margin-top:28px">One developer, several issues in flight, and agents doing the typing. This talk follows one issue through a setup that makes that safe, parallel and reviewable.</p>
+  <div class="spacer"></div>
+  <p class="small">Claude Code · Codex · git worktrees · direnv · MCP · Neovim</p>
+</section>
+
+<!-- 2 -->
+<section class="slide">
+  <div class="kicker">Why a setup at all</div>
+  <h2>A bare agent gets in its own way</h2>
+  <div class="cols two">
+    <div>
+      <ul class="clean">
+        <li><b>It edits the checkout you're working in.</b> Two tasks can't run side by side.</li>
+        <li><b>It asks permission constantly,</b> so you end up sitting and watching it.</li>
+        <li><b>It forgets everything</b> when the context window fills or the session ends.</li>
+        <li><b>It codes before it thinks,</b> and the bad assumptions only show up in review.</li>
+        <li><b>It leaves AI slop</b>: narrating comments, extra abstractions, dead code.</li>
+      </ul>
+    </div>
+    <div class="card" style="align-self:start">
+      <h3>What this setup changes</h3>
+      <ul class="clean">
+        <li>Each issue gets its own worktree</li>
+        <li>A sandbox and guard hooks replace permission prompts</li>
+        <li>You get a spec and a plan before any code</li>
+        <li>Review and polish run as a pipeline</li>
+        <li>Decisions are kept in memory across sessions</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="slide">
+  <div class="kicker">The map</div>
+  <h2>The life of an issue</h2>
+  <div class="loop">
+    <div class="step"><b>Pick</b><span>read the issue, recall past context</span></div>
+    <div class="step"><b>Isolate</b><span>worktree, toolchain, agents</span></div>
+    <div class="step human"><b>Design</b><span>spec, then spec review</span></div>
+    <div class="step"><b>Plan</b><span>task graph, checkboxes</span></div>
+    <div class="step"><b>Build</b><span>subagents, TDD</span></div>
+    <div class="step"><b>Polish</b><span>3 reviews, cleanup</span></div>
+    <div class="step human"><b>Review</b><span>your diff, your call</span></div>
+    <div class="step human"><b>Ship</b><span>commit, PR, MR</span></div>
+    <div class="step"><b>Remember</b><span>store decisions</span></div>
+  </div>
+  <p class="legend"><i style="background:color-mix(in srgb, var(--teal) 10%, var(--panel))"></i>shaded = your attention needed · everything else runs unattended</p>
+  <div class="spacer"></div>
+  <p class="lede">Your job moves from typing code to <b>deciding and reviewing</b>. The rest of the talk goes through these nine stages in order.</p>
+</section>
+
+<!-- 4 PICK -->
+<section class="slide">
+  <div class="where"><span class="on">pick</span><span>isolate</span><span>design</span><span>plan</span><span>build</span><span>polish</span><span>review</span><span>ship</span><span>remember</span></div>
+  <div class="kicker">1 · Pick</div>
+  <h2>Start from the issue itself</h2>
+  <div class="cols two-wide">
+    <div class="term"><span class="c"># in the agent</span>
+<span class="p">›</span> read issue #42 and summarise what's
+  actually being asked
+
+<span class="t">⏺ github.issue_read(#42)</span>
+<span class="t">⏺ /recall parser empty input</span>
+  <span class="g">found 2 memories:</span>
+  · parser returns Option, never panics
+  · "empty file" regressed once in v0.3
+
+<span class="p">›</span> …</div>
+    <div>
+      <ul class="clean">
+        <li><b>GitHub / GitLab MCP servers</b> pull the issue, comments and linked MRs straight into context. On the work host GitLab is <b>read-only</b>.</li>
+        <li><b><code>/recall</code></b> searches memory from earlier sessions, per project, before any research starts.</li>
+        <li>MCP servers are trimmed to the tools actually used, since every tool name costs tokens in every session.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 5 ISOLATE -->
+<section class="slide">
+  <div class="where"><span>pick</span><span class="on">isolate</span><span>design</span><span>plan</span><span>build</span><span>polish</span><span>review</span><span>ship</span><span>remember</span></div>
+  <div class="kicker">2 · Isolate</div>
+  <h2>One issue, one worktree</h2>
+  <div class="cols two">
+    <div class="term"><span class="p">$</span> git bclone git@github.com:acme/tally.git
+<span class="p">$</span> cd tally/main
+<span class="p">$</span> git wb fix/42-empty-input
+<span class="c">  → ../fix/42-empty-input  (off origin/main)</span>
+<span class="p">$</span> git meta link
+<span class="c">  → .envrc symlinked from .meta/</span>
+
+tally/
+├── .bare/            <span class="c">shared git dir</span>
+├── .meta/            <span class="c">.envrc, docs archive</span>
+├── main/
+├── fix/42-empty-input/
+└── feat/51-json-output/</div>
+    <div>
+      <ul class="clean">
+        <li><b>Bare clone with sibling worktrees.</b> Every branch is a real directory, so agents never touch each other's files.</li>
+        <li><b><code>git wb</code> / <code>git wr</code></b> create and remove a worktree and its branch.</li>
+        <li><b><code>git meta</code></b> shares the untracked setup (<code>.envrc</code>) across worktrees and archives specs and plans.</li>
+        <li>On <code>cd</code>, <b>direnv</b> loads the project's toolchain.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 6 ISOLATE: context -->
+<section class="slide">
+  <div class="where"><span>pick</span><span class="on">isolate</span><span>design</span><span>plan</span><span>build</span><span>polish</span><span>review</span><span>ship</span><span>remember</span></div>
+  <div class="kicker">2 · Isolate</div>
+  <h2>The right expert loads when you enter the directory</h2>
+  <div class="cols two">
+    <div>
+      <table>
+        <tr><th>Project looks like</th><th>Agent linked in</th></tr>
+        <tr><td><code>Cargo.toml</code></td><td>rust-engineer</td></tr>
+        <tr><td>a <code>bevy</code> dependency</td><td>bevy-engineer</td></tr>
+        <tr><td><code>Anchor.toml</code></td><td>solana-developer</td></tr>
+        <tr><td>Unity layout / <code>.asmdef</code></td><td>unity-csharp-engineer</td></tr>
+        <tr><td>nothing matches</td><td class="small">nothing, and no leftover dir</td></tr>
+      </table>
+      <p class="small" style="margin-top:16px">Language rules (<code>rust.md</code>, <code>nix.md</code>, <code>lua.md</code>…) are linked the same way.</p>
+    </div>
+    <div class="card" style="align-self:start">
+      <h3>Why not install everything globally?</h3>
+      <p>Every agent, rule and MCP tool you install globally costs prompt tokens <b>in every session</b>, including projects where it can never apply.</p>
+      <p style="margin-top:12px">Scoping them to the project keeps the context for the actual work, and the agent doesn't get Solana advice while fixing a Lua plugin.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7 unattended safely -->
+<section class="slide">
+  <div class="where"><span>pick</span><span class="on">isolate</span><span>design</span><span>plan</span><span>build</span><span>polish</span><span>review</span><span>ship</span><span>remember</span></div>
+  <div class="kicker">2 · Isolate</div>
+  <h2>Let it run unattended, with a sandbox around it</h2>
+  <div class="cols two-wide">
+    <div class="layers">
+      <div class="layer"><b>sandbox</b><p>bubblewrap on Linux: read-only <code>/nix</code>, selected <code>/etc</code>, only the project and cache dirs writable. The real protection.</p></div>
+      <div class="layer"><b>bash guard</b><p>A PreToolUse hook parses every shell command. It hard-denies <code>git push</code>, <code>reset --hard</code>, <code>git clean</code> and curl-pipe-to-shell, and asks on <code>sudo</code>, <code>rm</code> and <code>dd</code>. It's tested against 38 bypass payloads.</p></div>
+      <div class="layer"><b>deny list</b><p>Read/Edit blocked on secrets, keys and credential dirs.</p></div>
+      <div class="layer"><b>ask list</b><p>Named risky tools prompt with a human-readable reason.</p></div>
+    </div>
+    <div class="term"><span class="p">$</span> a   <span class="c"># sandboxed claude,
+      # no permission prompts</span>
+
+<span class="p">›</span> throw away my changes
+  and push
+
+<span class="t">⏺ Bash(git reset --hard)</span>
+  <span class="r">✗ denied by hook</span>
+<span class="t">⏺ Bash(git push)</span>
+  <span class="r">✗ denied by hook</span>
+
+<span class="c">  pushing stays with you.</span></div>
+  </div>
+</section>
+
+<!-- 8 parallel -->
+<section class="slide">
+  <div class="where"><span>pick</span><span class="on">isolate</span><span>design</span><span>plan</span><span>build</span><span>polish</span><span>review</span><span>ship</span><span>remember</span></div>
+  <div class="kicker">2 · Isolate</div>
+  <h2>Three issues at once without losing track</h2>
+  <div class="cols three">
+    <div class="card">
+      <div class="num">tab titles</div>
+      <h3>Status at a glance</h3>
+      <p><span class="mono accent">⠿</span> working<br><span class="mono accent">?</span> waiting for you<br><span class="mono accent">✓</span> done<br><span class="mono accent">·</span> fresh session</p>
+      <p class="small" style="margin-top:10px">Hooks set the tmux/terminal title, so a background tab shows its state.</p>
+    </div>
+    <div class="card">
+      <div class="num">statusline</div>
+      <h3>Budget always visible</h3>
+      <p>Model and effort, context used, branch and diff, worktree, and the 5h / 7d rate limits.</p>
+      <p class="small" style="margin-top:10px">You can see a session about to hit its limit and act first.</p>
+    </div>
+    <div class="card">
+      <div class="num">shared infra</div>
+      <h3>One language server</h3>
+      <p><b>lspmux</b> hands every agent and editor the same rust-analyzer.</p>
+      <p class="small" style="margin-top:10px">Without it, six sessions started six analyzers of ~2.4 GiB each. Phone notifications (ntfy) cover the time you're away.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 9 DESIGN -->
+<section class="slide">
+  <div class="where"><span>pick</span><span>isolate</span><span class="on">design</span><span>plan</span><span>build</span><span>polish</span><span>review</span><span>ship</span><span>remember</span></div>
+  <div class="kicker">3 · Design</div>
+  <h2>A spec comes before any code</h2>
+  <div class="pipeline">
+    <div class="box"><b>brainstorm</b><span>Asks questions one at a time and proposes options with pros and cons for each.</span></div>
+    <div class="arrow">→</div>
+    <div class="box"><b>spec</b><span><code>docs/specs/2026-09-30-empty-input-design.md</code></span></div>
+    <div class="arrow">→</div>
+    <div class="box"><b>/spec-review</b><span>Two finders: <i>doc quality</i> and <i>checked against the codebase</i>, with file:line evidence.</span></div>
+    <div class="arrow">→</div>
+    <div class="box"><b>verify</b><span>One verifier per finding. Findings that don't hold up are dropped.</span></div>
+    <div class="arrow">→</div>
+    <div class="box" style="border-color:var(--teal)"><b>fix or park</b><span>If a fix has no downside it's applied. Real trade-offs are <b>parked for you</b>.</span></div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">It runs up to 3 rounds. You only see the decisions that are actually yours to make, and false assumptions about the code get caught <b>before</b> any code is written.</p>
+</section>
+
+<!-- 10 PLAN -->
+<section class="slide">
+  <div class="where"><span>pick</span><span>isolate</span><span>design</span><span class="on">plan</span><span>build</span><span>polish</span><span>review</span><span>ship</span><span>remember</span></div>
+  <div class="kicker">4 · Plan</div>
+  <h2>The plan doubles as the progress log</h2>
+  <div class="cols two">
+    <div class="term"><span class="c">## Task Dependency Graph</span>
+T1 add failing test ──┐
+T2 parser returns None ┼─→ T4 CLI message
+T3 docs note ─────────┘
+
+<span class="c">## Agent Assignments</span>
+T1,T2 → rust-engineer
+T3    → general-purpose
+
+<span class="c">## Tasks</span>
+- [x] T1 failing test for empty stdin
+- [x] T2 Option&lt;Summary&gt; from parse()
+- [ ] T3 README: empty input behaviour
+- [ ] T4 exit 0 with "no input" message</div>
+    <div>
+      <ul class="clean">
+        <li><b>Dependency graph</b>: independent tasks run in parallel, dependent ones run in order.</li>
+        <li><b>Agent assignment per task</b>, so the Rust specialist writes the Rust.</li>
+        <li><b>Checkboxes are the state.</b> If a session dies or the context is cleared, it picks up at the next unchecked box.</li>
+        <li><b><code>/checkpoint</code></b> saves goal, decisions and next step to memory before a context clear.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 11 BUILD -->
+<section class="slide">
+  <div class="where"><span>pick</span><span>isolate</span><span>design</span><span>plan</span><span class="on">build</span><span>polish</span><span>review</span><span>ship</span><span>remember</span></div>
+  <div class="kicker">5 · Build</div>
+  <h2>Subagents build it and review each other</h2>
+  <div class="cols three">
+    <div class="card">
+      <div class="num">per task</div>
+      <h3>Fresh context each time</h3>
+      <p>Each task goes to a new subagent with only the plan and the spec. The main session stays small and in charge.</p>
+    </div>
+    <div class="card">
+      <div class="num">discipline</div>
+      <h3>Test first</h3>
+      <p>A failing test, then the code. "Done" means a command ran and passed, not that the agent says so.</p>
+    </div>
+    <div class="card">
+      <div class="num">when stuck</div>
+      <h3>Debug by hypothesis</h3>
+      <p>Systematic debugging: root cause before any fix. For hard bugs, several agents each investigate a competing theory.</p>
+    </div>
+  </div>
+  <p class="small" style="margin-top:22px">Every task is reviewed before the next batch starts. The same shared commands, rules and agents are used by Claude and Codex.</p>
+</section>
+
+<!-- 12 POLISH -->
+<section class="slide">
+  <div class="where"><span>pick</span><span>isolate</span><span>design</span><span>plan</span><span>build</span><span class="on">polish</span><span>review</span><span>ship</span><span>remember</span></div>
+  <div class="kicker">6 · Polish</div>
+  <h2>Clean it up before you ever see it</h2>
+  <div class="pipeline">
+    <div class="box"><b>review 1</b><span>full diff against base; fix and commit</span></div>
+    <div class="arrow">→</div>
+    <div class="box"><b>review 2</b><span>catches what fix 1 introduced</span></div>
+    <div class="arrow">→</div>
+    <div class="box"><b>review 3</b><span>stops early if clean</span></div>
+    <div class="arrow">→</div>
+    <div class="box"><b>idioms</b><span>language idioms, matches existing code</span></div>
+    <div class="arrow">→</div>
+    <div class="box"><b>/cleanup</b><span>dead code, over-abstraction, AI artifacts</span></div>
+    <div class="arrow">→</div>
+    <div class="box"><b>trim + humanize</b><span>cut low-value comments, rewrite what remains</span></div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">The diff you get to review is <b>already reviewed three times</b> and reads like it was written by a person who knows the codebase.</p>
+</section>
+
+<!-- 13 REVIEW -->
+<section class="slide">
+  <div class="where"><span>pick</span><span>isolate</span><span>design</span><span>plan</span><span>build</span><span>polish</span><span class="on">review</span><span>ship</span><span>remember</span></div>
+  <div class="kicker">7 · Review</div>
+  <h2>You review in your editor, as you would any branch</h2>
+  <div class="cols two">
+    <table>
+      <tr><th>Key</th><th>What you see</th></tr>
+      <tr><td><code>␣cvb</code></td><td>whole branch vs base (diffview)</td></tr>
+      <tr><td><code>␣cvl</code></td><td>commit-by-commit walk</td></tr>
+      <tr><td><code>␣cvf</code></td><td>structural diff (difftastic)</td></tr>
+      <tr><td><code>␣cvo</code></td><td>pick and check out an MR</td></tr>
+      <tr><td><code>␣cvw</code></td><td>open the MR in the browser</td></tr>
+    </table>
+    <div>
+      <ul class="clean">
+        <li>These always diff <code>base...HEAD</code> (three dots), so work that landed on main after you branched doesn't show up.</li>
+        <li><b>difftastic</b> diffs by syntax: moved blocks and reformatting don't hide real changes.</li>
+        <li>For an extra check, <code>/code-review</code> sends a review agent over the branch first.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 14 SHIP -->
+<section class="slide">
+  <div class="where"><span>pick</span><span>isolate</span><span>design</span><span>plan</span><span>build</span><span>polish</span><span>review</span><span class="on">ship</span><span>remember</span></div>
+  <div class="kicker">8 · Ship</div>
+  <h2>Commit, PR, and the MR discussion in one place</h2>
+  <div class="cols two-wide">
+    <div class="term"><span class="p">›</span> /commit
+  <span class="g">fix(parser): handle empty input</span>
+  confirm? <span class="p">y</span>
+
+<span class="p">›</span> /pr
+  <span class="c">reads the branch log + diff,
+  follows the repo's PR template</span>
+
+<span class="p">$</span> git wr fix/42-empty-input
+<span class="c">  worktree removed, branch deleted
+  (kept if unmerged)</span></div>
+    <div>
+      <ul class="clean">
+        <li><b><code>/commit</code></b> writes one conventional line and waits for your confirm.</li>
+        <li><b><code>/pr</code></b> writes the title and description from the whole branch, not only the last commit.</li>
+        <li><b>At work (GitLab)</b>: review threads, line comments, suggestions, approvals and pipeline status all inside Neovim (<code>␣cvr</code>, <code>␣cvc</code>, <code>␣cva</code>, <code>␣cvp</code>).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 15 REMEMBER -->
+<section class="slide">
+  <div class="where"><span>pick</span><span>isolate</span><span>design</span><span>plan</span><span>build</span><span>polish</span><span>review</span><span>ship</span><span class="on">remember</span></div>
+  <div class="kicker">9 · Remember</div>
+  <h2>The next issue starts with what this one taught</h2>
+  <div class="cols three">
+    <div class="card">
+      <div class="num">/remember</div>
+      <h3>Store it</h3>
+      <p>Facts as triples (<i>parser · returns · Option</i>), events as episodes, workflows as procedures. Stored per project, tagged with entities.</p>
+    </div>
+    <div class="card">
+      <div class="num">/docs</div>
+      <h3>Update the docs</h3>
+      <p>Updates CLAUDE.md, auto-memory and ferrex from the branch diff, so the next agent reads the new convention.</p>
+    </div>
+    <div class="card">
+      <div class="num">/reflect</div>
+      <h3>Keep it true</h3>
+      <p>Finds stale and contradictory memories. You <code>/forget</code> or replace them.</p>
+    </div>
+  </div>
+  <p class="small" style="margin-top:22px">Backed by a local vector DB (qdrant). Nothing leaves the machine.</p>
+</section>
+
+<!-- 16 your attention -->
+<section class="slide">
+  <div class="kicker">Where your time goes</div>
+  <h2>Four points where you step in</h2>
+  <table style="margin-top:6px">
+    <tr><th style="width:22%">Point</th><th style="width:40%">You decide</th><th>Everything else</th></tr>
+    <tr><td><b>Spec</b></td><td>Is this the right fix? Answer the parked trade-offs.</td><td class="small">brainstorm, spec review, codebase checks</td></tr>
+    <tr><td><b>Plan</b></td><td>A quick look: scope and task split.</td><td class="small">graph, agent assignment, checkboxes</td></tr>
+    <tr><td><b>Diff</b></td><td>Would I have merged this from a colleague?</td><td class="small">build, tests, 3 review rounds, cleanup</td></tr>
+    <tr><td><b>Merge</b></td><td>Ship it.</td><td class="small">commit message, PR text, worktree teardown</td></tr>
+  </table>
+  <div class="spacer"></div>
+  <p class="bigquote">Between those points you're working on <span class="accent">another issue</span> in another tab.</p>
+</section>
+
+<!-- 17 steal this -->
+<section class="slide">
+  <div class="kicker">Take it home</div>
+  <h2>You don't need Nix for any of this</h2>
+  <table>
+    <tr><th style="width:30%">Idea</th><th>Smallest version you can try tomorrow</th></tr>
+    <tr><td>Worktree per issue</td><td><code>git worktree add -b fix/42 ../fix-42 origin/main</code></td></tr>
+    <tr><td>Guard hook</td><td>PreToolUse hook on <code>Bash</code>; a 20-line script that exits 2 on <code>sudo</code> / <code>rm -rf</code></td></tr>
+    <tr><td>Scoped agents</td><td>put agents in the project's <code>.claude/agents/</code>, not <code>~/.claude/agents/</code></td></tr>
+    <tr><td>Spec before code</td><td>“write a spec to docs/specs, then critique it against the code”</td></tr>
+    <tr><td>Plan = progress log</td><td>checkbox tasks in a file the agent must update</td></tr>
+    <tr><td>Know when to look</td><td>Notification + Stop hooks → <code>notify-send</code> / terminal title</td></tr>
+  </table>
+  <p class="small" style="margin-top:14px">Snippets for each are in the workshop book.</p>
+</section>
+
+<!-- 18 -->
+<section class="slide">
+  <div class="kicker">Hands-on next</div>
+  <h1>Let's fix a real issue.</h1>
+  <p class="lede" style="margin-top:24px">Demo repo <code>tally</code>, issue #42: <i>“panics on empty input.”</i> We'll go from issue to PR, live.</p>
+  <div class="spacer"></div>
+  <p class="small">Questions welcome at any point.</p>
+</section>
+
+</div></div>
+
+<div id="bar"></div>
+<div id="count"></div>
+<div id="hint">← → navigate · F fullscreen · T theme</div>
+
+<script>
+(() => {
+  const slides = [...document.querySelectorAll('.slide')];
+  const canvas = document.getElementById('canvas');
+  const bar = document.getElementById('bar');
+  const count = document.getElementById('count');
+  let i = 0;
+
+  const fromHash = () => {
+    const n = parseInt(location.hash.slice(1), 10);
+    return Number.isFinite(n) ? Math.min(Math.max(n - 1, 0), slides.length - 1) : 0;
+  };
+
+  const show = (n) => {
+    i = Math.min(Math.max(n, 0), slides.length - 1);
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    bar.style.width = `${((i + 1) / slides.length) * 100}%`;
+    count.textContent = `${i + 1} / ${slides.length}`;
+    history.replaceState(null, '', `#${i + 1}`);
+  };
+
+  const fit = () => {
+    const s = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    canvas.style.transform = `scale(${s})`;
+  };
+
+  document.addEventListener('keydown', (e) => {
+    if (['ArrowRight', 'PageDown', ' ', 'l', 'j'].includes(e.key)) { e.preventDefault(); show(i + 1); }
+    else if (['ArrowLeft', 'PageUp', 'h', 'k'].includes(e.key)) { e.preventDefault(); show(i - 1); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(slides.length - 1);
+    else if (e.key === 'f') {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen?.();
+    } else if (e.key === 't') {
+      const root = document.documentElement;
+      const dark = root.dataset.theme
+        ? root.dataset.theme === 'dark'
+        : matchMedia('(prefers-color-scheme: dark)').matches;
+      root.dataset.theme = dark ? 'light' : 'dark';
+    }
+  });
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('a')) return;
+    show(e.clientX > window.innerWidth / 3 ? i + 1 : i - 1);
+  });
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', () => show(fromHash()));
+
+  fit();
+  show(fromHash());
+})();
+</script>
+</body>
+</html>

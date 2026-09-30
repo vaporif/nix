@@ -65,10 +65,25 @@ in {
       ".claude/keybindings.json".text = builtins.toJSON {
         "$schema" = "https://www.schemastore.org/claude-code-keybindings.json";
         "$docs" = "https://code.claude.com/docs/en/keybindings";
-        bindings = map (context: {
-          inherit context;
-          bindings."ctrl+q" = "scroll:bottom";
-        }) ["Scroll" "Transcript"];
+        bindings =
+          map (context: {
+            inherit context;
+            bindings."ctrl+q" = "scroll:bottom";
+          }) ["Scroll" "Transcript"]
+          # tmux binds C-t to the bottom drawer, so the task list moves to C-S-t
+          ++ [
+            {
+              context = "Global";
+              bindings = {
+                "ctrl+t" = null;
+                "ctrl+shift+t" = "app:toggleTodos";
+              };
+            }
+            {
+              context = "Chat";
+              bindings."ctrl+shift+k" = "chat:killAgents";
+            }
+          ];
       };
 
       ".claude/settings.json".text = builtins.toJSON {

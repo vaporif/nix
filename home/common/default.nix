@@ -142,6 +142,9 @@ in {
         set -sg escape-time 0
         set -g mouse on
         set -g focus-events on
+        # Pass modified keys (e.g. C-S-t) through as CSI-u to apps that ask for them
+        set -s extended-keys on
+        set -as terminal-features 'xterm-ghostty:extkeys'
         set -g history-limit 50000
         set -g set-clipboard on
         set -g allow-passthrough on
@@ -202,6 +205,7 @@ in {
         bind h split-window -h -c "#{pane_current_path}"
         # close pane without confirmation prompt
         bind x kill-pane
+        bind A display-popup -E -w 90% -h 90% -d "#{pane_current_path}" "claude agents"
 
         bind m switch-client -T movewin
         bind -T movewin n swap-window -t -1 \; switch-client -T movewin

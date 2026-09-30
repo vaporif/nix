@@ -95,6 +95,7 @@
         ];
         ro = [
           "$HOME/.config/claude-rules"
+          "$HOME/.config/claude-agents"
           "$HOME/.config/nix-darwin"
           "$HOME/.ssh/known_hosts"
           "$HOME/.ssh/config"

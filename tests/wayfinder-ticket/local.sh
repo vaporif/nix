@@ -319,7 +319,7 @@ test_outside_repo() {
   for cmd in "maps" "show foo#1" "show-map foo" "new foo task title" "edit foo#1 Notes --file /dev/null" \
     "main-root" "default-branch" "merged main" "base-ref foo#1" "claim foo#1" "release foo#1" \
     "map-complete foo" "block foo#1 2" "unblock foo#1 2" "attach foo#1 --findings /dev/null" "advance foo#1 a b" \
-    "resolve foo#1 --answer /dev/null" "close foo#1 --evidence /dev/null --outcome keep" "drop foo#1 --reason x"; do
+    "resolve foo#1 --answer /dev/null" "close foo#1 --evidence /dev/null --outcome keep" "drop foo#1 --reason x" "frontier foo" "status foo#1"; do
     # shellcheck disable=SC2086
     assert_exit 1 "$WT" $cmd
     assert_contains "$ERR" "not inside a git repository"
@@ -1427,4 +1427,275 @@ test_resolve_close_drop_reject_reserved_heading() {
   assert_contains "$ERR" "content contains section heading: ## Notes"
   assert_unchanged "$dir" assert_exit 1 "$WT" drop foo#1 --reason $'x\n## Notes'
   assert_contains "$ERR" "content contains section heading: ## Notes"
+}
+
+# --- Stage E: frontier, status, trailer ---
+
+T=$'\t'
+
+test_frontier_order_and_mine() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo task >/dev/null
+  mk_ticket foo implementation >/dev/null
+  mk_ticket foo research:options >/dev/null
+  mk_ticket foo grilling >/dev/null
+  mk_ticket foo task --blocked-by 1 >/dev/null
+  mk_ticket foo task >/dev/null
+  "$WT" drop foo#6 --reason gone
+  new_session
+  "$WT" claim foo#4
+  assert_exit 0 "$WT" frontier foo
+  assert_eq "$OUT" "4${T}grilling${T}-${T}mine
+1${T}task${T}-${T}
+2${T}implementation${T}superpowers:brainstorming${T}
+3${T}research:options${T}research${T}"
+  assert_exit 3 "$WT" frontier nope
+}
+
+test_frontier_mine_blocked() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo task >/dev/null
+  mk_ticket foo task >/dev/null
+  new_session
+  "$WT" claim foo#1
+  "$WT" block foo#1 2
+  assert_exit 0 "$WT" frontier foo
+  assert_eq "$OUT" "1${T}task${T}-${T}mine (blocked)
+2${T}task${T}-${T}"
+}
+
+test_frontier_waiting_only_at_brainstorming() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo implementation >/dev/null
+  mk_ticket foo implementation >/dev/null
+  "$WT" edit foo#1 Notes --file "$(text_file "waiting on merge: feat-x")"
+  "$WT" edit foo#2 Notes --file "$(text_file "waiting on merge: feat-x")"
+  new_session
+  "$WT" claim foo#2
+  "$WT" advance foo#2 superpowers:brainstorming superpowers:writing-plans
+  "$WT" release foo#2
+  assert_exit 0 "$WT" frontier foo
+  assert_eq "$OUT" "1${T}implementation${T}superpowers:brainstorming${T}waiting feat-x
+2${T}implementation${T}superpowers:writing-plans${T}"
+}
+
+test_frontier_waiting_lists_all_branches() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo implementation >/dev/null
+  "$WT" edit foo#1 Notes --file "$(text_file $'- waiting on merge: feat-b\nunrelated line\n- waiting on merge: feat-a (asked 2026-10-01)')"
+  assert_exit 0 "$WT" frontier foo
+  assert_eq "$OUT" "1${T}implementation${T}superpowers:brainstorming${T}waiting feat-b feat-a"
+}
+
+test_frontier_skips_live_foreign_includes_stale() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo task >/dev/null
+  mk_ticket foo task >/dev/null
+  mk_ticket foo task >/dev/null
+  new_session
+  "$WT" claim foo#1
+  new_session
+  "$WT" claim foo#2
+  kill_agent
+  wait_unlocked foo 2
+  new_session
+  assert_exit 0 "$WT" frontier foo
+  assert_eq "$OUT" "2${T}task${T}-${T}
+3${T}task${T}-${T}"
+}
+
+test_status_fields() {
+  local live
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo task >/dev/null
+  mk_ticket foo task >/dev/null
+  mk_ticket foo implementation --blocked-by 2 1 >/dev/null
+  mk_ticket foo task >/dev/null
+  assert_exit 0 "$WT" status foo#3
+  assert_eq "$OUT" "$(printf '%s\n' "ref: foo#3" "type: implementation" "status: open" \
+    "phase: superpowers:brainstorming" "blocked-by: 1,2" "claimed-by: " "claim: none" \
+    "superseded-by: " "branch: " "path: $(map_path foo)/3.md")"
+  assert_eq "$(status_field foo#1 blocked-by)" ""
+  new_session
+  "$WT" claim foo#1
+  live=$AGENT_SESSION_ID
+  assert_eq "$(status_field foo#1 claimed-by)" "$live"
+  assert_eq "$(status_field foo#1 claim)" live
+  new_session
+  "$WT" claim foo#4
+  kill_agent
+  wait_unlocked foo 4
+  assert_eq "$(status_field foo#4 claim)" stale
+  "$WT" drop foo#2 --reason replaced --superseded-by 4
+  assert_eq "$(status_field foo#2 superseded-by)" 4
+  assert_eq "$(status_field foo#2 status)" closed
+  assert_eq "$(status_field foo#3 blocked-by)" 1,4
+  assert_exit 3 "$WT" status foo#9
+}
+
+# trailer_for <harness> <args...>: OUT is the trailer under that harness.
+trailer_for() {
+  local h=$1
+  shift
+  WAYFINDER_HARNESS=$h assert_exit 0 "$WT" trailer "$@"
+}
+
+test_trailer_per_harness() {
+  local p
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo implementation >/dev/null
+  trailer_for claude wayfinder foo
+  assert_eq "$OUT" $'/clear\n/wayfinder foo'
+  trailer_for codex wayfinder foo
+  assert_eq "$OUT" $'/clear\n$wayfinder foo'
+  for p in brainstorming writing-plans executing-plans; do
+    trailer_for claude "$p" foo#1
+    assert_eq "$OUT" "/clear
+/superpowers:$p foo#1"
+    trailer_for codex "$p" foo#1
+    assert_eq "$OUT" "/clear
+\$$p foo#1"
+  done
+}
+
+test_trailer_rejections() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo implementation >/dev/null
+  export WAYFINDER_HARNESS=claude
+  assert_exit 1 "$WT" trailer subagent-driven-development foo#1
+  assert_exit 1 "$WT" trailer wayfinder foo#1
+  assert_exit 1 "$WT" trailer brainstorming
+  assert_exit 1 "$WT" trailer writing-plans foo
+  assert_exit 3 "$WT" trailer executing-plans foo#9
+  assert_exit 2 "$WT" trailer wayfinder foo --remove /x
+  WAYFINDER_HARNESS=vim assert_exit 1 "$WT" trailer wayfinder foo
+  unset WAYFINDER_HARNESS
+  if [ "$WT_AGENT_ANCESTOR" = 0 ]; then
+    assert_exit 1 "$WT" trailer wayfinder foo
+    assert_contains "$ERR" "no agent process found"
+  else
+    echo "skip: no-harness rejection needs a run without an agent ancestor" >&2
+  fi
+}
+
+# restart_line <dir> <starter>
+restart_line() {
+  printf 'exit, then run: cd %q && %s' "$1" "$2"
+}
+
+test_trailer_restart_when_spec_in_other_worktree() {
+  local wt
+  setup_map_with_ticket implementation
+  git worktree add -q -b wayfinder-foo-1-impl .claude/worktrees/wayfinder-foo-1-impl
+  wt=$(realpath .claude/worktrees/wayfinder-foo-1-impl)
+  mkdir -p "$wt/docs"
+  echo spec >"$wt/docs/s.md"
+  new_session
+  "$WT" claim foo#1
+  "$WT" advance foo#1 superpowers:brainstorming superpowers:writing-plans "spec=$wt/docs/s.md"
+  trailer_for claude writing-plans foo#1
+  assert_eq "$OUT" "$(restart_line "$wt" a)
+/superpowers:writing-plans foo#1"
+  trailer_for codex writing-plans foo#1
+  assert_eq "$OUT" "$(restart_line "$wt" o)
+\$writing-plans foo#1"
+  cd "$wt/docs"
+  trailer_for claude writing-plans foo#1
+  assert_eq "$OUT" $'/clear\n/superpowers:writing-plans foo#1'
+}
+
+test_trailer_restart_impl_worktree_registered_elsewhere() {
+  local wt
+  setup_map_with_ticket implementation
+  git worktree add -q -b wayfinder-foo-1-impl .claude/worktrees/wayfinder-foo-1-impl
+  wt=$(git worktree list --porcelain | awk '/^worktree .*wayfinder-foo-1-impl$/ { print substr($0, 10) }')
+  trailer_for claude brainstorming foo#1
+  assert_eq "$OUT" "$(restart_line "$wt" a)
+/superpowers:brainstorming foo#1"
+  git worktree add -q -b wayfinder-foo-11-impl .claude/worktrees/wayfinder-foo-11-impl
+  trailer_for claude brainstorming foo#1
+  assert_eq "$(head -1 <<<"$OUT")" "$(restart_line "$wt" a)" "exact basename match"
+}
+
+test_trailer_no_restart_in_impl_worktree() {
+  setup_map_with_ticket implementation
+  git worktree add -q -b wayfinder-foo-1-impl .claude/worktrees/wayfinder-foo-1-impl
+  mkdir -p .claude/worktrees/wayfinder-foo-1-impl/src
+  cd .claude/worktrees/wayfinder-foo-1-impl/src
+  trailer_for claude brainstorming foo#1
+  assert_eq "$OUT" $'/clear\n/superpowers:brainstorming foo#1'
+  trailer_for codex brainstorming foo#1
+  assert_eq "$OUT" $'/clear\n$brainstorming foo#1'
+}
+
+test_trailer_cd() {
+  setup_map_with_ticket implementation
+  trailer_for claude wayfinder foo --cd /some/root
+  assert_eq "$OUT" $'exit, then run: cd /some/root && a\n/wayfinder foo'
+  trailer_for codex wayfinder foo --cd /some/root
+  assert_eq "$OUT" $'exit, then run: cd /some/root && o\n$wayfinder foo'
+}
+
+test_trailer_cd_remove_discard() {
+  local root wt line
+  setup_map_with_ticket implementation
+  root=$PWD
+  git worktree add -q -b wayfinder-foo-1-impl .claude/worktrees/wayfinder-foo-1-impl
+  wt=$(git worktree list --porcelain | awk '/^worktree .*wayfinder-foo-1-impl$/ { print substr($0, 10) }')
+  cd .claude/worktrees/wayfinder-foo-1-impl
+  trailer_for claude wayfinder foo --cd "$root" --remove "$wt"
+  assert_eq "$OUT" "exit, then run: cd $(printf %q "$root") && git worktree remove $(printf %q "$wt") && git branch -d wayfinder-foo-1-impl && a
+/wayfinder foo"
+  trailer_for codex wayfinder foo --cd "$root" --remove . --discard
+  assert_eq "$OUT" "exit, then run: cd $(printf %q "$root") && git worktree remove $(printf %q "$wt") && git branch -D wayfinder-foo-1-impl && o
+\$wayfinder foo"
+  line=$(head -1 <<<"$OUT")
+  line=${line#exit, then run: }
+  cd /
+  eval "${line% && o} && true"
+  [ ! -e "$wt" ] || fail "worktree not removed by the restart line"
+  if git -C "$root" rev-parse -q --verify refs/heads/wayfinder-foo-1-impl >/dev/null; then fail "branch not deleted"; fi
+  cd "$root"
+  assert_exit 1 "$WT" trailer wayfinder foo --cd "$root" --remove "$root/nowhere"
+}
+
+test_trailer_quotes_paths_with_spaces() {
+  local root wt line
+  mk_origin
+  git clone -q "file://$PWD/origin.git" "my repo"
+  cd "my repo"
+  root=$(realpath "$PWD")
+  mk_map foo >/dev/null
+  mk_ticket foo implementation >/dev/null
+  git worktree add -q -b wayfinder-foo-1-impl ".claude/worktrees/wayfinder-foo-1-impl"
+  wt=$(realpath .claude/worktrees/wayfinder-foo-1-impl)
+  trailer_for claude brainstorming foo#1
+  line=$(head -1 <<<"$OUT")
+  line=${line#exit, then run: }
+  [ "$line" != "$(head -1 <<<"$OUT")" ] || fail "no restart line: $OUT"
+  assert_eq "$(cd / && eval "${line% && a} && pwd -P")" "$wt"
+  cd "$wt"
+  trailer_for claude wayfinder foo --cd "$root" --remove "$wt"
+  line=$(head -1 <<<"$OUT")
+  line=${line#exit, then run: }
+  cd /
+  eval "${line% && a}"
+  [ ! -e "$wt" ] || fail "worktree with spaces not removed"
+  assert_eq "$(cd "$root" && pwd -P)" "$root"
 }

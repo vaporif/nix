@@ -248,6 +248,64 @@ local_edit() {
   fi
 }
 
+# waiting_branches <ticket file>: one branch per "waiting on merge:" Notes line, in order.
+waiting_branches() {
+  section_get "$1" Notes | awk '
+    match($0, /waiting on merge: [^[:space:]]+/) { print substr($0, RSTART + 18, RLENGTH - 18) }
+  '
+}
+
+local_frontier() {
+  [ $# -eq 1 ] || usage_error "frontier <slug>"
+  local slug=$1 id state blockers marker line mine=() rest=()
+  check_slug "$slug"
+  use_map "$slug"
+  lock_map "$slug"
+  load_map "$MAP_FILE" "$slug"
+  for id in $(ticket_ids "$MAP_DIR"); do
+    load_ticket "$MAP_DIR/$id.md" "$id"
+    [ "$T_STATUS" = open ] || continue
+    state=$(claim_state "$MAP_DIR/$id.claim" "$T_CLAIMED")
+    blockers=$(open_blockers)
+    line="$id"$'\t'"$T_TYPE"$'\t'"${T_PHASE:--}"$'\t'
+    if [ "$state" = live ] && [ -n "$SID" ] && [ "$T_CLAIMED" = "$SID" ]; then
+      if [ -n "$blockers" ]; then
+        mine+=("${line}mine (blocked)")
+      else
+        mine+=("${line}mine")
+      fi
+    elif [ "$state" != live ] && [ -z "$blockers" ]; then
+      marker=""
+      if [ "$T_PHASE" = superpowers:brainstorming ]; then
+        marker=$(waiting_branches "$MAP_DIR/$id.md" | paste -sd' ' -)
+        marker=${marker:+waiting $marker}
+      fi
+      rest+=("$line$marker")
+    fi
+  done
+  if [ $((${#mine[@]} + ${#rest[@]})) -gt 0 ]; then
+    printf '%s\n' "${mine[@]}" "${rest[@]}"
+  fi
+}
+
+local_status() {
+  [ $# -eq 1 ] || usage_error "status <slug>#<id>"
+  local ref=$1
+  use_ticket "$ref"
+  lock_map "$SLUG"
+  load_ticket "$TICKET_FILE" "$ID"
+  printf 'ref: %s\n' "$ref"
+  printf 'type: %s\n' "$T_TYPE"
+  printf 'status: %s\n' "$T_STATUS"
+  printf 'phase: %s\n' "$T_PHASE"
+  printf 'blocked-by: %s\n' "${T_BLOCKED// /,}"
+  printf 'claimed-by: %s\n' "$T_CLAIMED"
+  printf 'claim: %s\n' "$(claim_state "$CLAIM_FILE" "$T_CLAIMED")"
+  printf 'superseded-by: %s\n' "$T_SUPERSEDED"
+  printf 'branch: %s\n' "$T_BRANCH"
+  printf 'path: %s\n' "$TICKET_FILE"
+}
+
 # remove_proto_worktree <slug> <id>: exact basename match, never a glob, so map
 # foo never touches map foo-bar's worktrees and -impl worktrees never match.
 remove_proto_worktree() {

@@ -53,16 +53,29 @@ find_worktree_by_basename() {
   return 1
 }
 
-worktree_branch() {
+# worktree_record <path>: "<registered path>\t<branch or ->" of the worktree at <path>.
+worktree_record() {
   local path branch bare want
   want=$(realpath "$1" 2>/dev/null) || return 1
   while IFS=$'\t' read -r path branch bare; do
-    if [ "$(realpath "$path" 2>/dev/null)" = "$want" ]; then
-      printf '%s\n' "$branch"
+    if [ "$bare" = 0 ] && [ "$(realpath "$path" 2>/dev/null)" = "$want" ]; then
+      printf '%s\t%s\n' "$path" "$branch"
       return 0
     fi
   done < <(worktree_records)
   return 1
+}
+
+worktree_branch() {
+  local rec
+  rec=$(worktree_record "$1") || return 1
+  printf '%s\n' "${rec##*$'\t'}"
+}
+
+registered_worktree_path() {
+  local rec
+  rec=$(worktree_record "$1") || return 1
+  printf '%s\n' "${rec%%$'\t'*}"
 }
 
 main_root() {

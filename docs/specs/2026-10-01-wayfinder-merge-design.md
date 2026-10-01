@@ -449,6 +449,18 @@ the changed region after each `resolve`, applies the "apply" findings itself thr
 or an entry in Decisions so far is always "ask", whatever dissent labelled it; if the user agrees,
 it is handled as described under "History is never reopened".
 
+Changes from his copy of `dissent-review` (T5):
+
+- Dispatch: `Agent` with `general-purpose` on Claude, `spawn_agent` on Codex (see the Codex note
+  under Research).
+- Map mode: wayfinder writes the bundle below to a `mktemp` file and passes it as `path`. The
+  reviewer prompt's slots are filled as `DESTINATION` from `show-map`, `CLOSED_IDS` from the closed
+  tickets in the bundle, `TRACKER_BINDINGS` as the backend plus the map slug, `REVIEW_SCOPE` as
+  "whole map" or "changed region: `<ref>` plus the tickets its upkeep touched", and `CHART_STATE`
+  as `charted` after charting and `re-chartered` after a resolve.
+- Return section: "conformance lint, then `humanizer`" becomes "the surface runs its
+  finder/validator loop (cap 3)"; the analogy to the uninstalled `review` skill is dropped.
+
 Dissent gets one concatenated document as its artifact. **Whole map:** `show-map <slug>` plus `show`
 of every open ticket. **Changed region after a `resolve`:** `show-map <slug>` (Destination and
 Decisions so far as context) plus `show` of the resolved ticket, every open ticket created, edited,
@@ -733,7 +745,7 @@ not touch `home/common/packages.nix`; T2 is its only editor.
 | T2 | `wayfinder-ticket` local backend in `pkgs/wayfinder-ticket.nix`: references, map and ticket model, every command (incl. upkeep guards, `new --blocked-by`, `drop --superseded-by` with dependent rewiring, and proto worktree removal in `resolve`/`drop`/`map-complete`), claim protocol, `trailer`; add to `home.packages`; `tests/wayfinder-ticket.nix` in the common set | AFK | none |
 | T3 | Sandbox wrappers: shared bind function taking the program to exec, common-dir binds, `AGENT_SESSION_ID` (one `sharedEnvNames` entry; generated in the Darwin `preHook`, both bwrap scripts and the Linux passthrough wrappers); Linux VM test with a stub program | AFK | T2 |
 | T4 | Install `wayfinder`, `setup-matt-pocock-skills`, `grilling`, `prototype`, `domain-modeling`, `research`, `handoff` (source paths per Decisions); patches for handoff location, glossary path (domain-modeling incl. `CONTEXT-FORMAT.md`, setup Section C, `domain.md`, improve-codebase-architecture), `codebase-design` files vendored into improve-codebase-architecture, local "Wayfinding operations" and `wayfinder.backend` in setup; create `tests/llm-skills.nix` | AFK | T1, T3 |
-| T5 | Vendor `dissent-review` as a directory skill; extend `tests/llm-skills.nix` | AFK | T4 |
+| T5 | Vendor `dissent-review` as a directory skill with the changes listed under Review gate; extend `tests/llm-skills.nix` | AFK | T4 |
 | T6 | Vendor `research-options` with the changes listed under Research; extend `tests/llm-skills.nix` | AFK | T5 |
 | T7 | Ferrex gating (CLAUDE.md split, commands, `/docs`, permission filter in `claude/home.nix`, `~/.ferrex` binds); re-enable `tests/codex.nix`; extend `tests/llm-skills.nix` | AFK | T6, T13 |
 | T8 | Wayfinder patch: all tracker access via `wayfinder-ticket`, references, ticket types and research subtypes, map upkeep without a claim, pending upkeep and its retry on entry, "history is never reopened" corrections, prototype override (`.claude/worktrees/` location), background subagents only for `research:fact`, implementation-ticket rule, resume `mine` first, map-state check on entry (incl. `map-complete`), `research:fact` subagents `attach` instead of upstream's `research/<name>` branch, routing by phase, trailers via `trailer`, dissent hook, "Asking the user"; register the patch in `skills.nix` | HITL | T6 |

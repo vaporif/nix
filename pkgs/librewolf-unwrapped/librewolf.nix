@@ -48,6 +48,9 @@ in rec {
 
     cp -r ${source}/themes/browser .
 
+    # icons referenced by webgl-permission.patch's jar.mn entries
+    cp ${source}/assets/icons/* browser/themes/shared/icons/
+
     cp ${source}/assets/search-config-v2.json services/settings/dumps/main/search-config-v2.json
     cp ${source}/assets/search-config-icons.json services/settings/dumps/main/search-config-icons.json
     # mojeek search engine icon

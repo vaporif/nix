@@ -17,12 +17,13 @@ Success means:
 - `/wayfinder` charts a map, works one ticket per session, and prints a copyable `/clear` trailer.
 - Implementation tickets move through brainstorming → writing-plans → executing-plans with the phase
   recorded on the ticket and a trailer between phases (except brainstorming → writing-plans on the
-  would-be Bounded path, which continues in the same session).
+  would-be Bounded path, which continues in the same session when the session is already in the
+  ticket's worktree).
 - **Local backend:** two sessions working one map never claim the same ticket, and a crashed
   session's claim becomes reclaimable without manual repair.
 - **GitHub/GitLab backends:** the same commands work; claims are advisory (see Backends).
-- It works inside `claude-sandboxed` and interactive `codex-sandboxed` sessions (not `ox` /
-  `codex-sandboxed exec`; see Sandboxes) on macOS and NixOS, in normal clones, linked worktrees,
+- It works inside `claude-sandboxed` sessions and Codex sessions started with the bypass flag
+  (`o` / `or`; not `ox`, `codex-sandboxed exec` or a bare `codex-sandboxed`; see Sandboxes) on macOS and NixOS, in normal clones, linked worktrees,
   and `git bclone` repos.
 - The patched superpowers and mattpocock outputs are byte-identical before and after the patch
   split (T1).
@@ -241,7 +242,7 @@ backends.
 |---|---|---|
 | `map-new <slug> <title> --destination <file>` | create map, `status: active` | slug exists |
 | `maps` | list maps with status and open-ticket count | — |
-| `map-edit <slug> <section> --file <f> --expect <sha>` | replace a map body section; `show-map` prints each section's hash for `--expect` (optional only for Destination) | unknown section; Decisions so far (append-only, via `resolve`); `--expect` missing (except for Destination) or ≠ current hash (re-run `show-map`, merge, retry) |
+| `map-edit <slug> <section> --file <f> --expect <sha>` | replace a map body section; `show-map` prints each section's hash for `--expect` | unknown section; Decisions so far (append-only, via `resolve`); `--expect` missing or ≠ current hash (re-run `show-map`, merge, retry) |
 | `map-complete <slug>` | `status: complete` | open tickets remain; Not yet specified non-empty |
 | `new <slug> <type> <title> [--question <f>] [--blocked-by <id>…]` | create ticket with next id and the type's initial phase; `blocked-by` written in the same `map.write` section | map missing or complete; unknown type; `--blocked-by` id not in map |
 | `block <ref> <id>…` / `unblock` | edit `blocked-by` (second-pass wiring) | closed; live claim by another session; id not in map; `block` would create a cycle (including a self-block) |
@@ -282,8 +283,10 @@ reference that triggered it (e.g. "narrow Question to X per `offline-sync#7`"), 
 payload: the retry re-applies it to the ticket's text as it is then, so it merges with whatever
 the holder changed meanwhile. On every map entry, before the state check
 below, wayfinder retries each pending line whose ticket's claim is now free or stale and removes the
-line once it succeeds. If the ticket was closed in the meantime, the retry can never succeed: if it
-was closed by `drop`, the pending action is moot and wayfinder just removes the line; otherwise
+line once it succeeds. If the ticket was closed in the meantime, the retry can never succeed. A
+ticket was dropped when it is closed without `phase: implemented` and without an entry in Decisions
+so far (`close` sets the first, `resolve` appends the second). If it was dropped, the pending action
+is moot and wayfinder just removes the line; otherwise
 wayfinder files a follow-up ticket with `new` (its Question cites the closed ticket and the pending
 action) and removes the line.
 
@@ -318,12 +321,14 @@ trailer; new `research:fact` subagents are fired after upkeep. The session order
 
 1. Map entry: pending-upkeep retry → re-fire any `research:fact` left `mine` by an interrupted
    earlier session, and wait for them → state check (below).
-2. Resume or claim the session's one ticket; work and resolve it, applying the
+2. Resume or claim the session's one ticket, skipping `research:fact` entries (step 4 fires them);
+   work and resolve it, applying the
    implementation-ticket rule if the answer is directly buildable.
 3. Wait for all subagents → upkeep for every resolve since the last pass (the session's own and any
    subagent's) → dissent on each such resolve's changed region, applying "apply" findings through
    `wayfinder-ticket` and queueing "ask" findings.
-4. Fire new `research:fact` subagents → wait for all of them → upkeep and dissent for their
+4. Fire a subagent for every `research:fact` ticket now on the frontier (created this session,
+   left by earlier sessions, or stale) → wait for all of them → upkeep and dissent for their
    resolves (no further subagents are fired; anything newly needed stays on the frontier).
 5. Show the queued "ask" findings → trailer.
 
@@ -331,13 +336,15 @@ No subagent is in flight while wayfinder reads `frontier` to pick its ticket, an
 first" never applies to a `research:fact` ticket, since step 1 has already re-fired and awaited
 those. A `research:fact` subagent never runs upkeep or dissent itself, and a fact answer never
 triggers the implementation-ticket rule; if a fact makes something buildable, that goes through a
-decision ticket. For a routed implementation ticket there is nothing to resolve: the session goes
-from claim straight to waiting for subagents and printing the trailer.
+decision ticket. For a routed implementation ticket there is nothing to resolve: after the claim
+the session runs step 3 only for resolves from step 1's re-fired subagents (a no-op if there were
+none), skips step 4, then runs step 5.
 
 On entering a map, wayfinder retries pending upkeep, then checks its state before claiming. No open tickets and an empty "Not
 yet specified": run `map-complete` and report the map done. No open tickets but "Not yet specified"
 non-empty: go back to charting from it, and ask the user if nothing can be graduated. Open tickets
-but no routable frontier entry (the frontier is empty or lists only `mine (blocked)`): print
+but no routable frontier entry (the frontier is empty or lists only `mine (blocked)`; a frontier
+whose only routable entries are `research:fact` skips step 2 and goes straight to step 4): print
 "nothing workable" with the blockers and claim holders from `status`, and stop; `mine (blocked)`
 claims are kept, since the guards re-check on resume. This runs on entry rather than after mutations because the last `close` of a map usually
 happens in `subagent-driven-development`, not in wayfinder.
@@ -388,7 +395,8 @@ happens in `subagent-driven-development`, not in wayfinder.
    `${TMPDIR:-/tmp}/wayfinder-$AGENT_SESSION_ID/<slug>-<id>.pid` (one session can hold several
    claims across maps) and used only by the same session's `release`/`resolve`/`close`/`drop`.
    These check the start time before signalling, then confirm on the lock itself: they take
-   `flock -w <timeout>` on `<id>.claim` and clear `claimed-by` only once that succeeds, so a
+   `flock -w 2` on `<id>.claim` (the signalled holder releases fd 9 when it exits; the 5 s poll
+   plays no part) and clear `claimed-by` only once that succeeds, so a
    re-claim right after `release` never races. A missing PID file is handled the same way; if the
    lock is still held when the timeout expires, the command fails loudly and leaves `claimed-by`
    as it is.
@@ -397,11 +405,18 @@ happens in `subagent-driven-development`, not in wayfinder.
    re-claims re-entrantly and `frontier` lists the ticket as `mine`. Moving to another terminal
    means `release` first. **One worktree per implementation ticket.** Ticket-mode brainstorming
    runs `superpowers:using-git-worktrees` once the Spike decision is past (a Spike never creates a
-   worktree; exploration before that point only reads) and before writing the spec. Upstream
+   worktree; exploration before that point only reads) and before writing the spec. Exploration,
+   including reading the glossary and ADRs that grilling left uncommitted, therefore happens in
+   the session's starting checkout, and the spec must quote any glossary terms or ADRs it relies
+   on: later phases run in the worktree, which branches from committed history and doesn't see
+   those edits. Upstream
    step 0 reuses any linked worktree without looking at its branch, and a fresh `git bclone` has
    exactly one, on the default branch, so in ticket mode the brainstorming patch narrows it: a
    linked worktree is reused only when its branch is not the default branch
-   (`git symbolic-ref refs/remotes/origin/HEAD`, falling back to `main`/`master`) and no other open
+   (`git symbolic-ref --short refs/remotes/origin/HEAD`; if that fails and the common dir is bare
+   (a fresh `git bclone` has no `origin/HEAD` until its first fetch),
+   `git --git-dir="$(git rev-parse --git-common-dir)" symbolic-ref --short HEAD`, which
+   `clone --bare` sets to the remote's default; falling back to `main`/`master`) and no other open
    ticket's `spec`/`plan` lives there. Otherwise it creates one, in every layout (asking first; if
    the user declines, work stays in place), under the main checkout's
    `.claude/worktrees/<branch>/` (not a `git wb` sibling: `scripts/git-worktree-new.sh` hard-codes
@@ -413,10 +428,11 @@ happens in `subagent-driven-development`, not in wayfinder.
    there, and SDD's Setup detects the linked worktree and reuses it, so execution sees both files.
    A worktree created mid-session does not move the next session's cwd on its own: a Codex shell
    `cd` doesn't persist, and whether Claude's `EnterWorktree` cwd survives `/clear` is checked in
-   T13. So `trailer <phase> <ref>` resolves the worktree holding the ticket's `spec` (the local
-   absolute path, or the remote branch looked up in `git worktree list --porcelain`), and when it
+   T13. So `trailer <phase> <ref>` resolves the worktree holding the ticket's `spec` (locally
+   `git -C "$(dirname <spec>)" rev-parse --show-toplevel`, never a prefix match; remotely the
+   worktree whose `branch` in `git worktree list --porcelain` equals the recorded branch), and when it
    differs from the current toplevel it prints a restart line instead of a bare `/clear`: exit,
-   `cd <path>`, start a new sandboxed session there, then the phase command. The new session has a
+   `cd <path>`, start a new session there with `a` (Claude) or `o` (Codex), then the phase command. The new session has a
    new `AGENT_SESSION_ID`, so it takes the claim over as stale (step 7) once the old agent process
    has exited; "the same process re-claims" above holds only when the cwd already follows.
    After `close` or `drop`, `spec` and `plan` are historical pointers and may no longer resolve
@@ -426,9 +442,12 @@ happens in `subagent-driven-development`, not in wayfinder.
    stops at its commit / move / delete prompt for the untracked spec; "move to the main root"
    keeps it.
    A sandboxed session in another worktree outside `~/Repos` cannot read the spec and plan. `claim --phase`
-   rejects (nothing written) when a recorded `spec` or `plan` lies outside
-   `git rev-parse --show-toplevel` of the claiming checkout or the file is missing, and names the
-   worktree that holds it. That catches a later phase started from the wrong checkout on every
+   rejects (nothing written) when a recorded `spec` or `plan` is missing, or when the worktree that
+   owns it (`git -C "$(dirname <file>)" rev-parse --show-toplevel`, both sides canonicalised with
+   `realpath`) is not the claiming checkout's toplevel, and names that owning worktree. Ownership is
+   never decided by path prefix: ticket worktrees nest under the main checkout's
+   `.claude/worktrees/`, so the main checkout's toplevel is a prefix of every ticket's spec path.
+   That catches a later phase started from the wrong checkout on every
    backend, through the phase skills' existing "any other rejection: print the reason and stop"
    rule, with no backend-specific prose. The guards run before `claimed-by` is written, so a fresh
    session in the wrong checkout holds nothing; the owner's re-entrant claim stays held, and the
@@ -450,7 +469,7 @@ building on upstream's "Wayfinding operations" in `issue-tracker-{github,gitlab}
 | Blocking | native dependencies, falling back to a `Blocked by:` line | `/blocked_by` where the tier has it, else a `Blocked by:` line |
 | Claim | assignee plus a `wayfinder-session: <id>` comment; only the latest `wayfinder-session:` comment counts. "Held by another session" means it names a different id; free means there is none or the latest is `wayfinder-session: none`. `release` and `release --force` post `wayfinder-session: none` and unassign | same |
 | Findings | a comment headed `<!-- wayfinder:findings -->`, its URL in `findings:`; `attach` fails loudly over the size limit | same |
-| `spec`/`plan` | `<branch>:<repo-relative path>`; `advance` always takes an absolute path and stores `$(git branch --show-current):<path relative to git rev-parse --show-toplevel>`, rejecting a detached HEAD or a path outside the toplevel (an uncommitted or unpushed file is accepted). To avoid that rejection landing after the user approved a spec, `claim --phase superpowers:brainstorming` rejects a detached HEAD up front ("check out a branch first"). Phase skills read the file at `$(git rev-parse --show-toplevel)/<path>`; `claim --phase` rejects when the current worktree isn't on that branch or the file is missing, the same guard as the local backend (claim protocol step 8) | same |
+| `spec`/`plan` | `<branch>:<repo-relative path>`; `advance` always takes an absolute path and derives both parts from the file's own worktree, not the cwd (a Codex session's cwd stays in the main checkout after creating the ticket worktree): `git -C "$(dirname <path>)" branch --show-current` and the path relative to `git -C "$(dirname <path>)" rev-parse --show-toplevel`. It rejects a detached HEAD in that worktree, or a path in no worktree of this repository (its `--git-common-dir` differs from the cwd's); an uncommitted or unpushed file is accepted. To avoid that rejection landing after the user approved a spec, `claim --phase superpowers:brainstorming` rejects a detached HEAD up front ("check out a branch first"). Phase skills read the file at `$(git rev-parse --show-toplevel)/<path>`; `claim --phase` rejects when the current worktree isn't on that branch or the file is missing, the same guard as the local backend (claim protocol step 8) | same |
 
 Metadata lives in hidden `<!-- -->` blocks that `edit`/`map-edit` preserve, since bodies render for
 humans. There is no lock and no liveness signal, so claims are advisory, a stale claim needs
@@ -494,17 +513,18 @@ ticket's reference. Closed tickets in the bundle are context only; findings agai
 
 Each phase skill takes an optional ticket reference. Without one, behaviour is today's (chain in
 one session). With one passed explicitly: if `claim --phase` rejects on a mismatch and the actual
-phase is a `superpowers:*` phase, the skill prints `trailer <skill> <ref>` with the `superpowers:`
-prefix stripped and stops; on any other rejection, or a non-superpowers phase, it prints the
+phase is a `superpowers:*` phase, the skill prints `trailer <phase> <ref>`, where `<phase>` is the
+ticket's actual phase with the `superpowers:` prefix stripped (e.g. a ticket still at
+`superpowers:writing-plans` gets `trailer writing-plans <ref>`), and stops; on any other rejection, or a non-superpowers phase, it prints the
 rejection reason and stops. A reference read from a plan's handoff block follows the rule below
 that block instead.
 
 | Skill | Ticket-mode steps |
 |---|---|
-| brainstorming | `claim --phase superpowers:brainstorming`; once past the Spike decision, `superpowers:using-git-worktrees` (reuse or create the ticket's worktree; claim protocol step 8); always the Architectural path, so every implementation ticket gets a spec and a plan (executing-plans and `subagent-driven-development` are built around a plan file). Normal flow up to the user's spec approval; `advance … superpowers:writing-plans spec=<abs path>`. **Architectural:** `trailer writing-plans <ref>`. **Would-be Bounded:** the short design goes into a short spec; after approval, invoke writing-plans in the same session (the claim is kept) instead of printing a trailer, which saves one `/clear`. **Spike** (an open feasibility question): `new <slug> prototype <title> --question <f>` (`<f>` holds the feasibility question), `block <ref> <new-id>`, a Notes line, `release`, `trailer wayfinder <slug>`; the ticket stays at brainstorming and returns to the frontier once the prototype resolves |
+| brainstorming | `claim --phase superpowers:brainstorming`; once past the Spike decision, `superpowers:using-git-worktrees` (reuse or create the ticket's worktree; claim protocol step 8); always the Architectural path, so every implementation ticket gets a spec and a plan (executing-plans and `subagent-driven-development` are built around a plan file). Normal flow up to the user's spec approval; `advance … superpowers:writing-plans spec=<abs path>`. **Architectural:** `trailer writing-plans <ref>`. **Would-be Bounded:** the short design goes into a short spec; after approval, run `trailer writing-plans <ref>`; if it prints a restart line (the session isn't in the spec's worktree, e.g. Codex right after creating it), show it as for Architectural; otherwise ignore its output and invoke writing-plans in the same session (the claim is kept) instead of printing a trailer, which saves one `/clear`. **Spike** (an open feasibility question): `new <slug> prototype <title> --question <f>` (`<f>` holds the feasibility question), `block <ref> <new-id>`, a Notes line, `release`, `trailer wayfinder <slug>`; the ticket stays at brainstorming and returns to the frontier once the prototype resolves |
 | writing-plans | `claim --phase superpowers:writing-plans`; normal flow through the plan review loop; then, in ticket mode only, ask the user once to approve the plan ("Asking the user" format). A change request revises the plan and re-runs the loop. On approval, `advance … superpowers:executing-plans plan=<abs path>`; `trailer executing-plans <ref>`. The approval comes before `advance` because phases only move forward: after it, a bad plan can't go back through writing-plans |
 | executing-plans | `claim --phase superpowers:executing-plans`; route as today. Ticket mode always uses Subagents (an Agent-teams strategy in the plan, or a user request to run inline, is overridden and announced), so the work runs in `subagent-driven-development`. With no subagent tool at all it does not take the Inline-Degraded path: it writes a Notes line, `release`s and stops with "ticket needs a subagent tool; resume `<slug>#<id>` under a harness that has one" |
-| subagent-driven-development | after polish and after the user's choice in `finishing-a-development-branch` has been carried out. **Merge, PR or keep:** write evidence (test command, exit status, polish summary, chosen option), `close <ref> --evidence`, `trailer wayfinder <slug>`. **Discard:** after the confirmed discard, ask the user once: drop or re-file. **Drop:** `drop <ref> --reason <what was discarded and why>`. **Re-file:** `new <slug> implementation <title> --question <f>` (the question holds the discard reason, cites the old `<slug>#<id>`, copies the old Question's source-decision reference(s) verbatim so brainstorming still reaches them, and adds the old spec path if the file survived), then `drop <ref> --superseded-by <new-id>`, which rewires every dependent onto the new id. Re-running the discarded plan is not offered: discard deletes its branch, its boxes are already ticked, and `spec`/`plan` can't be repointed. Either way, end with `trailer wayfinder <slug>` |
+| subagent-driven-development | after polish and after the user's choice in `finishing-a-development-branch` has been carried out. Before invoking finishing, record the main root (the same expression finishing uses for `MAIN_ROOT`). When finishing removed the worktree this session runs in (Merge, or a confirmed Discard, of a worktree under `.claude/worktrees/`), every later `wayfinder-ticket` call in this row runs as `cd <main root> && wayfinder-ticket …` in one shell command (neither harness keeps a `cd` across commands), and the closing `trailer wayfinder <slug>` is replaced by a restart line to the main root, since a bare `/clear` would leave the next session in a deleted directory. **Merge, PR or keep:** write evidence (test command, exit status, polish summary, chosen option), `close <ref> --evidence`, `trailer wayfinder <slug>`. **Discard:** after the confirmed discard, ask the user once: drop or re-file. **Drop:** `drop <ref> --reason <what was discarded and why>`. **Re-file:** `new <slug> implementation <title> --question <f>` (the question holds the discard reason, cites the old `<slug>#<id>`, copies the old Question's source-decision reference(s) verbatim so brainstorming still reaches them, and adds the old spec path if the file survived), then `drop <ref> --superseded-by <new-id>`, which rewires every dependent onto the new id. Re-running the discarded plan is not offered: discard deletes its branch, its boxes are already ticked, and `spec`/`plan` can't be repointed. Either way, end with `trailer wayfinder <slug>` |
 
 The user's gates in ticket mode are therefore the spec approval, the plan approval (ticket mode
 only; a direct writing-plans run still transitions without one, as today) and the merge / PR / keep
@@ -516,7 +536,10 @@ without one; the ticket's `phase:` stays the only record of the phase. Only
 reference ignores it and passes none on, so its behaviour doesn't depend on which strategy it
 routes to. To make "invoked directly" checkable even after context compaction, `executing-plans`
 always passes an explicit skill argument when routing to SDD: its reference, or `ticket=none` when
-it has none. SDD reads the handoff block only when it receives no argument at all. A passed
+it has none. SDD treats an argument token matching the reference grammar (References) as a
+reference and `ticket=none` as an explicit non-ticket run; any other argument text, such as a plan
+path, is neither. SDD reads the handoff block of the plan it executes only when its arguments
+contain neither a reference nor `ticket=none`. A passed
 reference is claimed re-entrantly, which is a no-op for the owner. A reference read from the block counts as ticket mode only after
 `claim <ref> --phase superpowers:executing-plans` succeeds. If that claim rejects because the ticket
 is closed, or because the map or ticket no longer exists, the skill warns and finishes as a non-ticket run, with no `close` and no trailer, so a
@@ -568,6 +591,14 @@ that section instead. That section becomes the fragment; `claude/home/rules.nix`
 `base + lib.optionalString config.custom.qdrant.enable fragment` (`rules.nix` has no `cfg`
 binding; its `claudeCfg` is `custom.claude`), switching the entry from the static `.source` to
 `.text`.
+The commands go through `custom.llm.commands`, whose `llmContentEntry` has only `source`/`kind`
+(`modules/options.nix`), so the CLAUDE.md `.text` pattern doesn't carry over. In
+`home/common/llm/commands.nix` (today a static `{...}:` module), add `config`, `lib` and `pkgs`,
+move `checkpoint`, `forget`, `recall`, `reflect` and `remember` into
+`lib.optionalAttrs config.custom.qdrant.enable { … }`, and build `/docs` as
+`docs.source = pkgs.writeText "docs.md" (head + lib.optionalString config.custom.qdrant.enable ferrex + tail)`,
+splitting `llm/shared/commands/docs.md` around its `**Ferrex**` block so the block keeps its place
+above "Present a summary".
 The permission rules are option defaults inside `claude/security/default.nix`, which the Linux
 security tests evaluate without `modules/options.nix`; so they are filtered in `claude/home.nix`,
 not by reading `custom.*` inside the module. Only `allowedTools` needs it: `claude/home.nix`
@@ -582,9 +613,14 @@ conditional.
 
 ### Glossary
 
-Patch `domain-modeling` and `setup-matt-pocock-skills` (Section C and `domain.md`) so the glossary
-is `docs/arch/glossary.md` instead of a root `CONTEXT.md`. Single-context only: the multi-context
-`CONTEXT-MAP.md` mode is removed. Restore the glossary references in our
+Patch `domain-modeling` and `setup-matt-pocock-skills` so the glossary is `docs/arch/glossary.md`
+instead of a root `CONTEXT.md`. Single-context only: the multi-context `CONTEXT-MAP.md` mode is
+removed. In setup's `SKILL.md` that covers the "Domain docs" intro bullet, the Explore step's
+`CONTEXT.md`/`CONTEXT-MAP.md` and monorepo-signals bullets, step 2's skip rule (drop "Section C when
+there's no monorepo"), Section C (drop the multi-context offer), and the step-4 template line (drop the `"single-context" or "multi-context"` choice). In
+`domain.md` it covers the read list, the file-structure trees, the glossary section, and the
+"reached via `/grill-with-docs`" line, which is repointed to wayfinder and
+`/improve-codebase-architecture` (`grill-with-docs` is not installed). Restore the glossary references in our
 `improve-codebase-architecture` patch, pointing at the same path.
 
 ### Patch layout
@@ -597,11 +633,14 @@ One patch per upstream skill directory, so a bad bump fails one patch:
   upstream deleted it in v6.4.2; T9 restores it from v6.4.1 and updates it), `executing-plans`,
   `subagent-driven-development` (including `implementer-prompt.md`), `requesting-code-review`,
   `finishing-a-development-branch` (ticket mode: a worktree under the main repo root's
-  `.claude/worktrees/` is ours on both harnesses, since after a restart line no session holds it
-  through `EnterWorktree`; Step 6 matches paths relative to the main root, removes it with
-  `git worktree remove` + `prune` (keeping upstream's never-`--force`, ask-on-refusal rule), and
-  Discard removes the worktree *before* `git branch -D`; for a host-owned worktree Discard stops
-  and reports that the branch can't be deleted while it exists).
+  `.claude/worktrees/` is ours on both harnesses, because ownership is decided by path as upstream
+  does for `.worktrees/` and ticket mode only creates worktrees there; Step 6 matches paths
+  relative to the main root and, on Claude, if this session still has the worktree entered through
+  `EnterWorktree`, calls `ExitWorktree` keeping it first, then removes it with
+  `git worktree remove` + `prune` (keeping upstream's never-`--force`, ask-on-refusal rule); for a
+  host-owned worktree (upstream's "Otherwise" branch), Discard stops before `git branch -D` and
+  reports that the branch can't be deleted while that worktree exists, where upstream would run it
+  and fail).
 - `patches/mattpocock/<skill>.patch` for `improve-codebase-architecture` (including edits to the
   `codebase-design` files copied in by `prePatch`), `wayfinder`,
   `setup-matt-pocock-skills`, `domain-modeling`, `handoff`.
@@ -633,10 +672,14 @@ restate the context, name 2-3 options with their cost, recommend one, end with o
 
 Both bwrap wrappers resolve `git rev-parse --show-toplevel` and
 `git rev-parse --path-format=absolute --git-common-dir` and bind each read-write when it is outside
-the working directory (`--chdir` stays the cwd). `.meta`, `.bare` and `.git` next to the worktree are
-resolved from the top level's parent, not the cwd's, so the `git bclone` `.meta` bind survives. This
+the working directory (`--chdir` stays the cwd). `.meta` is resolved the way `git meta` resolves
+it, as `$(dirname <common-dir>)/.meta`, not from the cwd's parent, so the `git bclone` `.meta` bind
+survives from subdirectories and from nested `.claude/worktrees/` worktrees; `.bare` (and, in a normal
+clone, `.git`) is the common dir itself, so the common-dir bind covers it; the bclone root's `.git`
+file is never read from inside a worktree. The current `worktree_parent="$(dirname "$(pwd)")"`
+binds of `.bare`, `.git` and `.meta` in `home/linux/sandboxed.nix` are removed. This
 covers bare clones, linked worktrees of normal clones, and starting in a subdirectory. Every
-read-write workspace bind (cwd, toplevel, common dir, `.bare`/`.git`/`.meta`) is emitted after all
+read-write workspace bind (cwd, toplevel, common dir, `.meta`) is emitted after all
 `bind_ro` calls: bwrap applies mounts in order, and today `bind_ro "$HOME/.config/nix-darwin"`
 shadows `--bind $(pwd)`, leaving this repo read-only on the VMs and its common-dir `wayfinder/`
 unwritable. This intentionally makes `~/.config/nix-darwin` writable when the agent is launched
@@ -653,8 +696,10 @@ work. Both wrappers set `AGENT_SESSION_ID` as described
 in the claim protocol. If the macOS profile denies `ps` on the agent process, T13 finds out and T3's
 follow-up adds the narrowest `process-info` allowance.
 
-Codex started through `ox` (`codex-sandboxed exec`, no bypass flag) runs Codex's own sandbox with a
-read-only `.git`; ticket writes fail there. Documented, not changed.
+Codex started without `--dangerously-bypass-approvals-and-sandbox` (`ox`, `codex-sandboxed exec`,
+or a bare interactive `codex-sandboxed`) runs Codex's own `workspace-write` sandbox with a read-only
+`.git`, since `home/common/codex/default.nix` sets no `sandbox_mode`; ticket writes fail there. Only
+`o`/`or` pass the bypass flag. Documented, not changed.
 
 To make the Linux wrappers testable, their bind logic moves into a shared function that takes the
 program to exec; the VM test instantiates it with a stub program. The Darwin `preHook` is covered
@@ -700,21 +745,21 @@ by T13.
   (allowed) and on a live foreign claim or a closed ticket (rejected); `drop --superseded-by`
   writing no Out of scope line, rewiring open dependents (closed ones untouched) and rejecting the
   whole drop when the rewiring would create a cycle; every guard rejecting without writing, including self-block and
-  A→B→A cycles in `block`, `map-edit` with a stale `--expect` or a missing one on a non-Destination
+  A→B→A cycles in `block`, `map-edit` with a stale `--expect` or a missing one on any
   section, and `claim --phase` on a mismatch, including on the re-entrant path (rejects, claim
   stays held); a ticket at `superpowers:executing-plans` whose holder's agent process has exited,
   claimed with `--phase superpowers:executing-plans` under a new `AGENT_SESSION_ID` (succeeds,
   reports the takeover), then `close --evidence` from that session succeeding; that same claim
   against a closed ticket, an earlier phase (rejects, reports the actual phase) and a live claim by
   another session (rejects, nothing written); a failed
-  `claimed-by` write leaving the lock free; `claim --phase` from a checkout that doesn't hold the recorded `spec` (rejects, names the right worktree, nothing written); `claim` with no agent ancestor and
+  `claimed-by` write leaving the lock free; `claim --phase` from a checkout that doesn't hold the recorded `spec` (rejects, names the right worktree, nothing written), including from the main checkout for a spec in a nested `.claude/worktrees/<b>/` (local and remote backends); on the remote backend, `advance` run with cwd in the main checkout recording `<b>:docs/...`, not `main:.claude/worktrees/<b>/docs/...`; `claim` with no agent ancestor and
   with `WAYFINDER_AGENT_PID` pointing at an exited process (rejected, `claimed-by` empty); `trailer`
   with no harness; malformed frontmatter
   and references escaping the map; `trailer` output per harness, its restart line when the
   ticket's `spec` lies in another worktree, and its rejection of a phase `<next>` without a ticket
   reference; `map-complete` on map `foo` leaving a registered `wayfinder-foo-bar-<id>` worktree of
   map `foo-bar` in place. T10 adds its remote-backend cases to
-  this same file against stubbed `gh`/`glab`.
+  this same file against stubbed `gh`/`glab`, injected with `.override` (`writeShellApplication` puts `runtimeInputs` ahead of `$PATH`, so a stub on PATH would lose to a pinned binary).
 - **`tests/llm-skills.nix`** (common set): home-manager evaluation in the style of `tests/codex.nix`,
   but importing more: `modules/options.nix`, `home/common/llm`, `home/common/codex`,
   `home/common/packages.nix`, `home/common/mcp.nix` (declares `codexMcpServers`),
@@ -728,8 +773,10 @@ by T13.
   `settings.json` permissions and the Codex `config.toml`, which must still list another server
   (e.g. `context7`) so the check can't pass on an empty config. A second evaluation of the same
   modules with `qdrant.enable = true` asserts the opposite (the "Memory System" fragment in
-  `.claude/CLAUDE.md`, the five memory commands, `mcp__ferrex__*` in the allow list, and the ferrex
-  server in Codex `config.toml`), so a gate that always strips ferrex fails; T7 adds it.
+  `.claude/CLAUDE.md`, the five memory commands, `mcp__ferrex__*` in the allow list, and
+  `hm.config.custom.codexMcpServers ? ferrex` checked at eval time; this evaluation's Codex
+  `config.toml` is not grepped, since building it would compile the uncached ferrex package during
+  `nix flake check`), so a gate that always strips ferrex fails; T7 adds it.
 - **Sandbox VM test** (Linux set): the shared wrapper function instantiated with a stub program
   that, from a subdirectory of a bare-clone worktree and of a linked worktree outside `~/Repos`,
   asserts `git status --porcelain` is empty, reads `docs/`, resolves `.envrc` through `.meta`,
@@ -752,7 +799,9 @@ by T13.
   before the spec and SDD reuses it; in a `git bclone` repo, two tickets brainstormed from `main/`
   get two separate worktrees, neither on the default branch; Discard of a ticket in
   `.claude/worktrees/` removes the worktree and deletes the branch; on Codex in a normal clone, a ticket goes brainstorming →
-  writing-plans → SDD with the user following the restart line `trailer` prints; a dissent "apply" finding against a just-resolved ticket is shown to the user, not applied;
+  writing-plans → SDD with the user following the restart line `trailer` prints; on Codex, Merge
+  of a ticket from a restart-line session closes the ticket and prints a restart line to the main
+  root, and Discard → drop does the same; a dissent "apply" finding against a just-resolved ticket is shown to the user, not applied;
   an upkeep `drop` against a ticket another session holds is recorded as `pending:` in the map's
   Notes and applied on a later entry once the claim is free.
 
@@ -763,7 +812,8 @@ form the first parallel batch. Files edited by several tasks get a single owner 
 `home/common/llm/skills.nix` (T1 → T4 → T5 → T6 → T8), `tests/default.nix` (T2 → T3 → T4 → T7),
 `tests/llm-skills.nix` (T4 → T5 → T6 → T7 → T11), `tests/wayfinder-ticket.nix` and the script
 (T2 → T13 → T10), `patches/mattpocock/setup-matt-pocock-skills.patch` (T4 → T10), sandbox wrappers
-(T3 → T13 → T7), `claude/home/plugins.nix` and `home/common/llm/default.nix` (T1 → T11). T1 does
+(T3 → T13 → T7), `claude/home/plugins.nix` and `home/common/llm/default.nix` (T1 → T11), `home/common/llm/superpowers.nix` and
+`patches/superpowers/*.patch` (T1 → T9; T11 only reads `custom.llm.superpowersPackage`). T1 does
 not touch `home/common/packages.nix`; T2 is its only editor.
 
 ## Task Dependency Graph
@@ -773,7 +823,7 @@ not touch `home/common/packages.nix`; T2 is its only editor.
 | T1 | Split superpowers and mattpocock patches per skill directory; move `patchedSuperpowers` into `home/common/llm/superpowers.nix` (`custom.llm.superpowersPackage`); verify byte-identical output | AFK | none |
 | T2 | `wayfinder-ticket` local backend in `pkgs/wayfinder-ticket.nix`: references, map and ticket model, every command (incl. upkeep guards, `new --blocked-by`, `drop --superseded-by` with dependent rewiring, and proto worktree removal in `resolve`/`drop`/`map-complete`), claim protocol, `trailer`; add to `home.packages`; `tests/wayfinder-ticket.nix` in the common set | AFK | none |
 | T3 | Sandbox wrappers: shared bind function taking the program to exec, common-dir binds, `AGENT_SESSION_ID` (one `sharedEnvNames` entry; generated in the Darwin `preHook`, both bwrap scripts and the Linux passthrough wrappers); Linux VM test with a stub program | AFK | T2 |
-| T4 | Install `wayfinder`, `setup-matt-pocock-skills`, `grilling`, `prototype`, `domain-modeling`, `research`, `handoff` (source paths per Decisions); patches for handoff location, glossary path (domain-modeling incl. `CONTEXT-FORMAT.md`, setup Section C, `domain.md`, improve-codebase-architecture), `codebase-design` files vendored into improve-codebase-architecture, local "Wayfinding operations" and `wayfinder.backend` in setup; create `tests/llm-skills.nix` | AFK | T1, T3 |
+| T4 | Install `wayfinder`, `setup-matt-pocock-skills`, `grilling`, `prototype`, `domain-modeling`, `research`, `handoff` (source paths per Decisions); patches for handoff location, glossary path (domain-modeling incl. `CONTEXT-FORMAT.md`, setup `SKILL.md` (intro, Explore, step-2 skip rule, Section C, step-4 template), `domain.md` (incl. the `/grill-with-docs` pointer), improve-codebase-architecture), `codebase-design` files vendored into improve-codebase-architecture, local "Wayfinding operations" and `wayfinder.backend` in setup; create `tests/llm-skills.nix` | AFK | T1, T3 |
 | T5 | Vendor `dissent-review` as a directory skill with the changes listed under Review gate; extend `tests/llm-skills.nix` | AFK | T4 |
 | T6 | Vendor `research-options` with the changes listed under Research; extend `tests/llm-skills.nix` | AFK | T5 |
 | T7 | Ferrex gating (CLAUDE.md split, commands, `/docs`, permission filter in `claude/home.nix`, `~/.ferrex` binds); re-enable `tests/codex.nix`; extend `tests/llm-skills.nix` | AFK | T6, T13 |
@@ -782,7 +832,7 @@ not touch `home/common/packages.nix`; T2 is its only editor.
 | T10 | GitHub/GitLab backends in `wayfinder-ticket` per the Backends mapping (advisory claims, `release --force`), cases added to `tests/wayfinder-ticket.nix`; rewrite the GitHub/GitLab "Wayfinding operations" sections in the setup patch | AFK | T4, T13 |
 | T11 | Codex parity: superpowers skill directories into `~/.codex/skills/` via `home/common/codex/default.nix`; extend `tests/llm-skills.nix` | AFK | T7, T9 |
 | T12 | Manual end-to-end checklist (normal clone, linked worktree, bare clone; Claude and Codex; macOS and NixOS VM; a prototype ticket follows the T8 override); update `docs/ai-workflow.md` status, repo `CLAUDE.md` and README | HITL | T6, T8, T10, T11, T13 |
-| T13 | Real-sandbox check of the claim protocol after `just switch` on the Mac and the NixOS VM: process discovery, holder detaching, Esc interrupt, agent exit frees the lock, Codex keeps its process across `/clear`, whether Claude's `EnterWorktree` cwd survives `/clear` (if not, `trailer` prints the restart line for Claude too); fix in T2/T3 files if needed | HITL | T3 |
+| T13 | Real-sandbox check of the claim protocol after `just switch` on the Mac and the NixOS VM: process discovery, holder detaching, Esc interrupt, agent exit frees the lock, Codex keeps its process across `/clear`, whether Claude's `EnterWorktree` cwd survives `/clear` (if not, `trailer` prints the restart line for Claude too), and whether `ExitWorktree` still recognises the entered worktree after `/clear` (finishing's ticket-mode cleanup relies on it); fix in T2/T3 files if needed | HITL | T3 |
 
 T8 and T9 are HITL because their skill prose needs a human read before it ships. T12 and T13 are
 HITL because they need interactive sessions on both machines.

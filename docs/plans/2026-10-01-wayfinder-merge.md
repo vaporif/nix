@@ -15,7 +15,7 @@
 **Subagents.** Thirteen tasks. T1 and T2 have no predecessors and touch disjoint files, so they
 form the first parallel batch. Files edited by several tasks get a single owner or a strict order:
 `home/common/llm/skills.nix` (T1 → T4 → T5 → T6 → T8), `tests/default.nix` (T2 → T3 → T4 → T7),
-`tests/llm-skills.nix` (T4 → T5 → T6 → T7 → T11), `tests/wayfinder-ticket.nix` and the script
+`tests/llm-skills.nix` (T4 → T5 → T6 → T7 → T8 → T11), `tests/wayfinder-ticket.nix` and the script
 (T2 → T13 → T10), `patches/mattpocock/setup-matt-pocock-skills.patch` (T4 → T10), sandbox wrappers
 (T3 → T13 → T7), `home/common/codex/default.nix` (T3 → T11), `tests/codex.nix` (T3 → T7), `claude/overrides/CLAUDE.md` (T7 → T12), `claude/home/plugins.nix` and `home/common/llm/default.nix` (T1 → T11), `home/common/llm/superpowers.nix` and
 `patches/superpowers/*.patch` (T1 → T9, after T13; T11 only reads `custom.llm.superpowersPackage`). T1 does
@@ -32,17 +32,17 @@ not touch `home/common/packages.nix`; T2 is its only editor.
 | T5 | Vendor `dissent-review` as a directory skill with the changes listed under Review gate; extend `tests/llm-skills.nix` | AFK | T4 |
 | T6 | Vendor `research-options` with the changes listed under Research; extend `tests/llm-skills.nix` | AFK | T5 |
 | T7 | Ferrex gating (CLAUDE.md split, commands, `/docs`, permission filter in `claude/home.nix`, `~/.ferrex` binds); re-enable `tests/codex.nix`; extend `tests/llm-skills.nix` | AFK | T6, T13 |
-| T8 | Wayfinder patch: all tracker access via `wayfinder-ticket`, references, ticket types and research subtypes, map upkeep without a claim, pending upkeep and its retry on entry, "history is never reopened" corrections, prototype override (`.claude/worktrees/` location), background subagents only for `research:fact`, implementation-ticket rule, resume `mine` first, map-state check on entry (incl. `map-complete`), `research:fact` subagents `attach` instead of upstream's `research/<name>` branch, routing by phase, trailers via `trailer`, charting-session order, the unmerged-blocker check before decision tickets (note and proceed), lost claim races (next frontier entry), dissent hook, "Asking the user"; register the patch in `skills.nix` | HITL | T6 |
+| T8 | Wayfinder patch: all tracker access via `wayfinder-ticket`, references, ticket types and research subtypes, map upkeep without a claim, pending upkeep and its retry on entry, "history is never reopened" corrections, prototype override (`.claude/worktrees/` location), background subagents only for `research:fact`, implementation-ticket rule, resume `mine` first, map-state check on entry (incl. `map-complete`), `research:fact` subagents `attach` instead of upstream's `research/<name>` branch, routing by phase, trailers via `trailer`, charting-session order, the unmerged-blocker check before decision tickets (note and proceed), lost claim races (next frontier entry), dissent hook, "Asking the user"; register the patch in `skills.nix` | HITL | T6, T7 |
 | T9 | Superpowers patches: ticket mode per the Phase handoff table (brainstorming incl. the ticket's named worktree via using-git-worktrees, the unmerged-blocker check and stacking, Architectural-only and Spike/Bounded handling, writing-plans incl. ticket-mode plan approval, executing-plans, subagent-driven-development incl. drop-or-re-file on discard and the `ticket=` argument to finishing), review gate (dissent then loop cap 3; findings against closed tickets always "ask"), finishing-a-development-branch (`main-root`, host-owned Discard stop, guarded `git pull`, ticket-mode removal deferred to the restart line; Patch layout), restore `plan-document-reviewer-prompt.md`, reconcile the executing-plans Inline-Degraded gate, its Post-Implementation Polish lines and rationalization row with the OR rule (see Context), "Asking the user" | HITL | T1, T2, T5, T13 |
 | T10 | GitHub/GitLab backends in `wayfinder-ticket` per the Backends mapping (advisory claims, `release --force`, `trailer` releasing before a restart line, `merged`'s forge fallback (`gh pr list` / `glab mr list`), `glab` looked up on `PATH`), cases added to `tests/wayfinder-ticket.nix`; rewrite the GitHub/GitLab "Wayfinding operations" sections in the setup patch | AFK | T4, T13 |
-| T11 | Codex parity: superpowers skill directories into `~/.codex/skills/` via `home/common/codex/default.nix`; extend `tests/llm-skills.nix` | AFK | T7, T9 |
+| T11 | Codex parity: superpowers skill directories into `~/.codex/skills/` via `home/common/codex/default.nix`; extend `tests/llm-skills.nix` | AFK | T7, T8, T9 |
 | T12 | Manual end-to-end checklist (normal clone, linked worktree, bare clone; Claude and Codex; macOS and NixOS VM; a prototype ticket follows the T8 override; on Claude, ticket-mode brainstorming actually calls `EnterWorktree path=`, and only if the model refuses, T12 adds a narrowly scoped `claude/overrides/CLAUDE.md` line); update `docs/ai-workflow.md` status, repo `CLAUDE.md` and README | HITL | T6, T8, T10, T11, T13 |
 | T13 | Real-sandbox check of the claim protocol after `just switch` on the Mac and the NixOS VM: process discovery, holder detaching, Esc interrupt, agent exit frees the lock, Codex keeps its process across `/clear`, whether Claude's `EnterWorktree` cwd survives `/clear` (if not, `trailer` prints the restart line for Claude too), whether `EnterWorktree path=` enters a ticket worktree made by `git worktree add`, whether a session there sees the main worktree's project rules and agents; fix in T2/T3 files if needed (the rules/agents symlink fallback lands in T9's brainstorming patch) | HITL | T3 |
 
 T8 and T9 are HITL because their skill prose needs a human read before it ships. T12 and T13 are
 HITL because they need interactive sessions on both machines.
 
-**Isolation for parallel tasks.** Each task in a batch with more than one task runs in its own git worktree (`isolation: "worktree"` on the Agent dispatch), branched from the integration branch after the previous batch merged. The controller merges each task's branch back once its review passes. Commit this plan before Batch 1 so every worktree has it. Only the controller flips checkboxes, on the integration branch. Flakes build from the dirty working tree, so a shared tree would let one task's deliberate red step (or half-done edit) fail a neighbour's check. T13 runs `just switch` only from its own clean worktree, never from a tree that another task is editing.
+**Isolation for parallel tasks.** Each task in a batch with more than one task runs in its own git worktree (`isolation: "worktree"` on the Agent dispatch), branched from the integration branch after the previous batch merged. The controller merges each task's branch back once its review passes. Commit this plan before Batch 1 so every worktree has it. Implementers flip each step's box in their worktree as the step verifies, and the flip rides with that step's commit; it reaches the integration branch when the controller merges the task. The controller flips only boxes still open after review, and only on the integration branch. On resume, the controller first runs `git worktree list` and checks for unmerged task branches; for each, it reads that branch's checkboxes and continues from there (re-review and merge, or re-dispatch only the open steps), never from the integration branch's unchecked boxes. Flakes build from the dirty working tree, so a shared tree would let one task's deliberate red step (or half-done edit) fail a neighbour's check. T13 runs `just switch` only from its own clean worktree, never from a tree that another task is editing.
 
 Batches derived from the table:
 
@@ -56,7 +56,7 @@ Batches derived from the table:
 - Batch 8: T11
 - Batch 9: T12 [HITL]
 
-Deviation from the spec's graph: T8 also appends to `tests/llm-skills.nix`, which the spec's order (T4 → T5 → T6 → T7 → T11) leaves out. T8 therefore runs after T7 and T11 after T8, so the order is T4 → T5 → T6 → T7 → T8 → T11. Treat T8 as depending on T7, and T11 as depending on T8.
+Deviation from the spec's graph: T8 also appends to `tests/llm-skills.nix`, which the spec's order (T4 → T5 → T6 → T7 → T11) leaves out. The table above therefore adds T7 → T8 → T11 to the dependencies, so the order is T4 → T5 → T6 → T7 → T8 → T11.
 
 ## Agent Assignments
 
@@ -94,6 +94,7 @@ Agent assignments (auto-selected):
 - Every new test file goes into `tests/default.nix` in the set the spec names: common for `wayfinder-ticket.nix`, `llm-skills.nix` and `codex.nix`, Linux-only for the sandbox VM test.
 - Commit messages are one short line with no Co-Authored-By trailer (the user's global instruction overrides the harness default).
 - Run `git add -N <file>` on every new file before any `nix build .#…`, `nix eval .#…` or `builtins.getFlake` call. A flake built from a git tree can't see untracked files, so without it a red step fails on a missing path and not on the test.
+- `aarch64-linux` builds (`.#checks.aarch64-linux.*`, `nixosConfigurations.*.config.system.build.toplevel`) run on the personal-nixos VM from a checkout of this branch, or from the Mac with `--builders 'ssh-ng://personal-nixos aarch64-linux - - - nixos-test,big-parallel'`. The Mac has no Linux builder, so a Linux build run there fails on the platform, not on the test.
 - `just check` and the touched checks must pass before a task is done. Full `nix flake check` runs in T12.
 
 ## Review Focus
@@ -112,7 +113,7 @@ T2 defines this, and T3, T8, T9, T10 and T13 consume it. The spec's command tabl
 
 **Files (local backend)** under `$common/wayfinder/<slug>/`: `map.md`, `<id>.md`, `<id>.claim`, `map.write`, `findings/<id>.md`. The next id is the highest existing id + 1, taken under `map.write`. `new` also creates the empty `<id>.claim` file, so `claim` never has to create a file in the map dir before its first write. Frontmatter is YAML, read and written with `yq --front-matter=process`. `blocked-by` is a YAML list of integers, and empty fields are `""` (never omitted). Body sections are `## <Name>` headings in the order the spec gives.
 
-**Exit codes:** `0` success; `1` generic rejection; `2` usage error; `3` map or ticket not found; `4` ticket closed; `5` phase mismatch; `6` live claim by another session; `7` blocked. Any non-zero exit means nothing was written. Every rejection prints exactly one line to stderr: `wayfinder-ticket: <reason>`. Skill patches (T8, T9) branch on exit codes, never on message text.
+**Exit codes:** `0` success; `1` generic rejection; `2` usage error; `3` map or ticket not found; `4` ticket closed; `5` phase mismatch; `6` live claim by another session; `7` blocked. `3` applies only to the command's own `<slug>`/`<ref>`; an id passed as an argument (`--blocked-by`, `block`/`unblock`, `--superseded-by`) that is not in the map is `1` with reason `id <n> not in map`. Any non-zero exit means nothing was written. Every rejection prints exactly one line to stderr: `wayfinder-ticket: <reason>`. Skill patches (T8, T9) branch on exit codes, never on message text.
 
 Pinned rejection reasons (tests assert these substrings):
 - not found: `not found: <ref>`
@@ -154,10 +155,10 @@ Spec: Patch layout; Codex parity (first paragraph); Success criterion "byte-iden
 
 **Files:**
 - Create: `patches/superpowers/{brainstorming,writing-plans,executing-plans,subagent-driven-development,requesting-code-review}.patch` (the directories today's patch touches; confirm with `grep '^diff --git' patches/superpowers-customizations.patch`)
-- Create: `patches/mattpocock/improve-codebase-architecture.patch`
+- Create: `patches/mattpocock/improve-codebase-architecture.patch` (`git mv` of `patches/mattpocock-skills-customizations.patch`, unchanged: it has no `diff --git` headers and a single target, confirmed with `grep '^+++' patches/mattpocock-skills-customizations.patch`)
 - Create: `home/common/llm/superpowers.nix`
-- Delete: `patches/superpowers-customizations.patch`, `patches/mattpocock-skills-customizations.patch`
-- Modify: `claude/home/plugins.nix:20-24` (drop the `let` binding, read `config.custom.llm.superpowersPackage`), `home/common/llm/default.nix` (import `./superpowers.nix`), `home/common/llm/skills.nix:6-10` (patches list → `patches/mattpocock/*.patch`)
+- Delete: `patches/superpowers-customizations.patch` (the mattpocock patch is moved, not deleted)
+- Modify: `claude/home/plugins.nix:20-24` (drop the `let` binding, read `config.custom.llm.superpowersPackage`), `home/common/llm/default.nix` (import `./superpowers.nix`), `home/common/llm/skills.nix:6-10` (`patchedMattpocockSkills.patches` → `map (n: ../../../patches/mattpocock + "/${n}") ["improve-codebase-architecture.patch"]`; T4/T8 append names to this list)
 
 **Interfaces:**
 - Produces: option `custom.llm.superpowersPackage` (`lib.types.package`, `readOnly = true`, set unconditionally to the `applyPatches` result named `superpowers-patched`). The patch lists are spelled out explicitly, never globbed with `builtins.readDir`, so a new patch shows up in review as a list change.
@@ -172,9 +173,9 @@ nix build --no-link --print-out-paths --impure --expr 'let f = builtins.getFlake
 ```
 Expected: two store paths. Use the scratchpad instead of `/tmp` if the session has one.
 
-- [ ] **Step 2: Split each combined patch by `diff --git` header into per-directory files**
+- [ ] **Step 2: Split the superpowers patch by `diff --git` header into per-directory files; `git mv` the mattpocock patch to `patches/mattpocock/improve-codebase-architecture.patch`**
 
-Use `filterdiff -i '*/skills/<dir>/*'` from `patchutils` (`nix shell nixpkgs#patchutils`), once per directory. Every hunk must land in exactly one output file. Check this by comparing `grep -c '^@@'` across the outputs with the original.
+For the superpowers patch, use `filterdiff -i '*/skills/<dir>/*'` from `patchutils` (`nix shell nixpkgs#patchutils`), once per directory. Every hunk must land in exactly one output file. Check this by comparing `grep -c '^@@'` across the outputs with the original.
 
 - [ ] **Step 3: Add `home/common/llm/superpowers.nix` and rewire `plugins.nix` and `skills.nix`**
 
@@ -185,9 +186,12 @@ The module takes `{inputs, lib, pkgs, ...}`. Do not wrap it in `lib.mkIf config.
 Run:
 ```bash
 diff -r "$(cat /tmp/sp-before)" "$(nix build --no-link --print-out-paths .#darwinConfigurations.burnedapple.config.home-manager.users.vaporif.custom.llm.superpowersPackage)"
-diff -r "$(cat /tmp/mp-before)" "$(nix build --no-link --print-out-paths --impure --expr 'let f = builtins.getFlake (toString ./.); p = f.inputs.nixpkgs.legacyPackages.aarch64-darwin; in p.applyPatches { name = "mattpocock-skills-patched"; src = f.inputs.mattpocock-skills; patches = map (n: ./patches/mattpocock + "/${n}") ["improve-codebase-architecture.patch"]; }')"
+A='.#darwinConfigurations.burnedapple.config.home-manager.users.vaporif.home.file.".claude/skills/improve-codebase-architecture".source'
+drv=$(nix eval --raw "$A" --apply 's: builtins.head (builtins.attrNames (builtins.getContext s))')
+nix build --no-link "$drv^out"
+diff -r "$(cat /tmp/mp-before)/skills/engineering/improve-codebase-architecture" "$(nix eval --raw "$A")"
 ```
-Expected: no output and exit 0 from both.
+Expected: no output and exit 0 from both diffs. The mattpocock check reads the subtree the rewired `skills.nix` actually installs; the `.source` is a subpath string, so its derivation is built from the string context first.
 
 - [ ] **Step 5: Lint and evaluate**
 
@@ -231,7 +235,7 @@ WT=$(nix build --no-link --print-out-paths --impure --expr '(builtins.getFlake (
 Full check: `nix build -L .#checks.aarch64-darwin.wayfinder-ticket`. Under an agent's Bash tool the fast loop has a real agent ancestor, so `run.sh` skips `test_claim_no_agent_ancestor`, the no-harness case of `test_trailer_rejections` and the harness-detection asserts whenever `wayfinder-ticket __agent-pid` (with `WAYFINDER_AGENT_PID` unset) finds one (printing `skip`). Only the `nix build` run is authoritative for those cases.
 
 **Interfaces:**
-- Produces: the CLI contract in "Shared interface" above. Internally, `lib.sh` exports `die <code> <msg>`, `parse_ref <ref>` (sets `SLUG`, `ID`), `common_dir`, `map_dir <slug>`, `with_map_lock <slug> <fn> [args…]`, `fm_get <file> <key>`, `fm_set <file> <key> <yaml-value>` (temp file + rename), `section_get`/`section_set <file> <name>`. T10 dispatches on `backend` (`git config --default local wayfinder.backend`) at the top of each command in `commands.sh`, so each command body is a `local_<cmd>` function.
+- Produces: the CLI contract in "Shared interface" above. Internally, `lib.sh` exports `die <code> <msg>`, `parse_ref <ref>` (sets `SLUG`, `ID`), `common_dir`, `map_dir <slug>`, `with_map_lock <slug> <fn> [args…]`, `fm_get <file> <key>`, `fm_set <file> <key> <yaml-value>` (temp file + rename), `section_get`/`section_set <file> <name>`. T10 dispatches on `backend` (`git config --default local wayfinder.backend`) at the top of each command entry point (`commands.sh`, `claim.sh`, `git.sh`, `trailer.sh`), so each command body is a `local_<cmd>` function.
 
 Each stage below is one red/green cycle. Write the listed tests, see them fail, implement, see them pass, then commit. The spec's command table gives the behaviour. The test names give the cases, and each case's assertions are the spec's "Rejected when" column plus the Testing bullet text it mirrors.
 
@@ -270,10 +274,10 @@ Harness detection uses the same agent walk as `claim`: a match on `.claude-unwra
 
 - [ ] **Step 14: Run Stage E, expect FAIL; implement `frontier`, `status` and `trailer.sh`; run, expect PASS; commit** — `wayfinder-ticket: frontier, status, trailer`
 
-- [ ] **Step 15: Full verification**
+- [ ] **Step 15: Add `pkgs.wayfinder-ticket` to `home.packages` in `home/common/packages.nix`, then run full verification**
 
 Run: `nix build -L .#checks.aarch64-darwin.wayfinder-ticket && just check && nix build --no-link .#darwinConfigurations.burnedapple.system`
-Expected: every case prints `ok`; lint and build succeed. Then run the check on Linux, on the NixOS VM or with a remote builder: `nix build -L .#checks.aarch64-linux.wayfinder-ticket`.
+Expected: every case prints `ok`; lint and build succeed, and the system closure includes `wayfinder-ticket`. Then run the check on Linux, on the NixOS VM or with a remote builder: `nix build -L .#checks.aarch64-linux.wayfinder-ticket`.
 
 - [ ] **Step 16: Commit** — `wayfinder-ticket: add to home.packages`
 
@@ -301,26 +305,26 @@ Generate the id with `cat /proc/sys/kernel/random/uuid` on Linux and `uuidgen` o
 
 - [ ] **Step 1: Write `tests/sandbox-wrapper.nix`**
 
-It instantiates `bwrap-wrapper.nix` twice, with the real Claude and Codex `{agentBinds, programArgs}` imported from `home/linux/sandbox-agents.nix` and only `program` replaced by the stub. That way the `--no-daemon` and `cwd HOME` cases check the shipped config and not a copy of it. The stub is a `writeShellScript` that runs the assertion script passed in `$STUB_CASE`, starts `sleep`, exports `WAYFINDER_AGENT_PID`/`WAYFINDER_AGENT_START` inside the sandbox and calls `wayfinder-ticket`. Cases, one `subtest` each, all as a non-root `testuser`:
+It instantiates `bwrap-wrapper.nix` twice, with the real Claude and Codex `{agentBinds, programArgs}` imported from `home/linux/sandbox-agents.nix` and only `program` replaced by the stub. That way the `--no-daemon` and `cwd HOME` cases check the shipped config and not a copy of it. The stub is a `writeShellScript` that runs the assertion script passed in `$STUB_CASE`, starts `sleep`, exports `WAYFINDER_AGENT_PID`/`WAYFINDER_AGENT_START` inside the sandbox and calls `wayfinder-ticket`. The test passes a stub `sandboxShared = { secretPreload = ""; ghTokenPreload = ""; sharedEnvNames = ["AGENT_SESSION_ID" "CLAUDE_SANDBOX" "CODEX_SANDBOX"]; }`, since the real value only exists inside a Home Manager evaluation (`home/common/sandboxed.nix`). Under `--clearenv` a name missing from `sharedEnvNames` never reaches the program, so the stub must list `AGENT_SESSION_ID`. Cases, one `subtest` each, all as a non-root `testuser`:
 - `bare-clone subdir`: from `~/proj/main/src` (a bclone), `git status --porcelain` is empty, `docs/` is readable, `.meta/.envrc` resolves, and `<common>/wayfinder` is writable.
 - `linked worktree outside Repos`: the same assertions from `/home/testuser/work/wt/src`.
 - `contended claim`: stub A claims and then waits on a barrier file in a shared directory. Stub B, launched while A is still alive, claims the same ticket and must exit 6. Only then does the test create the barrier so A exits. This matters because `--unshare-pid --die-with-parent` kills A's holder when A exits, so stubs run one after the other would never contend.
-- `fresh session id`: a launch with `AGENT_SESSION_ID=parent` set sees a different value.
+- `fresh session id`: a launch with `AGENT_SESSION_ID=parent` set sees a different, non-empty value.
 - `codex no-daemon`: the Codex stub's `$1` is `--no-daemon`.
 - `cwd inside bind_ro`: a fake `~/.config/nix-darwin` repo; writes to the cwd and `<common>/wayfinder` succeed.
 - `nested ticket worktree`: from `<root>/.claude/worktrees/b`, `git -C <root> checkout main && git -C <root> merge b` succeeds.
 - `cwd HOME`: `~/.config/git` is not writable, and `stat -c %U ~/.ssh/config` is `testuser`.
 
-- [ ] **Step 2: Run, expect FAIL** — `nix build -L .#checks.aarch64-linux.sandbox-wrapper` (`bwrap-wrapper.nix` does not exist yet)
+- [ ] **Step 2: Run on the VM, expect FAIL** — `nix build -L .#checks.aarch64-linux.sandbox-wrapper` (`bwrap-wrapper.nix` does not exist yet, so the failure is a missing-file evaluation error; a missing-platform error means it ran on the Mac)
 
 - [ ] **Step 3: Implement `bwrap-wrapper.nix` and move both Linux wrappers onto it, putting every existing per-agent bind in `sandbox-agents.nix` except the `worktree_parent` trio**
 
-- [ ] **Step 4: Run the VM test, expect PASS**
+- [ ] **Step 4: Run the VM test on the VM, expect PASS**
 
 - [ ] **Step 5: Darwin changes (`preHook` id + rules, `codex-no-daemon`), `sharedEnvNames`, `daemon_auto_start`, `tests/codex.nix` assertion**
 
-Run: `just check && nix build --no-link .#darwinConfigurations.burnedapple.system && nix build --no-link .#nixosConfigurations.personal-nixos.config.system.build.toplevel`
-Expected: all succeed. Then `grep -c 'AGENT_SESSION_ID' $(nix build --no-link --print-out-paths .#darwinConfigurations.burnedapple.config.home-manager.users.vaporif.custom.sandboxedPackages.claude)/bin/claude-sandboxed` prints ≥ 1.
+Run on the Mac: `just check && nix build --no-link .#darwinConfigurations.burnedapple.system`; on the VM: `nix build --no-link .#nixosConfigurations.personal-nixos.config.system.build.toplevel`
+Expected: all succeed. Then `grep -cE 'AGENT_SESSION_ID=.*uuidgen' $(nix build --no-link --print-out-paths .#darwinConfigurations.burnedapple.config.home-manager.users.vaporif.custom.sandboxedPackages.claude)/bin/claude-sandboxed` prints ≥ 1.
 
 - [ ] **Step 6: Commit** — `sandbox: common-dir/main-root binds, AGENT_SESSION_ID, codex --no-daemon`
 
@@ -347,7 +351,7 @@ Spec: Install the full mattpocock skill set; Tracker (Cons bullet: what is repla
 
 - [ ] **Step 2: Run, expect FAIL** — `nix build -L .#checks.aarch64-darwin.llm-skills`
 
-- [ ] **Step 3: Write the four patches and the `skills.nix` changes. Generate each patch by editing a writable copy of the pinned tree and running `diff -ru` against the pristine one, with paths rewritten to `a/skills/...` / `b/skills/...` to match `applyPatches`**
+- [ ] **Step 3: Write the four patches and the `skills.nix` changes. Generate each patch by editing a writable copy of the pinned tree and running `diff -ru` against the pristine one, with paths rewritten to `a/skills/...` / `b/skills/...` (any single leading component works, since `applyPatches` applies with `-p1`). For `improve-codebase-architecture.patch` the baseline is upstream plus the `prePatch` copy, not pristine upstream: run the exact `prePatch` commands from `skills.nix` in `base/`, copy `base/` to `work/`, make every edit (T1's existing hunks and the new ones) in `work/`, and diff `base` against `work`. Check that no patch contains a `--- /dev/null` hunk**
 
 - [ ] **Step 4: Run, expect PASS; then `just check && nix build --no-link .#darwinConfigurations.burnedapple.system`**
 
@@ -370,7 +374,7 @@ Spec: Review gate (Changes from his copy; bundle definitions; Map mode slot fill
 
 - [ ] **Step 2: Run, expect FAIL**
 
-- [ ] **Step 3: Copy the files with `gh api repos/zvolin/nixos-config/contents/<path>?ref=27d4369c3512455d8a1ce83bd90bebc77fe890bd --jq .content | base64 -d`, then apply the three listed edits**
+- [ ] **Step 3: Copy the files with `gh api 'repos/zvolin/nixos-config/contents/<path>?ref=27d4369c3512455d8a1ce83bd90bebc77fe890bd' --jq .content | base64 -d` (the path is quoted because an unquoted `?` is a glob under zsh), then apply the three listed edits**
 
 - [ ] **Step 4: Run, expect PASS; `just check`; commit** — `llm: vendor dissent-review`
 
@@ -404,7 +408,7 @@ Spec: Handoff and memory (second paragraph onward); Testing → `tests/llm-skill
 - Modify: `claude/home/rules.nix:22` → `".claude/CLAUDE.md".text = builtins.readFile ../overrides/CLAUDE.md + lib.optionalString config.custom.qdrant.enable (builtins.readFile ../overrides/CLAUDE-memory.md);`
 - Modify: `home/common/llm/commands.nix` per the spec. Split `llm/shared/commands/docs.md` into `docs-head.md`, `docs-ferrex.md` (the `**Ferrex**` block, line 22 onward to just before "Present a summary") and `docs-tail.md`, and delete `docs.md`.
 - Modify: `claude/home.nix` (add `options` to the arguments; the `allowedTools` filter, verbatim from the spec)
-- Modify: `home/darwin/sandboxed.nix:87,128` (`~/.ferrex` entries gated with `lib.optionals config.custom.qdrant.enable`) and `home/linux/sandboxed.nix` (passes `ferrex = config.custom.qdrant.enable` to `sandbox-agents.nix`)
+- Modify: `home/darwin/sandboxed.nix` (the two `"$HOME/.ferrex"` entries in the `cli.rw` lists of the Claude and Codex sandboxes, gated with `lib.optionals config.custom.qdrant.enable`) and `home/linux/sandboxed.nix` (passes `ferrex = config.custom.qdrant.enable` to `sandbox-agents.nix`)
 - Modify: `tests/codex.nix` (the test runs with qdrant off, so `grep -q '^\[mcp_servers.ferrex\]$'` becomes `! grep -q '^\[mcp_servers.ferrex\]$'`), `tests/default.nix` (uncomment `codex` and drop the TODO), `tests/llm-skills.nix` (`mkHm {qdrant = true;}` evaluation)
 
 - [ ] **Step 1: Extend `tests/llm-skills.nix`. With qdrant off: `ferrex` is absent from the generated `.claude/CLAUDE.md`, from every installed command file and from the `settings.json` permissions; the Codex `config.toml` has no `[mcp_servers.ferrex]` but has `[mcp_servers.context7]`; none of `checkpoint`/`forget`/`recall`/`reflect`/`remember` is installed. With qdrant on: `.claude/CLAUDE.md` contains `## Memory System`, all five commands are present, the allow list contains an `mcp__ferrex__` entry, and `assert hm.config.custom.codexMcpServers ? ferrex` holds (evaluated, not built)**
@@ -413,7 +417,7 @@ Spec: Handoff and memory (second paragraph onward); Testing → `tests/llm-skill
 
 - [ ] **Step 3: Implement the gating, then re-enable `codex` in `tests/default.nix`**
 
-- [ ] **Step 4: Run, expect PASS** — `nix build -L .#checks.aarch64-darwin.llm-skills .#checks.aarch64-darwin.codex && just check && nix build --no-link .#darwinConfigurations.burnedapple.system`. Then run the Linux sandbox VM test again (`nix build -L .#checks.aarch64-linux.sandbox-wrapper`).
+- [ ] **Step 4: Run, expect PASS** — `nix build -L .#checks.aarch64-darwin.llm-skills .#checks.aarch64-darwin.codex && just check && nix build --no-link .#darwinConfigurations.burnedapple.system`. Then run the Linux sandbox VM test again on the VM (`nix build -L .#checks.aarch64-linux.sandbox-wrapper`).
 
 - [ ] **Step 5: Commit** — `gate ferrex prompt surface on qdrant.enable; re-enable codex test`
 
@@ -431,9 +435,9 @@ Spec: Invocation; Map model; Ticket model ("When implementation tickets are crea
 - Consumes: the CLI contract (T2) and its exit codes. Wayfinder treats exits 4, 6 and 7 from `claim` as "lost race, take the next frontier entry" (spec, session order step 2) and any other non-zero exit as "print and stop". It also consumes `dissent-review` (T5), `research-options <ref> from=wayfinder` (T6), and the `research`, `grilling`, `prototype` and `domain-modeling` skills (T4).
 - Produces: wayfinder prose that routes implementation tickets with `wayfinder-ticket trailer <phase> <ref>` and never runs a phase itself.
 
-Write the patch section by section against upstream's `SKILL.md` (and any reference files it reads), so that each spec paragraph maps to a hunk. Keep the ticket-mode text in its own sections, as the spec's Risks row "Prompt bloat" requires: mostly "run `wayfinder-ticket …`". Order of new or rewritten sections: Invocation → Tracker access → Ticket types → Session order (map entry, steps 1–5) → Charting session → Upkeep and pending upkeep → Corrections → Prototype tickets → Research tickets → Review (dissent) → Asking the user. Every `wayfinder-ticket` invocation in the prose must use a command and flags that exist in the T2 contract. The test below checks this mechanically.
+Write the patch section by section against upstream's `SKILL.md` (and any reference files it reads), so that each spec paragraph maps to a hunk. Keep the ticket-mode text in its own sections, as the spec's Risks row "Prompt bloat" requires: mostly "run `wayfinder-ticket …`". Order of new or rewritten sections: Invocation → Tracker access → Ticket types → Session order (map entry, steps 1–5) → Charting session → Upkeep and pending upkeep → Corrections → Prototype tickets → Research tickets → Review (dissent) → Asking the user. Every `wayfinder-ticket` invocation in the prose must use a command and flags that exist in the T2 contract. The test below checks command names mechanically; flags are checked against the contract in the Step 5 human read.
 
-- [ ] **Step 1: Extend `tests/llm-skills.nix`: the built `wayfinder/` contains no `.scratch/` and no `research/<` branch instruction; every line matching `wayfinder-ticket [a-z-]+` names a command from the T2 list (extract with `grep -oE 'wayfinder-ticket [a-z-]+' | sort -u` and compare with an inline allowlist); it contains `trailer wayfinder`, `pending:`, `.claude/worktrees/wayfinder-`, `from=wayfinder`, `dissent-review` and `## Asking the user`**
+- [ ] **Step 1: Extend `tests/llm-skills.nix`: the built `wayfinder/` contains no `.scratch/` and no `research/<` branch instruction; every line matching `wayfinder-ticket [a-z-]+` names a command from the spec's `wayfinder-ticket` command table (extract with `grep -oE 'wayfinder-ticket [a-z-]+' | sort -u` and compare with an allowlist of those names, defined once in `tests/wayfinder-commands.nix` so T9 imports the same list); it contains `trailer wayfinder`, `pending:`, `.claude/worktrees/wayfinder-`, `from=wayfinder`, `dissent-review` and `## Asking the user`**
 
 - [ ] **Step 2: Run, expect FAIL**
 
@@ -453,7 +457,8 @@ Spec: Goal (the five deliberate changes); Context (the executing-plans Inline-De
 
 **Files:**
 - Create: `patches/superpowers/finishing-a-development-branch.patch` (T1 does not create it, because today's patch doesn't touch that skill), and register it in `home/common/llm/superpowers.nix`
-- Modify: `patches/superpowers/brainstorming.patch` (incl. `spec-document-reviewer-prompt.md`), `writing-plans.patch` (incl. a new-file hunk for `plan-document-reviewer-prompt.md`, restored from upstream v6.4.1 with `git show v6.4.1:skills/writing-plans/plan-document-reviewer-prompt.md` in a superpowers checkout and then edited; a new-file hunk is acceptable here because upstream deleted the file and there is nothing to drift from), `executing-plans.patch`, `subagent-driven-development.patch` (incl. `implementer-prompt.md` only if a ticket-mode line belongs there)
+- Modify: `patches/superpowers/brainstorming.patch` (incl. `spec-document-reviewer-prompt.md`), `writing-plans.patch` (incl. a new-file hunk for `plan-document-reviewer-prompt.md`, restored from upstream v6.4.1 with `curl -fsSL https://raw.githubusercontent.com/obra/superpowers/v6.4.1/skills/writing-plans/plan-document-reviewer-prompt.md` (the flake input is a tarball with no `.git`) and then edited; a new-file hunk is acceptable here because upstream deleted the file and there is nothing to drift from), `executing-plans.patch`, `subagent-driven-development.patch` (incl. `implementer-prompt.md` only if a ticket-mode line belongs there)
+- Unchanged: `requesting-code-review.patch` (T1's path rewrite only; no spec change touches it)
 - Create: `tests/superpowers-patches.nix` (common set), a `runCommand` over `custom.llm.superpowersPackage` with structural greps; modify `tests/default.nix`
 
 `tests/default.nix` is not in the spec's shared-file order for T9. T7 runs in batch 6 and T9 in batch 5, so T9's edit lands first and T7 rebases on it. This is a one-line addition, which is safe.
@@ -465,13 +470,14 @@ Spec: Goal (the five deliberate changes); Context (the executing-plans Inline-De
 Each ticket-mode addition is a separate `## Ticket mode` section near the top of its skill, triggered by a reference argument. Non-ticket text changes only where the spec lists a deliberate change: review gate cap 3 and the dissent step, Asking the user, the Inline-Degraded OR rule (gate bullets, the two Polish lines, the rationalization row "and accepted"), and the three finishing fixes.
 
 - [ ] **Step 1: Write `tests/superpowers-patches.nix` with these greps on the built tree:**
-  - `brainstorming/SKILL.md` and `writing-plans/SKILL.md` contain `dissent-review`, the loop cap `3` (and no `10 iterations`), `## Ticket mode`, `## Asking the user` and `Wayfinder ticket handoff`.
+  - `brainstorming/SKILL.md` and `writing-plans/SKILL.md` contain `dissent-review`, the loop cap `3` (and no `10 iterations`), `## Asking the user` and `Wayfinder ticket handoff`.
+  - brainstorming, writing-plans, executing-plans, subagent-driven-development and finishing-a-development-branch each contain `## Ticket mode`.
   - brainstorming contains `base-ref`, `merged`, `Stacked on:`, `waiting on merge:`, `EnterWorktree path=`, `-impl` and `new <slug> prototype`.
   - writing-plans contains `superpowers:executing-plans plan=` and `writing-plans/plan-document-reviewer-prompt.md` exists.
-  - executing-plans contains `ticket=none`, `ticket needs a subagent tool` and `## Asking the user`, and its Inline-Degraded gate no longer contains `You are inline because no subagent tool exists`.
+  - executing-plans contains `ticket=none`, `ticket needs a subagent tool` and `## Asking the user`, and the file no longer contains `You are inline because no subagent tool exists` or `If a subagent tool is in fact available, you should not be in this skill` (the Post-Implementation Polish lines the OR rule rewrites).
   - SDD contains `ticket=`, `--outcome`, `--remove`, `--superseded-by` and `main-root`.
   - finishing contains `wayfinder-ticket main-root`, `--ff-only`, `@{u}` and `Stacked on:`, and no longer contains `git rev-parse --git-common-dir)/..`.
-  - Every `wayfinder-ticket <cmd>` across the tree is in the T2 allowlist (same check as T8).
+  - Every `wayfinder-ticket <cmd>` across the tree is in the allowlist imported from `tests/wayfinder-commands.nix` (same check as T8).
 
 - [ ] **Step 2: Run, expect FAIL** — `nix build -L .#checks.aarch64-darwin.superpowers-patches`
 
@@ -483,7 +489,7 @@ Each ticket-mode addition is a separate `## Ticket mode` section near the top of
 
 - [ ] **Step 6: Run, expect PASS; `just check && nix build --no-link .#darwinConfigurations.burnedapple.system`**
 
-- [ ] **Step 7: Human read.** Show the user `diff -ru` of upstream vs built for each of the six skills, one skill at a time, and get approval in the "Asking the user" format. Apply change requests and repeat Step 6.
+- [ ] **Step 7: Human read.** Show the user `diff -ru` of upstream vs built for each of the six skills (brainstorming, writing-plans, executing-plans, subagent-driven-development, requesting-code-review (path-only, unchanged since T1), finishing-a-development-branch), one skill at a time, and get approval in the "Asking the user" format. Apply change requests and repeat Step 6.
 
 - [ ] **Step 8: Commit** — `superpowers: ticket mode, dissent gate, finishing fixes`
 
@@ -495,7 +501,7 @@ Spec: Backends (the table and the paragraph after it); `merged` forge fallback; 
 
 **Files:**
 - Create: `pkgs/wayfinder-ticket/backend-github.sh`, `pkgs/wayfinder-ticket/backend-gitlab.sh` (added to the concat list ahead of `main.sh`), and `tests/wayfinder-ticket/remote.sh`, `tests/wayfinder-ticket/stubs/{gh,glab}`. The stubs are Bash scripts that implement the subset of `gh`/`glab` the backends call, keeping issue state as JSON files under `$STUB_STATE`.
-- Modify: `pkgs/wayfinder-ticket/commands.sh` (backend dispatch), `tests/wayfinder-ticket.nix` (a second `WT_GH` built with `pkgs.wayfinder-ticket.override { gh = ghStub; }`; the `glab` stub prepended to `PATH` for GitLab cases), `patches/mattpocock/setup-matt-pocock-skills.patch` (the "Wayfinding operations" sections of `issue-tracker-{github,gitlab}.md` → "use `wayfinder-ticket`")
+- Modify: `pkgs/wayfinder-ticket.nix` (concat list gains `backend-github.sh`, `backend-gitlab.sh` before `main.sh`), `pkgs/wayfinder-ticket/commands.sh` (backend dispatch), `pkgs/wayfinder-ticket/git.sh` (`merged` forge fallback; `base-ref`'s forge-hit rule), `pkgs/wayfinder-ticket/claim.sh` (dispatch for `claim`/`release`; `release --force` remote-only), `pkgs/wayfinder-ticket/trailer.sh` (release before a restart line on remote backends), `tests/wayfinder-ticket.nix` (a second `WT_GH` built with `pkgs.wayfinder-ticket.override { gh = ghStub; }`; the `glab` stub prepended to `PATH` for GitLab cases), `patches/mattpocock/setup-matt-pocock-skills.patch` (the "Wayfinding operations" sections of `issue-tracker-{github,gitlab}.md` → "use `wayfinder-ticket`")
 
 **Interfaces:**
 - Consumes: the `local_<cmd>` functions and helpers from T2. Remote backends implement `github_<cmd>`/`gitlab_<cmd>` with the same output formats and exit codes. The one exception is `status`'s `claim` field, which can only be `held` or `none` there.
@@ -522,7 +528,7 @@ Write down which `gh`/`glab` subcommands the backend uses, near the top of each 
 Spec: Codex parity (second paragraph onward).
 
 **Files:**
-- Modify: `home/common/codex/default.nix` (near line 49: `home.file` gains `lib.mapAttrs'` over the directory names in `builtins.readDir "${inputs.superpowers}/skills"`, each `.codex/skills/<name>` with `source = "${config.custom.llm.superpowersPackage}/skills/<name>"`. The names come from the unpatched input, a plain source path, so evaluation never builds the patched tree. Reading the derivation instead would be import-from-derivation and would need an aarch64-linux build while the Mac evaluates the NixOS configs. Add `inputs` to the module's arguments.)
+- Modify: `home/common/codex/default.nix` (the `home.file =` attrset inside `config = lib.mkIf cfg.codex.enable`, next to the `toSkillFile`/`toAgentFile` merges, gains `lib.mapAttrs'` over the directory names in `builtins.readDir "${inputs.superpowers}/skills"`, each `.codex/skills/<name>` with `source = "${config.custom.llm.superpowersPackage}/skills/<name>"`. The names come from the unpatched input, a plain source path, so evaluation never builds the patched tree. Reading the derivation instead would be import-from-derivation and would need an aarch64-linux build while the Mac evaluates the NixOS configs. Add `inputs` to the module's arguments.)
 - Modify: `claude/home/plugins.nix` only if it still has a leftover reference
 - Modify: `home/common/llm/default.nix` only if T1 left it inconsistent (owned per the spec's file order)
 - Modify: `tests/llm-skills.nix`
@@ -530,7 +536,7 @@ Spec: Codex parity (second paragraph onward).
 **Interfaces:**
 - Consumes: `custom.llm.superpowersPackage` (T1, patched by T9).
 
-- [ ] **Step 1: Extend the test: the patched tree's `skills/` directory names equal the unpatched input's (patching adds no skill directory); for `brainstorming`, `writing-plans`, `executing-plans`, `subagent-driven-development`, `finishing-a-development-branch` and `using-git-worktrees`, `.codex/skills/<n>/SKILL.md` exists and contains `## Ticket mode` where T9 added it; `.claude/skills/brainstorming` does not exist (no second copy)**
+- [ ] **Step 1: Extend the test: the patched tree's `skills/` directory names equal the unpatched input's (patching adds no skill directory); for `brainstorming`, `writing-plans`, `executing-plans`, `subagent-driven-development` and `finishing-a-development-branch`, `.codex/skills/<n>/SKILL.md` exists and contains `## Ticket mode`; `.codex/skills/using-git-worktrees/SKILL.md` and `.codex/skills/requesting-code-review/SKILL.md` exist; `.claude/skills/brainstorming` does not exist (no second copy)**
 
 - [ ] **Step 2: Run, expect FAIL; implement; run, expect PASS; `just check && nix build --no-link .#darwinConfigurations.burnedapple.system`; commit** — `codex: install patched superpowers skills`
 

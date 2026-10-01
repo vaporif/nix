@@ -16,6 +16,8 @@ in {
 
   gitlab-mcp = final.callPackage ../pkgs/gitlab-mcp.nix {};
 
+  wayfinder-ticket = final.callPackage ../pkgs/wayfinder-ticket.nix {};
+
   difftastic = final.callPackage ../pkgs/difftastic.nix {inherit difftastic-src;};
 
   # matterhorn: the nixpkgs build is broken. mattermost-api's TLS code predates

@@ -8,6 +8,7 @@
   formatting = pkgs.runCommand "check-formatting" {} ''
     ${pkgs.alejandra}/bin/alejandra -c ${../.} && touch $out
   '';
+  wayfinder-ticket = import ./wayfinder-ticket.nix {inherit pkgs;};
   # TODO: re-enable. The codex check fails the `ferrex` mcp_servers grep
   # because qdrant.enable defaults to false, so the ferrex MCP server is
   # never emitted into config.toml.

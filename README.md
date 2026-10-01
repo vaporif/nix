@@ -140,6 +140,10 @@ Runtime sandboxing covers what an installed agent can do. Install-time is separa
 
 The AI aliases (`a`, `ap`, `ar`, `ai`, `o`, `oi`) all go through the sandboxed wrappers.
 
+### Workflow
+
+See [docs/ai-workflow.md](docs/ai-workflow.md) for how wayfinder and superpowers fit together: the session loop, where it stops for human input, and which commands to run.
+
 ## Development
 
 Run `just` to list everything. The ones you'll use most:

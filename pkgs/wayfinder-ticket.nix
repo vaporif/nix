@@ -5,13 +5,15 @@
   flock,
   yq-go,
   coreutils,
+  gawk,
+  gnugrep,
   procps,
   util-linux,
   gh,
 }:
 writeShellApplication {
   name = "wayfinder-ticket";
-  runtimeInputs = [git flock yq-go coreutils procps util-linux gh];
+  runtimeInputs = [git flock yq-go coreutils gawk gnugrep procps util-linux gh];
   text = lib.concatMapStrings builtins.readFile [
     ./wayfinder-ticket/lib.sh
     ./wayfinder-ticket/model.sh

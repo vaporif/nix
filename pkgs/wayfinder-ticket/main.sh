@@ -34,10 +34,6 @@ git helpers:
 EOF
 }
 
-not_implemented() {
-  die 1 "not implemented: $1"
-}
-
 if [ $# -eq 0 ]; then
   die 2 "usage: wayfinder-ticket <command> [args...] (see wayfinder-ticket --help)"
 fi
@@ -46,7 +42,7 @@ command=$1
 shift
 case $command in
 map-new | maps | map-edit | map-complete | new | block | unblock | show | show-map | edit | attach | claim | release | advance | resolve | close | drop | frontier | status | main-root | merged | base-ref | default-branch | trailer)
-  not_implemented "$command"
+  dispatch "$command" "$@"
   ;;
 -h | --help | help)
   usage

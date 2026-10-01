@@ -257,8 +257,8 @@ skills call, packaged with `writeShellApplication` (shellcheck at build time) an
 (it takes no flake inputs, so the overlay limit above doesn't apply); `home/common/packages.nix` and
 the test use `pkgs.wayfinder-ticket`. The test stays a standalone common-set file rather than
 `passthru.tests`, which `tests/default.nix` merges only into the Darwin set. `runtimeInputs`:
-`git`, `flock` (`pkgs.flock`; macOS has no `flock(1)`), `yq-go`, `coreutils`, `procps` (`ps`),
-`util-linux` on Linux (for `setsid`), `perl` on macOS (for `POSIX::setsid`), and `gh` for the GitHub
+`git`, `flock` (`pkgs.flock`; `util-linux` ships one too, and the `-n`/`-w` flags used here behave the same in both), `yq-go`, `coreutils`, `procps` (`ps`),
+`util-linux` (for `setsid`; nixpkgs ships it on macOS too), and `gh` for the GitHub
 backend. `glab` is not pinned: it is installed only with `custom.gitlab.enable`, so the GitLab
 backend looks it up on `PATH` at call time and fails with "gitlab backend needs glab; enable
 custom.gitlab" when it is missing.
@@ -420,8 +420,10 @@ be deleted with it.
    variables, so each wrapper generates and exports a fresh UUID before that point, overwriting any
    inherited value (an agent launched from another agent's tool shell must not take over its
    claims through the re-entrant path in step 4): the Darwin
-   `darwinExtras.preHook`, both Linux bwrap scripts before the loop, and the Linux passthrough
-   wrappers `claudePlain`/`codexPlain` (used when `custom.claude.sandbox = false`). Every tool
+   `darwinExtras.preHook`, both Linux bwrap scripts before the loop, and the Linux Claude passthrough
+   wrapper `claudePlain` (used when `custom.claude.sandbox = false`). `codexPlain` is left as is:
+   no config reaches it (the containers that turn the sandbox off also set `codex.enable = false`),
+   so it carries a TODO instead of an unverifiable edit. Every tool
    subprocess inherits it and it survives `/clear`. With it unset, the script refuses to claim
    rather than inventing an identity. Plain `claude`/`codex` on PATH bypass the wrappers and
    inherit any id in their environment, so ticket mode is supported only through
@@ -442,8 +444,8 @@ be deleted with it.
    `cli.extraArgs` on Darwin, so there `program` (a `types.str`) becomes
    `lib.getExe (pkgs.writeShellScriptBin "codex-no-daemon" ''exec ${lib.getExe pkgs.codex} --no-daemon "$@"'')`
    (exec'ing the `codex` wrapper keeps `pkgs/codex.nix`'s env and leaves `codex-raw` for the
-   process walk); on Linux it goes right after `${codex}` in the bwrap `exec` line and in
-   `codexPlain`. and `codexConfig` sets
+   process walk); on Linux it goes right after `${codex}` in the bwrap `exec` line (not in
+   `codexPlain`, see step 1), and `codexConfig` sets
    `features.daemon_auto_start = false` for plain `codex`; this gives up `codex agents` session
    browsing. `tests/codex.nix` asserts `daemon_auto_start = false` in `config.toml` (T3 adds the
    assertion, T7's re-enable runs it); the Linux sandbox VM test asserts the stub receives
@@ -463,8 +465,9 @@ be deleted with it.
 5. **Holder.** Spawn a holder that inherits fd 9 and **nothing else**: the `map.write` fd is closed
    in the holder (otherwise it would keep the map locked for the agent's lifetime and every later
    command would block), and stdin/stdout/stderr go to `/dev/null` (otherwise the agent's tool call
-   waits for the pipe). It runs in a new session (`setsid -f` on Linux,
-   `perl -MPOSIX -e 'POSIX::setsid(); exec @ARGV'` on macOS) so an interrupt does not kill it. Every
+   waits for the pipe). It runs in a new session (`setsid -f` from `util-linux`, on both platforms;
+   `$!` is then the short-lived `setsid` PID, so only the holder's own PID file is trusted) so an
+   interrupt does not kill it. Every
    child the holder starts (`sleep`, `ps`) runs with `9>&-`, so the lock dies with the holder.
    The holder runs its first liveness check before detaching and signals readiness by writing its
    PID file; `claim` waits briefly for that file and checks the holder with `kill -0`. If the
@@ -991,7 +994,7 @@ not touch `home/common/packages.nix`; T2 is its only editor.
 |---|---|---|---|
 | T1 | Split superpowers and mattpocock patches per skill directory; move `patchedSuperpowers` into `home/common/llm/superpowers.nix` (`custom.llm.superpowersPackage`); verify byte-identical output | AFK | none |
 | T2 | `wayfinder-ticket` local backend in `pkgs/wayfinder-ticket.nix`: references, map and ticket model, every command (incl. upkeep guards, `new --blocked-by`, `drop --superseded-by` with dependent rewiring, and proto worktree removal in `resolve`/`drop`/`map-complete`), `main-root`, `default-branch`, `merged`, `base-ref`, `close --outcome`, claim protocol, `trailer` (incl. `--cd`, `--remove`, `--discard`), `frontier`'s `waiting` marker; add to `home.packages`; `tests/wayfinder-ticket.nix` in the common set | AFK | none |
-| T3 | Sandbox wrappers: shared bind function taking the program to exec, common-dir and main-root binds, two-pass bind order, `AGENT_SESSION_ID` (one `sharedEnvNames` entry; generated fresh in the Darwin `preHook`, both bwrap scripts and the Linux passthrough wrappers), Codex `--no-daemon` and `daemon_auto_start = false`; Linux VM test with a stub program | AFK | T2 |
+| T3 | Sandbox wrappers: shared bind function taking the program to exec, common-dir and main-root binds, two-pass bind order, `AGENT_SESSION_ID` (one `sharedEnvNames` entry; generated fresh in the Darwin `preHook`, both bwrap scripts and the Linux Claude passthrough wrapper), Codex `--no-daemon` and `daemon_auto_start = false`; Linux VM test with a stub program | AFK | T2 |
 | T4 | Install `wayfinder`, `setup-matt-pocock-skills`, `grilling`, `prototype`, `domain-modeling`, `research`, `handoff` (source paths per Decisions); patches for handoff location, glossary path (domain-modeling incl. `CONTEXT-FORMAT.md`, setup `SKILL.md` (intro, Explore, step-2 skip rule, Section C, step-4 template), `domain.md` (incl. the `/grill-with-docs` pointer), improve-codebase-architecture), `codebase-design` files vendored into improve-codebase-architecture, `issue-tracker-local.md` replaced wholesale, setup's `.scratch/` mentions repointed, and `wayfinder.backend` in setup; `tests/llm-skills.nix` asserts the built setup skill contains no `.scratch/`; create `tests/llm-skills.nix` | AFK | T1, T3 |
 | T5 | Vendor `dissent-review` as a directory skill with the changes listed under Review gate; extend `tests/llm-skills.nix` | AFK | T4 |
 | T6 | Vendor `research-options` with the changes listed under Research; extend `tests/llm-skills.nix` | AFK | T5 |

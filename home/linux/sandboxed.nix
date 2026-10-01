@@ -243,6 +243,8 @@
 
   # Passthrough wrappers when custom.claude.sandbox = false (bwrap can't nest).
   claudePlain = pkgs.writeShellScriptBin "claude-sandboxed" ''exec ${claude} "$@"'';
+  # TODO: export a fresh AGENT_SESSION_ID and pass --no-daemon once a config reaches this
+  # path; today every sandbox-off host also sets codex.enable = false.
   codexPlain = pkgs.writeShellScriptBin "codex-sandboxed" ''exec ${codex} "$@"'';
 in {
   config.custom.sandboxedPackages = lib.mkMerge [

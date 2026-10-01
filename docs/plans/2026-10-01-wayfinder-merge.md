@@ -171,7 +171,7 @@ Spec: Patch layout; Codex parity (first paragraph); Success criterion "byte-iden
 - Produces: option `custom.llm.superpowersPackage` (`lib.types.package`, `readOnly = true`, set unconditionally to the `applyPatches` result named `superpowers-patched`). The patch lists are spelled out explicitly, never globbed with `builtins.readDir`, so a new patch shows up in review as a list change.
 - Produces: `home/common/llm/skills.nix` keeps a `patchedMattpocockSkills` binding that T4–T8 extend.
 
-- [ ] **Step 1: Record the pre-split trees**
+- [x] **Step 1: Record the pre-split trees**
 
 Run:
 ```bash
@@ -180,15 +180,15 @@ nix build --no-link --print-out-paths --impure --expr 'let f = builtins.getFlake
 ```
 Expected: two store paths.
 
-- [ ] **Step 2: Split the superpowers patch by `diff --git` header into per-directory files; `git mv` the mattpocock patch to `patches/mattpocock/improve-codebase-architecture.patch`**
+- [x] **Step 2: Split the superpowers patch by `diff --git` header into per-directory files; `git mv` the mattpocock patch to `patches/mattpocock/improve-codebase-architecture.patch`**
 
 For the superpowers patch, use `filterdiff -i '*/skills/<dir>/*'` from `patchutils` (`nix shell nixpkgs#patchutils`), once per directory. Every hunk must land in exactly one output file. Check this by comparing `grep -c '^@@'` across the outputs with the original.
 
-- [ ] **Step 3: Add `home/common/llm/superpowers.nix` and rewire `plugins.nix` and `skills.nix`**
+- [x] **Step 3: Add `home/common/llm/superpowers.nix` and rewire `plugins.nix` and `skills.nix`**
 
 The module takes `{inputs, lib, pkgs, ...}`. Do not wrap it in `lib.mkIf config.custom.claude.enable`, because `tests/codex.nix` enables only Codex (spec, Codex parity).
 
-- [ ] **Step 4: Verify byte-identical output**
+- [x] **Step 4: Verify byte-identical output**
 
 Run:
 ```bash
@@ -206,12 +206,12 @@ nix build --no-link --print-out-paths --impure --expr "let f = $f; p = f.inputs.
 ```
 Expected: no output and exit 0 from both diffs. The mattpocock check reads the subtree the rewired `skills.nix` actually installs; the `.source` is a subpath string, so its derivation is built from the string context first.
 
-- [ ] **Step 5: Lint and evaluate**
+- [x] **Step 5: Lint and evaluate**
 
 Run: `just check && nix build --no-link .#darwinConfigurations.burnedapple.system`
 Expected: both succeed.
 
-- [ ] **Step 6: Commit** — `git commit -m "split superpowers/mattpocock patches per skill"`
+- [x] **Step 6: Commit** — `git commit -m "split superpowers/mattpocock patches per skill"`
 
 ---
 

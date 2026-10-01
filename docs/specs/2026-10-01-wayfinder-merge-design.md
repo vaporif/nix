@@ -28,7 +28,9 @@ Success means:
 - **GitHub/GitLab backends:** the same commands work; claims are advisory (see Backends).
 - It works inside `claude-sandboxed` sessions and Codex sessions started with the bypass flag
   (`o` / `or`; not `ox`, `codex-sandboxed exec` or a bare `codex-sandboxed`; see Sandboxes) on macOS and NixOS, in normal clones, linked worktrees,
-  and `git bclone` repos.
+  and `git bclone` repos. Codex is disabled on every host (`custom.codex.enable = false`) and stays
+  that way, so the Codex half is verified only by the Nix tests (`tests/codex.nix`,
+  `tests/llm-skills.nix`, the sandbox VM test), not in real sessions.
 - The patched superpowers and mattpocock outputs are byte-identical before and after the patch
   split (T1).
 
@@ -956,8 +958,8 @@ by T13.
   before the spec and SDD reuses it; in a `git bclone` repo, two tickets brainstormed from `main/`
   get two separate worktrees, neither on the default branch; Discard of a ticket in
   `.claude/worktrees/` removes the worktree and deletes the branch once the user runs the restart
-  line; on Codex in a normal clone, a ticket goes brainstorming →
-  writing-plans → SDD with the user following the restart line `trailer` prints; on Codex, Merge
+  line; on Codex (skipped while Codex is disabled on every host) in a normal clone, a ticket goes brainstorming →
+  writing-plans → SDD with the user following the restart line `trailer` prints; on Codex (likewise skipped), Merge
   of a ticket from a restart-line session closes the ticket and prints a restart line that removes
   the worktree and branch from the main root, and Discard → drop does the same with `-D`; on the
   NixOS VM the same Merge leaves no half-removed worktree; a dissent "apply" finding against a just-resolved ticket is shown to the user, not applied;
@@ -1003,8 +1005,8 @@ not touch `home/common/packages.nix`; T2 is its only editor.
 | T9 | Superpowers patches: ticket mode per the Phase handoff table (brainstorming incl. the ticket's named worktree via using-git-worktrees, the unmerged-blocker check and stacking, Architectural-only and Spike/Bounded handling, writing-plans incl. ticket-mode plan approval, executing-plans, subagent-driven-development incl. drop-or-re-file on discard and the `ticket=` argument to finishing), review gate (dissent then loop cap 3; findings against closed tickets always "ask"), finishing-a-development-branch (`main-root`, host-owned Discard stop, guarded `git pull`, ticket-mode removal deferred to the restart line; Patch layout), restore `plan-document-reviewer-prompt.md`, reconcile the executing-plans Inline-Degraded gate, its Post-Implementation Polish lines and rationalization row with the OR rule (see Context), "Asking the user" | HITL | T1, T2, T5, T13 |
 | T10 | GitHub/GitLab backends in `wayfinder-ticket` per the Backends mapping (advisory claims, `release --force`, `trailer` releasing before a restart line, `merged`'s forge fallback (`gh pr list` / `glab mr list`), `glab` looked up on `PATH`), cases added to `tests/wayfinder-ticket.nix`; rewrite the GitHub/GitLab "Wayfinding operations" sections in the setup patch | AFK | T4, T13 |
 | T11 | Codex parity: superpowers skill directories into `~/.codex/skills/` via `home/common/codex/default.nix`; extend `tests/llm-skills.nix` | AFK | T7, T9 |
-| T12 | Manual end-to-end checklist (normal clone, linked worktree, bare clone; Claude and Codex; macOS and NixOS VM; a prototype ticket follows the T8 override; on Claude, ticket-mode brainstorming actually calls `EnterWorktree path=`, and only if the model refuses, T12 adds a narrowly scoped `claude/overrides/CLAUDE.md` line); update `docs/ai-workflow.md` status, repo `CLAUDE.md` and README | HITL | T6, T8, T10, T11, T13 |
-| T13 | Real-sandbox check of the claim protocol after `just switch` on the Mac and the NixOS VM: process discovery, holder detaching, Esc interrupt, agent exit frees the lock, Codex keeps its process across `/clear`, whether Claude's `EnterWorktree` cwd survives `/clear` (if not, `trailer` prints the restart line for Claude too), whether `EnterWorktree path=` enters a ticket worktree made by `git worktree add`, whether a session there sees the main worktree's project rules and agents; fix in T2/T3 files if needed (the rules/agents symlink fallback lands in T9's brainstorming patch) | HITL | T3 |
+| T12 | Manual end-to-end checklist (normal clone, linked worktree, bare clone; Claude only, since Codex is disabled on every host; macOS and NixOS VM; a prototype ticket follows the T8 override; on Claude, ticket-mode brainstorming actually calls `EnterWorktree path=`, and only if the model refuses, T12 adds a narrowly scoped `claude/overrides/CLAUDE.md` line); update `docs/ai-workflow.md` status, repo `CLAUDE.md` and README | HITL | T6, T8, T10, T11, T13 |
+| T13 | Real-sandbox check of the claim protocol after `just switch` on the Mac and the NixOS VM: process discovery, holder detaching, Esc interrupt, agent exit frees the lock, the session id survives `/clear`, whether Claude's `EnterWorktree` cwd survives `/clear` (if not, `trailer` prints the restart line for Claude too), whether `EnterWorktree path=` enters a ticket worktree made by `git worktree add`, whether a session there sees the main worktree's project rules and agents; fix in T2/T3 files if needed (the rules/agents symlink fallback lands in T9's brainstorming patch) | HITL | T3 |
 
 T8 and T9 are HITL because their skill prose needs a human read before it ships. T12 and T13 are
 HITL because they need interactive sessions on both machines.

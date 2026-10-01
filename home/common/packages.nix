@@ -38,6 +38,7 @@ in {
       pkgs.asciinema-agg
       pkgs.tokei
       pkgs.just
+      pkgs.wayfinder-ticket
       pkgs.lazydocker
       pkgs.procs
       pkgs.sops

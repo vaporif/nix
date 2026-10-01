@@ -287,12 +287,12 @@ Harness detection uses the same agent walk as `claim`: a match on `.claude-unwra
 
 - [x] **Step 14: Run Stage E, expect FAIL; implement `frontier`, `status` and `trailer.sh`; run, expect PASS; commit** — `wayfinder-ticket: frontier, status, trailer`
 
-- [ ] **Step 15: Add `pkgs.wayfinder-ticket` to `home.packages` in `home/common/packages.nix`, then run full verification**
+- [x] **Step 15: Add `pkgs.wayfinder-ticket` to `home.packages` in `home/common/packages.nix`, then run full verification**
 
 Run: `nix build -L .#checks.aarch64-darwin.wayfinder-ticket && just check && nix build --no-link .#darwinConfigurations.burnedapple.system && nix path-info -r .#darwinConfigurations.burnedapple.system | grep -q wayfinder-ticket`
 Expected: every case prints `ok`; lint and build succeed, and the system closure includes `wayfinder-ticket`.
 
-- [ ] **Step 16: Commit** — `wayfinder-ticket: add to home.packages`
+- [x] **Step 16: Commit** — `wayfinder-ticket: add to home.packages`
 
 - [ ] **Step 17: VM stop point (see HITL execution)** — on personal-nixos: `nix build -L .#checks.aarch64-linux.wayfinder-ticket`. Expected: every case prints `ok`.
 

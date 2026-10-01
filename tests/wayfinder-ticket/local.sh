@@ -316,7 +316,8 @@ test_outside_repo() {
   mkdir outside
   cd outside
   export GIT_CEILING_DIRECTORIES=$PWD/..
-  for cmd in "maps" "show foo#1" "show-map foo" "new foo task title" "edit foo#1 Notes --file /dev/null"; do
+  for cmd in "maps" "show foo#1" "show-map foo" "new foo task title" "edit foo#1 Notes --file /dev/null" \
+    "main-root" "default-branch" "merged main" "base-ref foo#1"; do
     # shellcheck disable=SC2086
     assert_exit 1 "$WT" $cmd
     assert_contains "$ERR" "not inside a git repository"
@@ -409,4 +410,221 @@ test_section_crlf_normalised() {
   assert_exit 0 "$WT" map-edit foo Notes --file "$(text_file $'crlf\r\ninput\r')" --expect "$h"
   if grep -q $'\r' "$dir/map.md"; then fail "map.md still has CR"; fi
   assert_contains "$(section_of "$("$WT" show-map foo)" Notes map)" $'crlf\ninput'
+}
+
+# --- Stage B: git helpers ---
+
+# commit_on <branch> <file>: a commit on a new branch from HEAD, then back.
+commit_on() {
+  local back
+  back=$(git branch --show-current)
+  git switch -q -c "$1"
+  echo "$2" >"$2"
+  git add "$2"
+  git commit -qm "$2"
+  git switch -q "$back"
+}
+
+# push_origin_commit <file>: lands a commit on origin's main from a scratch clone.
+push_origin_commit() {
+  local scratch
+  scratch=$(mktemp -d)
+  git clone -q "$(git remote get-url origin)" "$scratch/c"
+  echo "$1" >"$scratch/c/$1"
+  git -C "$scratch/c" add "$1"
+  git -C "$scratch/c" commit -qm "$1"
+  git -C "$scratch/c" push -q origin main
+  rm -rf "$scratch"
+}
+
+# First non-bare worktree in porcelain order.
+first_listed_worktree() {
+  git worktree list --porcelain | awk '
+    /^worktree / { p = substr($0, 10); bare = 0; next }
+    /^bare$/ { bare = 1; next }
+    /^$/ { if (p != "" && !bare) { print p; exit } p = "" }
+  '
+}
+
+test_main_root_normal_clone() {
+  local root
+  mk_origin
+  mk_clone
+  root=$(realpath "$PWD")
+  assert_exit 0 "$WT" main-root
+  assert_eq "$(realpath "$OUT")" "$root"
+  mkdir -p src/lib
+  cd src/lib
+  assert_exit 0 "$WT" main-root
+  assert_eq "$(realpath "$OUT")" "$root"
+}
+
+test_main_root_from_nested_claude_worktree() {
+  local root
+  mk_origin
+  mk_clone
+  root=$(realpath "$PWD")
+  git worktree add -q .claude/worktrees/a -b a
+  cd .claude/worktrees/a
+  assert_exit 0 "$WT" main-root
+  assert_eq "$(realpath "$OUT")" "$root"
+  git worktree add -q .claude/worktrees/b -b b
+  mkdir -p .claude/worktrees/b/sub
+  cd .claude/worktrees/b/sub
+  assert_exit 0 "$WT" main-root
+  assert_eq "$(realpath "$OUT")" "$root"
+}
+
+test_main_root_bclone_default_worktree() {
+  local root
+  mk_origin
+  mk_bclone
+  root=$(realpath "$PWD")
+  assert_exit 0 "$WT" main-root
+  assert_eq "$(realpath "$OUT")" "$root"
+  git worktree add -q .claude/worktrees/t -b t
+  cd .claude/worktrees/t
+  assert_exit 0 "$WT" main-root
+  assert_eq "$(realpath "$OUT")" "$root"
+}
+
+test_main_root_bclone_main_switched_away() {
+  local root
+  mk_origin
+  mk_bclone
+  root=$(realpath "$PWD")
+  # Under the bclone root, so it is listed before main/.
+  git worktree add -q ../.claude/worktrees/aa -b aa
+  git switch -q -c other
+  assert_eq "$(realpath "$(first_listed_worktree)")" "$(realpath ../.claude/worktrees/aa)" "a .claude worktree is listed first"
+  cd ../.claude/worktrees/aa
+  assert_exit 0 "$WT" main-root
+  assert_eq "$(realpath "$OUT")" "$root"
+}
+
+test_main_root_bclone_origin_head_after_fetch() {
+  local root
+  mk_origin
+  mk_bclone
+  root=$(realpath "$PWD")
+  git fetch -q origin
+  git remote set-head origin main
+  git symbolic-ref -q refs/remotes/origin/HEAD >/dev/null || fail "origin/HEAD not set"
+  git worktree add -q .claude/worktrees/t -b t
+  cd .claude/worktrees/t
+  assert_exit 0 "$WT" main-root
+  assert_eq "$(realpath "$OUT")" "$root"
+}
+
+test_main_root_bclone_wb_sibling_listed_first() {
+  local root
+  mk_origin
+  mk_bclone
+  root=$(realpath "$PWD")
+  git worktree add -q ../0-sibling -b 0-sibling
+  assert_eq "$(realpath "$(first_listed_worktree)")" "$(realpath ../0-sibling)" "the sibling is listed first"
+  cd ../0-sibling
+  assert_exit 0 "$WT" main-root
+  assert_eq "$(realpath "$OUT")" "$root"
+}
+
+test_default_branch_bare_name() {
+  local base
+  base=$PWD
+  mk_origin
+  mk_clone
+  assert_exit 0 "$WT" default-branch
+  assert_eq "$OUT" main "normal clone"
+  cd "$base"
+  mk_bclone
+  if git symbolic-ref -q refs/remotes/origin/HEAD >/dev/null; then fail "fresh bclone has origin/HEAD"; fi
+  assert_exit 0 "$WT" default-branch
+  assert_eq "$OUT" main "fresh bclone"
+  git fetch -q origin
+  git remote set-head origin main
+  assert_exit 0 "$WT" default-branch
+  assert_eq "$OUT" main "fetched bclone"
+  git worktree add -q ../side -b side
+  cd ../side
+  assert_exit 0 "$WT" default-branch
+  assert_eq "$OUT" main "bclone linked worktree"
+  cd "$base"
+  git init -q -b master plain
+  cd plain
+  git commit -q --allow-empty -m init
+  assert_exit 0 "$WT" default-branch
+  assert_eq "$OUT" master "no origin"
+}
+
+test_merged_local_only() {
+  mk_origin
+  mk_clone
+  commit_on feat feat.txt
+  assert_exit 0 "$WT" merged feat
+  assert_eq "$OUT" unmerged
+  git merge -q --no-ff -m merge feat
+  assert_exit 0 "$WT" merged feat
+  assert_eq "$OUT" "merged local"
+}
+
+test_merged_origin_only() {
+  mk_origin
+  mk_clone
+  commit_on feat feat.txt
+  git push -q origin feat:main
+  if git merge-base --is-ancestor feat main; then fail "local main already has feat"; fi
+  assert_exit 0 "$WT" merged feat
+  assert_eq "$OUT" "merged origin"
+}
+
+test_merged_missing_ref_unknown() {
+  mk_origin
+  mk_clone
+  assert_exit 0 "$WT" merged no-such-branch
+  assert_eq "$OUT" unknown
+  assert_exit 1 "$WT" merged 'bad..name'
+}
+
+test_merged_no_origin_ref() {
+  git init -q -b main plain
+  cd plain
+  git commit -q --allow-empty -m init
+  commit_on feat feat.txt
+  assert_exit 0 "$WT" merged feat
+  assert_eq "$OUT" unmerged
+  git merge -q --no-ff -m merge feat
+  assert_exit 0 "$WT" merged feat
+  assert_eq "$OUT" "merged local"
+}
+
+test_base_ref_stack() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo implementation >/dev/null
+  commit_on blocker-branch b.txt
+  assert_exit 0 "$WT" base-ref foo#1 --stack blocker-branch
+  assert_eq "$OUT" blocker-branch
+  assert_exit 3 "$WT" base-ref foo#2 --stack blocker-branch
+}
+
+test_base_ref_no_blockers_origin_strictly_ahead() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo implementation >/dev/null
+  assert_exit 0 "$WT" base-ref foo#1
+  assert_eq "$OUT" main "equal refs"
+  push_origin_commit ahead.txt
+  assert_exit 0 "$WT" base-ref foo#1
+  assert_eq "$OUT" origin/main "origin strictly ahead"
+  git merge -q --ff-only origin/main
+  echo local >local.txt
+  git add local.txt
+  git commit -qm local
+  assert_exit 0 "$WT" base-ref foo#1
+  assert_eq "$OUT" main "local ahead"
+  push_origin_commit diverged.txt
+  assert_exit 0 "$WT" base-ref foo#1
+  assert_eq "$OUT" main "diverged prefers local"
 }

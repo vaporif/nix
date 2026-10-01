@@ -1,4 +1,5 @@
 MAP_SECTIONS=("Destination" "Decisions so far" "Not yet specified" "Out of scope" "Notes")
+REWIRED=()
 
 map_frontmatter() {
   WT_SLUG=$1 WT_TITLE=$2 WT_CREATED=$(date -u +%Y-%m-%dT%H:%M:%SZ) yq -n '
@@ -28,13 +29,6 @@ ticket_document() {
   printf -- '---\n\n'
   emit_section Question "$5"
   emit_section Notes /dev/null
-}
-
-# yaml_id_list <id>...: a flow list of unique ids in numeric order.
-yaml_id_list() {
-  local ids
-  ids=$(printf '%s\n' "$@" | awk 'NF' | sort -nu | paste -sd, -)
-  printf '[%s]\n' "$ids"
 }
 
 require_upkeep_allowed() {
@@ -252,4 +246,322 @@ local_edit() {
   else
     section_set "$TICKET_FILE" "$section" "$content"
   fi
+}
+
+# remove_proto_worktree <slug> <id>: exact basename match, never a glob, so map
+# foo never touches map foo-bar's worktrees and -impl worktrees never match.
+remove_proto_worktree() {
+  local wt
+  wt=$(find_worktree_by_basename "wayfinder-$1-$2") || return 0
+  if ! git worktree remove --force "$wt" >/dev/null 2>&1; then
+    printf 'wayfinder-ticket: could not remove prototype worktree %s\n' "$wt" >&2
+  fi
+  git worktree prune >/dev/null 2>&1 || true
+}
+
+local_map_complete() {
+  [ $# -eq 1 ] || usage_error "map-complete <slug>"
+  local slug=$1 id open=()
+  check_slug "$slug"
+  use_map "$slug"
+  lock_map "$slug"
+  load_map "$MAP_FILE" "$slug"
+  load_graph
+  for id in $(ticket_ids "$MAP_DIR"); do
+    if [ "${STATUS_OF[$id]}" != closed ]; then
+      open+=("$id")
+    fi
+  done
+  [ ${#open[@]} -eq 0 ] || die 1 "open tickets remain: $(IFS=,; printf '%s' "${open[*]}")"
+  section_is_empty "$MAP_FILE" "Not yet specified" || die 1 "Not yet specified is not empty"
+  if [ "$M_STATUS" != complete ]; then
+    fm_set_str "$MAP_FILE" status complete
+  fi
+  for id in $(ticket_ids "$MAP_DIR"); do
+    remove_proto_worktree "$slug" "$id"
+  done
+}
+
+# edit_blockers <block|unblock> <ref> <id>...
+edit_blockers() {
+  local mode=$1 ref=$2 b list=()
+  shift 2
+  [ $# -ge 1 ] || usage_error "$mode <slug>#<id> <id>..."
+  parse_ref "$ref"
+  for b in "$@"; do
+    check_id "$b"
+  done
+  use_ticket "$ref"
+  lock_map "$SLUG"
+  load_ticket "$TICKET_FILE" "$ID"
+  require_upkeep_allowed "$ref"
+  for b in "$@"; do
+    ticket_exists "$b" || die 1 "id $b not in map"
+  done
+  if [ "$mode" = block ]; then
+    load_graph
+    for b in "$@"; do
+      if reaches "$b" "$ID"; then
+        die 1 "blocking $ref on $b would create a cycle"
+      fi
+      GRAPH[$ID]="${GRAPH[$ID]} $b"
+    done
+    read -ra list <<<"$T_BLOCKED $*"
+  else
+    for b in $T_BLOCKED; do
+      if [[ " $* " != *" $b "* ]]; then
+        list+=("$b")
+      fi
+    done
+  fi
+  set_blocked "$TICKET_FILE" "${list[@]}"
+}
+
+local_block() {
+  edit_blockers block "$@"
+}
+
+local_unblock() {
+  edit_blockers unblock "$@"
+}
+
+local_attach() {
+  local u="attach <slug>#<id> --findings <file>"
+  [ $# -ge 1 ] || usage_error "$u"
+  local ref=$1 file=""
+  shift
+  while [ $# -gt 0 ]; do
+    case $1 in
+    --findings)
+      [ $# -ge 2 ] || usage_error "$u"
+      file=$2
+      shift 2
+      ;;
+    *) usage_error "$u" ;;
+    esac
+  done
+  [ -n "$file" ] || usage_error "$u"
+  parse_ref "$ref"
+  need_repo
+  if [ ! -r "$file" ] || [ -d "$file" ]; then
+    die 1 "cannot read $file"
+  fi
+  use_ticket "$ref"
+  lock_map "$SLUG"
+  load_ticket "$TICKET_FILE" "$ID"
+  [ "$T_STATUS" = open ] || die 4 "ticket closed: $ref"
+  require_owner "$ref"
+  mkdir -p "$MAP_DIR/findings" 2>/dev/null || die 1 "cannot create $MAP_DIR/findings"
+  write_file "$MAP_DIR/findings/$ID.md" "$file"
+  fm_set_str "$TICKET_FILE" findings "$MAP_DIR/findings/$ID.md"
+}
+
+local_advance() {
+  local u="advance <slug>#<id> <from> <to> [spec=<path>] [plan=<path>]"
+  [ $# -ge 3 ] || usage_error "$u"
+  local ref=$1 from=$2 to=$3 expr k
+  local -A set=()
+  shift 3
+  while [ $# -gt 0 ]; do
+    case $1 in
+    spec=* | plan=*) set[${1%%=*}]=${1#*=} ;;
+    *) usage_error "$u" ;;
+    esac
+    shift
+  done
+  parse_ref "$ref"
+  need_repo
+  legal_edge "$from" "$to" || die 1 "illegal phase edge: $from -> $to"
+  for k in "${!set[@]}"; do
+    [[ ${set[$k]} == /* ]] || die 1 "$k must be an absolute path: ${set[$k]}"
+  done
+  use_ticket "$ref"
+  lock_map "$SLUG"
+  load_ticket "$TICKET_FILE" "$ID"
+  [ "$T_STATUS" = open ] || die 4 "ticket closed: $ref"
+  require_owner "$ref"
+  [ "$T_PHASE" = "$from" ] || die 5 "phase is ${T_PHASE:--}, expected $from"
+  expr='.phase = strenv(WT_PHASE)'
+  if [ -n "${set[spec]+x}" ]; then
+    expr+=' | .spec = strenv(WT_SPEC)'
+  fi
+  if [ -n "${set[plan]+x}" ]; then
+    expr+=' | .plan = strenv(WT_PLAN)'
+  fi
+  WT_PHASE=$to WT_SPEC=${set[spec]:-} WT_PLAN=${set[plan]:-} fm_update "$TICKET_FILE" "$expr"
+}
+
+local_resolve() {
+  local u="resolve <slug>#<id> --answer <file>"
+  [ $# -ge 1 ] || usage_error "$u"
+  local ref=$1 file="" answer stage
+  shift
+  while [ $# -gt 0 ]; do
+    case $1 in
+    --answer)
+      [ $# -ge 2 ] || usage_error "$u"
+      file=$2
+      shift 2
+      ;;
+    *) usage_error "$u" ;;
+    esac
+  done
+  [ -n "$file" ] || usage_error "$u"
+  parse_ref "$ref"
+  need_repo
+  use_ticket "$ref"
+  prepare_content answer "$file" ticket.md
+  lock_map "$SLUG"
+  load_map "$MAP_FILE" "$SLUG"
+  load_ticket "$TICKET_FILE" "$ID"
+  [ "$T_STATUS" = open ] || die 4 "ticket closed: $ref"
+  require_owner "$ref"
+  [ "$T_TYPE" != implementation ] || die 1 "implementation tickets are closed with close, not resolve"
+  if [ "$T_TYPE" = research:options ] && [ "$T_PHASE" != wayfinder:resolve ]; then
+    die 5 "phase is ${T_PHASE:--}, expected wayfinder:resolve"
+  fi
+  release_for_close "$ref"
+  stage_copy stage "$TICKET_FILE"
+  section_set "$stage" Answer "$answer"
+  fm_update "$stage" '.status = "closed" | .["claimed-by"] = ""'
+  commit_stage "$stage" "$TICKET_FILE"
+  section_append "$MAP_FILE" "Decisions so far" "- $ref: $T_TITLE"
+  remove_proto_worktree "$SLUG" "$ID"
+}
+
+local_close() {
+  local u="close <slug>#<id> --evidence <file> --outcome merge|pr|keep"
+  [ $# -ge 1 ] || usage_error "$u"
+  local ref=$1 file="" outcome="" evidence branch stage
+  shift
+  while [ $# -gt 0 ]; do
+    case $1 in
+    --evidence)
+      [ $# -ge 2 ] || usage_error "$u"
+      file=$2
+      shift 2
+      ;;
+    --outcome)
+      [ $# -ge 2 ] || usage_error "$u"
+      outcome=$2
+      shift 2
+      ;;
+    *) usage_error "$u" ;;
+    esac
+  done
+  [ -n "$file" ] || usage_error "$u"
+  case $outcome in
+  merge | pr | keep) ;;
+  *) usage_error "$u" ;;
+  esac
+  parse_ref "$ref"
+  need_repo
+  use_ticket "$ref"
+  prepare_content evidence "$file" ticket.md
+  grep -q '[^[:space:]]' "$evidence" || die 1 "verification evidence is empty"
+  lock_map "$SLUG"
+  load_ticket "$TICKET_FILE" "$ID"
+  [ "$T_STATUS" = open ] || die 4 "ticket closed: $ref"
+  require_owner "$ref"
+  [ "$T_PHASE" = superpowers:executing-plans ] || die 5 "phase is ${T_PHASE:--}, expected superpowers:executing-plans"
+  if [ "$outcome" = merge ]; then
+    branch=$(default_branch)
+  else
+    branch=$(git branch --show-current 2>/dev/null) || branch=""
+    [ -n "$branch" ] || die 1 "HEAD is detached; run close from the ticket's branch"
+  fi
+  release_for_close "$ref"
+  stage_copy stage "$TICKET_FILE"
+  section_set "$stage" "Verification evidence" "$evidence"
+  WT_BRANCH=$branch fm_update "$stage" \
+    '.phase = "implemented" | .branch = strenv(WT_BRANCH) | .status = "closed" | .["claimed-by"] = ""'
+  commit_stage "$stage" "$TICKET_FILE"
+}
+
+# supersede_rewire <new id>: point every open dependent of ID at <new id> in
+# GRAPH, setting REWIRED; rejects the drop if that would create a cycle.
+supersede_rewire() {
+  local sup=$1 d b list
+  REWIRED=()
+  load_graph
+  for d in $(ticket_ids "$MAP_DIR"); do
+    if [ "$d" = "$ID" ] || [ "${STATUS_OF[$d]}" != open ] || [[ " ${GRAPH[$d]} " != *" $ID "* ]]; then
+      continue
+    fi
+    list=()
+    for b in ${GRAPH[$d]}; do
+      if [ "$b" = "$ID" ]; then
+        list+=("$sup")
+      else
+        list+=("$b")
+      fi
+    done
+    GRAPH[$d]="${list[*]}"
+    REWIRED+=("$d")
+  done
+  for d in "${REWIRED[@]}"; do
+    if reaches "$sup" "$d"; then
+      die 1 "superseding $SLUG#$ID with $SLUG#$sup would create a cycle through $SLUG#$d"
+    fi
+  done
+}
+
+local_drop() {
+  local u="drop <slug>#<id> --reason <text> [--superseded-by <id>]"
+  [ $# -ge 1 ] || usage_error "$u"
+  local ref=$1 reason="" sup="" raw answer stage d list
+  REWIRED=()
+  shift
+  while [ $# -gt 0 ]; do
+    case $1 in
+    --reason)
+      [ $# -ge 2 ] || usage_error "$u"
+      reason=$2
+      shift 2
+      ;;
+    --superseded-by)
+      [ $# -ge 2 ] || usage_error "$u"
+      sup=$2
+      shift 2
+      ;;
+    *) usage_error "$u" ;;
+    esac
+  done
+  [ -n "$reason" ] || usage_error "$u"
+  parse_ref "$ref"
+  if [ -n "$sup" ]; then
+    check_id "$sup"
+  fi
+  need_repo
+  use_ticket "$ref"
+  new_tmp raw
+  if [ -n "$sup" ]; then
+    printf 'Superseded by %s#%s: %s\n' "$SLUG" "$sup" "$reason" >"$raw"
+  else
+    printf 'Dropped: %s\n' "$reason" >"$raw"
+  fi
+  prepare_content answer "$raw" ticket.md
+  lock_map "$SLUG"
+  load_map "$MAP_FILE" "$SLUG"
+  load_ticket "$TICKET_FILE" "$ID"
+  require_upkeep_allowed "$ref"
+  if [ -n "$sup" ]; then
+    [ "$sup" != "$ID" ] || die 1 "$ref cannot be superseded by itself"
+    ticket_exists "$sup" || die 1 "id $sup not in map"
+    supersede_rewire "$sup"
+  fi
+  release_for_close "$ref"
+  stage_copy stage "$TICKET_FILE"
+  section_set "$stage" Answer "$answer"
+  WT_SUP=${sup:-'""'} fm_update "$stage" \
+    '.status = "closed" | .["claimed-by"] = "" | .["superseded-by"] = (strenv(WT_SUP) | from_yaml)'
+  commit_stage "$stage" "$TICKET_FILE"
+  for d in "${REWIRED[@]}"; do
+    read -ra list <<<"${GRAPH[$d]}"
+    set_blocked "$MAP_DIR/$d.md" "${list[@]}"
+  done
+  if [ -z "$sup" ]; then
+    section_append "$MAP_FILE" "Out of scope" "- $ref $T_TITLE: ${reason//$'\n'/ }"
+  fi
+  remove_proto_worktree "$SLUG" "$ID"
 }

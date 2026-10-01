@@ -317,7 +317,9 @@ test_outside_repo() {
   cd outside
   export GIT_CEILING_DIRECTORIES=$PWD/..
   for cmd in "maps" "show foo#1" "show-map foo" "new foo task title" "edit foo#1 Notes --file /dev/null" \
-    "main-root" "default-branch" "merged main" "base-ref foo#1" "claim foo#1" "release foo#1"; do
+    "main-root" "default-branch" "merged main" "base-ref foo#1" "claim foo#1" "release foo#1" \
+    "map-complete foo" "block foo#1 2" "unblock foo#1 2" "attach foo#1 --findings /dev/null" "advance foo#1 a b" \
+    "resolve foo#1 --answer /dev/null" "close foo#1 --evidence /dev/null --outcome keep" "drop foo#1 --reason x"; do
     # shellcheck disable=SC2086
     assert_exit 1 "$WT" $cmd
     assert_contains "$ERR" "not inside a git repository"
@@ -835,4 +837,594 @@ test_claim_returns_with_piped_stdout() {
   [ $(($(date +%s) - start)) -lt 5 ] || fail "claim took too long"
   assert_eq "$(claimed_by foo#1)" "$AGENT_SESSION_ID"
   if lock_is_free foo#1; then fail "holder not holding the lock"; fi
+}
+
+# --- Stage D: lifecycle and upkeep ---
+
+field() {
+  fm_of "$(map_path "${1%%#*}")/${1#*#}.md" ".[\"$2\"]"
+}
+
+# to_executing <ref> [spec] [plan]: claim an implementation ticket and walk it to executing-plans.
+to_executing() {
+  "$WT" claim "$1" >/dev/null
+  "$WT" advance "$1" superpowers:brainstorming superpowers:writing-plans ${2:+"spec=$2"}
+  "$WT" advance "$1" superpowers:writing-plans superpowers:executing-plans ${3:+"plan=$3"}
+}
+
+# close_on <ref> <branch> <outcome>: close from <branch>, then switch back.
+close_on() {
+  local back
+  back=$(git branch --show-current)
+  git switch -q "$2"
+  "$WT" close "$1" --evidence "$(text_file "tests pass")" --outcome "$3"
+  git switch -q "$back"
+}
+
+resolve_now() {
+  "$WT" claim "$1" >/dev/null
+  "$WT" resolve "$1" --answer "$(text_file "${2:-answered}")"
+}
+
+test_advance_legal_edges_keep_claim() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo implementation >/dev/null
+  mk_ticket foo research:options >/dev/null
+  new_session
+  "$WT" claim foo#1
+  mkdir docs
+  echo spec >docs/s.md
+  echo plan >docs/p.md
+  assert_exit 0 "$WT" advance foo#1 superpowers:brainstorming superpowers:writing-plans "spec=$PWD/docs/s.md"
+  assert_eq "$(field foo#1 phase)" superpowers:writing-plans
+  assert_eq "$(field foo#1 spec)" "$PWD/docs/s.md"
+  assert_eq "$(field foo#1 claimed-by)" "$AGENT_SESSION_ID"
+  if lock_is_free foo#1; then fail "advance dropped the claim"; fi
+  assert_exit 0 "$WT" advance foo#1 superpowers:writing-plans superpowers:executing-plans "plan=$PWD/docs/p.md"
+  assert_eq "$(field foo#1 phase)" superpowers:executing-plans
+  assert_eq "$(field foo#1 plan)" "$PWD/docs/p.md"
+  assert_eq "$(field foo#1 spec)" "$PWD/docs/s.md"
+  if lock_is_free foo#1; then fail "advance dropped the claim"; fi
+  "$WT" claim foo#2
+  assert_exit 0 "$WT" advance foo#2 research wayfinder:resolve
+  assert_eq "$(field foo#2 phase)" wayfinder:resolve
+  assert_exit 0 "$WT" claim foo#1 --phase superpowers:executing-plans
+}
+
+test_advance_illegal_edge_and_phase_cas() {
+  local dir
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo implementation >/dev/null
+  mk_ticket foo task >/dev/null
+  dir=$(map_path foo)
+  new_session
+  "$WT" claim foo#1
+  "$WT" claim foo#2
+  assert_unchanged "$dir" assert_exit 1 "$WT" advance foo#1 superpowers:brainstorming superpowers:executing-plans
+  assert_contains "$ERR" "illegal"
+  assert_unchanged "$dir" assert_exit 5 "$WT" advance foo#1 superpowers:writing-plans superpowers:executing-plans
+  assert_contains "$ERR" "phase is superpowers:brainstorming, expected superpowers:writing-plans"
+  assert_unchanged "$dir" assert_exit 1 "$WT" advance foo#1 superpowers:executing-plans implemented
+  assert_unchanged "$dir" assert_exit 1 "$WT" advance foo#1 superpowers:writing-plans superpowers:brainstorming
+  assert_unchanged "$dir" assert_exit 5 "$WT" advance foo#2 research wayfinder:resolve
+  assert_unchanged "$dir" assert_exit 1 "$WT" advance foo#1 superpowers:brainstorming superpowers:writing-plans spec=relative/s.md
+  assert_unchanged "$dir" assert_exit 2 "$WT" advance foo#1 superpowers:brainstorming superpowers:writing-plans bogus=1
+}
+
+test_advance_rejects_non_owner() {
+  local dir owner
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo implementation >/dev/null
+  mk_ticket foo implementation >/dev/null
+  dir=$(map_path foo)
+  new_session
+  assert_unchanged "$dir" assert_exit 1 "$WT" advance foo#1 superpowers:brainstorming superpowers:writing-plans
+  assert_contains "$ERR" "not owner of foo#1"
+  "$WT" claim foo#1
+  owner=$AGENT_SESSION_ID
+  new_session
+  "$WT" claim foo#2
+  kill_agent
+  wait_unlocked foo 2
+  new_session
+  assert_unchanged "$dir" assert_exit 6 "$WT" advance foo#1 superpowers:brainstorming superpowers:writing-plans
+  assert_contains "$ERR" "claimed by another session ($owner)"
+  assert_unchanged "$dir" assert_exit 1 "$WT" advance foo#2 superpowers:brainstorming superpowers:writing-plans
+  assert_contains "$ERR" "not owner of foo#2"
+}
+
+test_attach_owner_only() {
+  local dir f owner
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo research:fact >/dev/null
+  mk_ticket foo research:fact >/dev/null
+  dir=$(map_path foo)
+  f=$(text_file $'## Findings\nthe answer is 42')
+  new_session
+  assert_unchanged "$dir" assert_exit 1 "$WT" attach foo#1 --findings "$f"
+  assert_contains "$ERR" "not owner of foo#1"
+  "$WT" claim foo#1
+  assert_exit 0 "$WT" attach foo#1 --findings "$f"
+  assert_eq "$(field foo#1 findings)" "$dir/findings/1.md"
+  assert_eq "$(cat "$dir/findings/1.md")" "$(cat "$f")"
+  owner=$AGENT_SESSION_ID
+  new_session
+  assert_unchanged "$dir" assert_exit 6 "$WT" attach foo#1 --findings "$f"
+  assert_contains "$ERR" "claimed by another session ($owner)"
+  resolve_now foo#2
+  assert_unchanged "$dir" assert_exit 4 "$WT" attach foo#2 --findings "$f"
+}
+
+test_resolve_writes_answer_and_decision_pointer() {
+  local h
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  "$WT" new foo grilling "Pick a sync protocol" >/dev/null
+  new_session
+  "$WT" claim foo#1
+  assert_exit 0 "$WT" resolve foo#1 --answer "$(text_file $'Use CRDTs.\n\nBecause offline.')"
+  assert_eq "$(field foo#1 status)" closed
+  assert_eq "$(field foo#1 claimed-by)" ""
+  assert_eq "$(section_of "$("$WT" show foo#1)" Answer ticket | tr -s '\n')" $'\nUse CRDTs.\nBecause offline.'
+  assert_contains "$(section_of "$("$WT" show-map foo)" "Decisions so far" map)" "foo#1"
+  assert_contains "$(section_of "$("$WT" show-map foo)" "Decisions so far" map)" "Pick a sync protocol"
+  lock_is_free foo#1 || fail "resolve left the lock held"
+  [ ! -e "$(pid_file foo#1)" ] || fail "pid file left behind"
+  "$WT" new foo task second >/dev/null
+  resolve_now foo#2
+  h=$(section_of "$("$WT" show-map foo)" "Decisions so far" map)
+  assert_contains "$h" "foo#1"
+  assert_contains "$h" "foo#2"
+}
+
+test_resolve_rejects_implementation_and_options_not_at_resolve() {
+  local dir
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo implementation >/dev/null
+  mk_ticket foo research:options >/dev/null
+  dir=$(map_path foo)
+  new_session
+  "$WT" claim foo#1
+  "$WT" claim foo#2
+  assert_unchanged "$dir" assert_exit 1 "$WT" resolve foo#1 --answer "$(text_file x)"
+  assert_unchanged "$dir" assert_exit 5 "$WT" resolve foo#2 --answer "$(text_file x)"
+  assert_contains "$ERR" "phase is research, expected wayfinder:resolve"
+  "$WT" advance foo#2 research wayfinder:resolve
+  assert_exit 0 "$WT" resolve foo#2 --answer "$(text_file x)"
+  assert_eq "$(field foo#2 status)" closed
+}
+
+test_close_outcome_merge_records_default_branch() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo implementation >/dev/null
+  git switch -q -c feat
+  new_session
+  to_executing foo#1
+  assert_exit 0 "$WT" close foo#1 --evidence "$(text_file "all green")" --outcome merge
+  assert_eq "$(field foo#1 branch)" main
+  assert_eq "$(field foo#1 phase)" implemented
+  assert_eq "$(field foo#1 status)" closed
+  assert_eq "$(field foo#1 claimed-by)" ""
+  assert_contains "$(section_of "$("$WT" show foo#1)" "Verification evidence" ticket)" "all green"
+  lock_is_free foo#1 || fail "close left the lock held"
+}
+
+test_close_outcome_pr_keep_records_current_branch() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo implementation >/dev/null
+  mk_ticket foo implementation >/dev/null
+  git branch feat-a
+  git branch feat-b
+  new_session
+  to_executing foo#1
+  to_executing foo#2
+  close_on foo#1 feat-a pr
+  close_on foo#2 feat-b keep
+  assert_eq "$(field foo#1 branch)" feat-a
+  assert_eq "$(field foo#2 branch)" feat-b
+  assert_eq "$(field foo#2 phase)" implemented
+}
+
+test_close_rejects_empty_evidence_missing_outcome_wrong_phase() {
+  local dir
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo implementation >/dev/null
+  mk_ticket foo implementation >/dev/null
+  dir=$(map_path foo)
+  new_session
+  to_executing foo#1
+  assert_unchanged "$dir" assert_exit 1 "$WT" close foo#1 --evidence "$(text_file $'  \n\n')" --outcome keep
+  assert_contains "$ERR" "empty"
+  assert_unchanged "$dir" assert_exit 2 "$WT" close foo#1 --evidence "$(text_file ok)"
+  assert_unchanged "$dir" assert_exit 2 "$WT" close foo#1 --evidence "$(text_file ok)" --outcome squash
+  "$WT" claim foo#2
+  assert_unchanged "$dir" assert_exit 5 "$WT" close foo#2 --evidence "$(text_file ok)" --outcome keep
+  assert_contains "$ERR" "phase is superpowers:brainstorming, expected superpowers:executing-plans"
+  new_session
+  assert_unchanged "$dir" assert_exit 6 "$WT" close foo#1 --evidence "$(text_file ok)" --outcome keep
+}
+
+test_drop_adds_out_of_scope() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  "$WT" new foo task "Sync over Bluetooth" >/dev/null
+  assert_exit 0 "$WT" drop foo#1 --reason "no hardware for it"
+  assert_eq "$(field foo#1 status)" closed
+  assert_eq "$(field foo#1 superseded-by)" ""
+  assert_contains "$(section_of "$("$WT" show foo#1)" Answer ticket)" "no hardware for it"
+  assert_contains "$(section_of "$("$WT" show-map foo)" "Out of scope" map)" "foo#1"
+  assert_contains "$(section_of "$("$WT" show-map foo)" "Out of scope" map)" "no hardware for it"
+  assert_not_contains "$(section_of "$("$WT" show-map foo)" "Decisions so far" map)" "foo#1"
+  new_session
+  "$WT" new foo task "held" >/dev/null
+  "$WT" claim foo#2
+  assert_exit 0 "$WT" drop foo#2 --reason "own claim"
+  assert_eq "$(field foo#2 claimed-by)" ""
+  lock_is_free foo#2 || fail "drop left the lock held"
+  [ ! -e "$(pid_file foo#2)" ] || fail "pid file left behind"
+}
+
+test_drop_superseded_by_rewires_open_dependents() {
+  local oos
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo task >/dev/null
+  mk_ticket foo task >/dev/null
+  mk_ticket foo task --blocked-by 1 >/dev/null
+  mk_ticket foo task --blocked-by 1 >/dev/null
+  mk_ticket foo task --blocked-by 1 2 >/dev/null
+  "$WT" drop foo#4 --reason "closed dependent"
+  oos=$(section_of "$("$WT" show-map foo)" "Out of scope" map)
+  assert_exit 0 "$WT" drop foo#1 --reason "replaced by a broader ticket" --superseded-by 2
+  assert_eq "$(field foo#1 superseded-by)" 2
+  assert_eq "$(field foo#1 status)" closed
+  assert_contains "$(section_of "$("$WT" show foo#1)" Answer ticket)" "foo#2"
+  assert_eq "$(fm_of "$(map_path foo)/3.md" '.["blocked-by"] | @json')" "[2]"
+  assert_eq "$(fm_of "$(map_path foo)/4.md" '.["blocked-by"] | @json')" "[1]" "closed dependent untouched"
+  assert_eq "$(fm_of "$(map_path foo)/5.md" '.["blocked-by"] | @json')" "[2]"
+  assert_eq "$(section_of "$("$WT" show-map foo)" "Out of scope" map)" "$oos" "no Out of scope line"
+  assert_exit 1 "$WT" drop foo#5 --reason x --superseded-by 9
+  assert_contains "$ERR" "id 9 not in map"
+}
+
+test_drop_superseded_by_cycle_rejects_whole_drop() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo task >/dev/null
+  mk_ticket foo task >/dev/null
+  mk_ticket foo task --blocked-by 1 >/dev/null
+  "$WT" block foo#2 3
+  assert_unchanged "$(map_path foo)" assert_exit 1 "$WT" drop foo#1 --reason x --superseded-by 2
+  assert_contains "$ERR" "cycle"
+  assert_unchanged "$(map_path foo)" assert_exit 1 "$WT" drop foo#1 --reason x --superseded-by 1
+}
+
+test_block_self_and_cycle_rejected() {
+  local dir
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo task >/dev/null
+  mk_ticket foo task >/dev/null
+  mk_ticket foo task >/dev/null
+  dir=$(map_path foo)
+  assert_unchanged "$dir" assert_exit 1 "$WT" block foo#1 1
+  assert_contains "$ERR" "cycle"
+  assert_exit 0 "$WT" block foo#1 2
+  assert_eq "$(fm_of "$dir/1.md" '.["blocked-by"] | @json')" "[2]"
+  assert_unchanged "$dir" assert_exit 1 "$WT" block foo#2 1
+  assert_contains "$ERR" "cycle"
+  assert_exit 0 "$WT" block foo#2 3
+  assert_unchanged "$dir" assert_exit 1 "$WT" block foo#3 1
+  assert_unchanged "$dir" assert_exit 1 "$WT" block foo#1 9
+  assert_contains "$ERR" "id 9 not in map"
+  assert_exit 0 "$WT" block foo#1 3 2
+  assert_eq "$(fm_of "$dir/1.md" '.["blocked-by"] | @json')" "[2,3]"
+  assert_exit 0 "$WT" unblock foo#1 2
+  assert_eq "$(fm_of "$dir/1.md" '.["blocked-by"] | @json')" "[3]"
+}
+
+test_upkeep_on_own_live_claim_keeps_claim() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo task >/dev/null
+  mk_ticket foo task >/dev/null
+  new_session
+  "$WT" claim foo#1
+  assert_exit 0 "$WT" edit foo#1 Notes --file "$(text_file "mid-work note")"
+  assert_exit 0 "$WT" block foo#1 2
+  assert_eq "$(field foo#1 claimed-by)" "$AGENT_SESSION_ID"
+  if lock_is_free foo#1; then fail "upkeep dropped the claim"; fi
+  assert_exit 0 "$WT" unblock foo#1 2
+  if lock_is_free foo#1; then fail "upkeep dropped the claim"; fi
+}
+
+test_upkeep_allowed_unclaimed_blocked_and_stale() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo task >/dev/null
+  mk_ticket foo task --blocked-by 1 >/dev/null
+  mk_ticket foo task >/dev/null
+  mk_ticket foo task >/dev/null
+  assert_exit 0 "$WT" edit foo#2 Notes --file "$(text_file "blocked but editable")"
+  assert_exit 0 "$WT" block foo#2 3
+  assert_exit 0 "$WT" unblock foo#2 3
+  assert_exit 0 "$WT" drop foo#2 --reason "blocked and unwanted"
+  new_session
+  "$WT" claim foo#4
+  kill_agent
+  wait_unlocked foo 4
+  new_session
+  assert_exit 0 "$WT" edit foo#4 Question --file "$(text_file "stale but editable")"
+  assert_exit 0 "$WT" block foo#4 3
+  assert_exit 0 "$WT" unblock foo#4 3
+  assert_exit 0 "$WT" drop foo#4 --reason "stale and unwanted"
+  assert_eq "$(field foo#4 claimed-by)" ""
+}
+
+test_upkeep_rejected_live_foreign_and_closed() {
+  local dir owner
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo task >/dev/null
+  mk_ticket foo task >/dev/null
+  mk_ticket foo task >/dev/null
+  dir=$(map_path foo)
+  new_session
+  "$WT" claim foo#1
+  owner=$AGENT_SESSION_ID
+  resolve_now foo#2
+  new_session
+  assert_unchanged "$dir" assert_exit 6 "$WT" edit foo#1 Notes --file "$(text_file x)"
+  assert_contains "$ERR" "claimed by another session ($owner)"
+  assert_unchanged "$dir" assert_exit 6 "$WT" block foo#1 3
+  assert_unchanged "$dir" assert_exit 6 "$WT" unblock foo#1 3
+  assert_unchanged "$dir" assert_exit 6 "$WT" drop foo#1 --reason x
+  assert_unchanged "$dir" assert_exit 4 "$WT" edit foo#2 Notes --file "$(text_file x)"
+  assert_contains "$ERR" "ticket closed: foo#2"
+  assert_unchanged "$dir" assert_exit 4 "$WT" block foo#2 3
+  assert_unchanged "$dir" assert_exit 4 "$WT" unblock foo#2 3
+  assert_unchanged "$dir" assert_exit 4 "$WT" drop foo#2 --reason x
+}
+
+test_resolve_and_drop_remove_proto_worktree() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo prototype >/dev/null
+  mk_ticket foo prototype >/dev/null
+  git worktree add -q --detach .claude/worktrees/wayfinder-foo-1
+  git worktree add -q --detach .claude/worktrees/wayfinder-foo-2
+  git worktree add -q -b wayfinder-foo-1-impl .claude/worktrees/wayfinder-foo-1-impl
+  echo scratch >.claude/worktrees/wayfinder-foo-1/untracked.txt
+  new_session
+  resolve_now foo#1 "prototype says yes"
+  [ ! -e .claude/worktrees/wayfinder-foo-1 ] || fail "proto worktree dir left behind"
+  assert_not_contains "$(git worktree list --porcelain)" "/wayfinder-foo-1"$'\n'
+  [ -d .claude/worktrees/wayfinder-foo-1-impl ] || fail "impl worktree removed"
+  [ -d .claude/worktrees/wayfinder-foo-2 ] || fail "other ticket's worktree removed"
+  assert_exit 0 "$WT" drop foo#2 --reason "not needed"
+  [ ! -e .claude/worktrees/wayfinder-foo-2 ] || fail "proto worktree dir left behind after drop"
+  [ -d .claude/worktrees/wayfinder-foo-1-impl ] || fail "impl worktree removed"
+}
+
+test_map_complete_guards() {
+  local h
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo task >/dev/null
+  h=$(hash_line "$("$WT" show-map foo)" "Not yet specified")
+  "$WT" map-edit foo "Not yet specified" --file "$(text_file "- conflict policy")" --expect "$h"
+  assert_unchanged "$(map_path foo)" assert_exit 1 "$WT" map-complete foo
+  assert_contains "$ERR" "open tickets"
+  new_session
+  resolve_now foo#1
+  assert_unchanged "$(map_path foo)" assert_exit 1 "$WT" map-complete foo
+  assert_contains "$ERR" "Not yet specified"
+  h=$(hash_line "$("$WT" show-map foo)" "Not yet specified")
+  "$WT" map-edit foo "Not yet specified" --file "$(text_file $'  \n')" --expect "$h"
+  assert_exit 0 "$WT" map-complete foo
+  assert_eq "$(fm_of "$(map_path foo)/map.md" .status)" complete
+  assert_eq "$("$WT" maps)" $'foo\tcomplete\t0'
+  assert_exit 3 "$WT" map-complete nope
+}
+
+test_map_complete_spares_other_map_worktree() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_map foo-bar >/dev/null
+  mk_ticket foo prototype >/dev/null
+  mk_ticket foo-bar prototype >/dev/null
+  new_session
+  resolve_now foo#1
+  git worktree add -q --detach .claude/worktrees/wayfinder-foo-1
+  git worktree add -q --detach .claude/worktrees/wayfinder-foo-bar-1
+  assert_exit 0 "$WT" map-complete foo
+  [ ! -e .claude/worktrees/wayfinder-foo-1 ] || fail "leftover proto worktree not swept"
+  [ -d .claude/worktrees/wayfinder-foo-bar-1 ] || fail "map-complete foo removed a foo-bar worktree"
+}
+
+test_handoff_map_removed_claim_not_found() {
+  setup_map_with_ticket implementation
+  rm -r "$(map_path foo)"
+  new_session
+  assert_exit 3 "$WT" claim foo#1 --phase superpowers:writing-plans
+  assert_contains "$ERR" "not found: foo#1"
+}
+
+test_new_rejects_complete_map() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  "$WT" map-complete foo
+  assert_unchanged "$(map_path foo)" assert_exit 1 "$WT" new foo task title
+  assert_contains "$ERR" "complete"
+}
+
+test_base_ref_after_local_merge() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo implementation >/dev/null
+  mk_ticket foo implementation --blocked-by 1 >/dev/null
+  commit_on wayfinder-foo-1-impl one.txt
+  new_session
+  to_executing foo#1
+  git merge -q --no-ff -m "merge foo#1" wayfinder-foo-1-impl
+  close_on foo#1 wayfinder-foo-1-impl merge
+  assert_eq "$(field foo#1 branch)" main
+  assert_exit 0 "$WT" base-ref foo#2
+  assert_eq "$OUT" main
+  git merge-base --is-ancestor wayfinder-foo-1-impl "$OUT" || fail "base lacks the blocker"
+}
+
+test_base_ref_blocker_on_origin_only() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo implementation >/dev/null
+  mk_ticket foo implementation --blocked-by 1 >/dev/null
+  commit_on wayfinder-foo-1-impl one.txt
+  new_session
+  to_executing foo#1
+  close_on foo#1 wayfinder-foo-1-impl pr
+  git push -q origin wayfinder-foo-1-impl:main
+  assert_exit 0 "$WT" base-ref foo#2
+  assert_eq "$OUT" origin/main
+}
+
+test_base_ref_diverged_rejects() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo implementation >/dev/null
+  mk_ticket foo implementation >/dev/null
+  mk_ticket foo implementation --blocked-by 1 2 >/dev/null
+  commit_on wayfinder-foo-1-impl one.txt
+  commit_on wayfinder-foo-2-impl two.txt
+  new_session
+  to_executing foo#1
+  to_executing foo#2
+  close_on foo#1 wayfinder-foo-1-impl pr
+  close_on foo#2 wayfinder-foo-2-impl pr
+  git merge -q --no-ff -m "merge foo#1" wayfinder-foo-1-impl
+  git push -q origin wayfinder-foo-2-impl:main
+  assert_exit 1 "$WT" base-ref foo#3
+  assert_contains "$ERR" "foo#1"
+  assert_contains "$ERR" "foo#2"
+  assert_exit 0 "$WT" base-ref foo#3 --stack wayfinder-foo-2-impl
+}
+
+test_claim_closed() {
+  setup_map_with_ticket
+  new_session
+  resolve_now foo#1
+  assert_unchanged "$(map_path foo)" assert_exit 4 "$WT" claim foo#1
+  assert_contains "$ERR" "ticket closed: foo#1"
+  new_session
+  assert_unchanged "$(map_path foo)" assert_exit 4 "$WT" claim foo#1 --phase superpowers:executing-plans
+}
+
+test_claim_phase_wrong_checkout() {
+  local root wt
+  setup_map_with_ticket implementation
+  root=$PWD
+  git worktree add -q -b b .claude/worktrees/b
+  wt=$(realpath .claude/worktrees/b)
+  mkdir -p .claude/worktrees/b/docs
+  echo spec >.claude/worktrees/b/docs/s.md
+  new_session
+  "$WT" claim foo#1
+  "$WT" advance foo#1 superpowers:brainstorming superpowers:writing-plans "spec=$wt/docs/s.md"
+  "$WT" release foo#1
+  new_session
+  assert_unchanged "$(map_path foo)" assert_exit 1 "$WT" claim foo#1 --phase superpowers:writing-plans
+  assert_contains "$ERR" "spec lives in worktree $wt; restart there"
+  assert_eq "$(field foo#1 claimed-by)" ""
+  cd .claude/worktrees/b/docs
+  assert_exit 0 "$WT" claim foo#1 --phase superpowers:writing-plans
+  cd "$root"
+  assert_unchanged "$(map_path foo)" assert_exit 1 "$WT" claim foo#1 --phase superpowers:writing-plans
+  assert_contains "$ERR" "spec lives in worktree $wt; restart there"
+  if lock_is_free foo#1; then fail "re-entrant rejection dropped the claim"; fi
+}
+
+test_claim_phase_spec_missing() {
+  setup_map_with_ticket implementation
+  mkdir docs
+  echo spec >docs/s.md
+  echo plan >docs/p.md
+  new_session
+  to_executing foo#1 "$PWD/docs/s.md" "$PWD/docs/p.md"
+  "$WT" release foo#1
+  rm docs/p.md
+  new_session
+  assert_unchanged "$(map_path foo)" assert_exit 1 "$WT" claim foo#1 --phase superpowers:executing-plans
+  assert_contains "$ERR" "plan"
+  assert_contains "$ERR" "$PWD/docs/p.md"
+  assert_exit 0 "$WT" claim foo#1
+}
+
+test_takeover_at_executing_plans_then_close() {
+  local old
+  setup_map_with_ticket implementation
+  mkdir docs
+  echo spec >docs/s.md
+  echo plan >docs/p.md
+  new_session
+  old=$AGENT_SESSION_ID
+  to_executing foo#1 "$PWD/docs/s.md" "$PWD/docs/p.md"
+  kill_agent
+  wait_unlocked foo 1
+  new_session
+  assert_exit 0 "$WT" claim foo#1 --phase superpowers:executing-plans
+  assert_contains "$OUT" "took over stale claim from $old"
+  assert_exit 0 "$WT" close foo#1 --evidence "$(text_file "verified")" --outcome keep
+  assert_eq "$(field foo#1 status)" closed
+  assert_eq "$(field foo#1 branch)" main
+}
+
+test_resolve_close_drop_reject_reserved_heading() {
+  local dir f
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo task >/dev/null
+  mk_ticket foo implementation >/dev/null
+  dir=$(map_path foo)
+  f=$(text_file $'fine\n## Notes\nsneaky')
+  new_session
+  "$WT" claim foo#1
+  to_executing foo#2
+  assert_unchanged "$dir" assert_exit 1 "$WT" resolve foo#1 --answer "$f"
+  assert_contains "$ERR" "content contains section heading: ## Notes"
+  assert_unchanged "$dir" assert_exit 1 "$WT" close foo#2 --evidence "$f" --outcome keep
+  assert_contains "$ERR" "content contains section heading: ## Notes"
+  assert_unchanged "$dir" assert_exit 1 "$WT" drop foo#1 --reason $'x\n## Notes'
+  assert_contains "$ERR" "content contains section heading: ## Notes"
 }

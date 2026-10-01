@@ -120,6 +120,52 @@ check_branch_name() {
   git check-ref-format --branch "$1" >/dev/null 2>&1 || die 1 "invalid branch name: $1"
 }
 
+MERGED_BLOCKERS=()
+
+# merged_blockers: MERGED_BLOCKERS gets "<id> <branch>" for every closed
+# implementation blocker of the loaded ticket that merged_status counts as merged.
+merged_blockers() {
+  local b info type status branch
+  MERGED_BLOCKERS=()
+  for b in $T_BLOCKED; do
+    [ -f "$MAP_DIR/$b.md" ] || continue
+    info=$(tr -d '\r' <"$MAP_DIR/$b.md" |
+      yq --front-matter=extract '[(.type // ""), (.status // ""), (.branch // "")] | @tsv' - 2>/dev/null) ||
+      die 1 "malformed frontmatter in $MAP_DIR/$b.md"
+    IFS=$'\t' read -r type status branch <<<"$info"
+    if [ "$type" != implementation ] || [ "$status" != closed ] || [ -z "$branch" ]; then
+      continue
+    fi
+    case $(merged_status "$branch") in
+    "merged "*) MERGED_BLOCKERS+=("$b $branch") ;;
+    esac
+  done
+}
+
+# base_with_blockers <default>: local preferred, so unpushed merges are kept.
+base_with_blockers() {
+  local def=$1 entry id branch lack_local=() lack_origin=()
+  for entry in "${MERGED_BLOCKERS[@]}"; do
+    id=${entry%% *}
+    branch=${entry#* }
+    if ! ref_exists "refs/heads/$def" ||
+      ! git merge-base --is-ancestor "refs/heads/$branch" "refs/heads/$def" 2>/dev/null; then
+      lack_local+=("$SLUG#$id")
+    fi
+    if ! ref_exists "refs/remotes/origin/$def" ||
+      ! git merge-base --is-ancestor "refs/heads/$branch" "refs/remotes/origin/$def" 2>/dev/null; then
+      lack_origin+=("$SLUG#$id")
+    fi
+  done
+  if [ ${#lack_local[@]} -eq 0 ]; then
+    printf '%s\n' "$def"
+  elif [ ${#lack_origin[@]} -eq 0 ]; then
+    printf 'origin/%s\n' "$def"
+  else
+    die 1 "neither $def nor origin/$def holds every merged blocker ($def lacks ${lack_local[*]}; origin/$def lacks ${lack_origin[*]})"
+  fi
+}
+
 local_main_root() {
   [ $# -eq 0 ] || usage_error "main-root"
   main_root
@@ -163,6 +209,11 @@ local_base_ref() {
   local_ref=refs/heads/$def
   origin_ref=refs/remotes/origin/$def
   fetch_default "$def"
+  merged_blockers
+  if [ ${#MERGED_BLOCKERS[@]} -gt 0 ]; then
+    base_with_blockers "$def"
+    return
+  fi
   if ref_exists "$local_ref" && ref_exists "$origin_ref" &&
     [ "$(git rev-parse "$local_ref")" != "$(git rev-parse "$origin_ref")" ] &&
     git merge-base --is-ancestor "$local_ref" "$origin_ref"; then

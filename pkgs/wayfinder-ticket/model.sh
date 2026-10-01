@@ -149,6 +149,70 @@ claim_state() {
   fi
 }
 
+declare -A GRAPH=()
+declare -A STATUS_OF=()
+
+# load_graph: GRAPH[id] is the blocked-by list and STATUS_OF[id] the status of
+# every ticket in MAP_DIR.
+load_graph() {
+  local id out
+  GRAPH=()
+  STATUS_OF=()
+  for id in $(ticket_ids "$MAP_DIR"); do
+    out=$(tr -d '\r' <"$MAP_DIR/$id.md" | yq --front-matter=extract \
+      '((.status // "") | tostring) + " " + ((.["blocked-by"] // []) | map(tostring) | join(" "))' - 2>/dev/null) ||
+      die 1 "malformed frontmatter in $MAP_DIR/$id.md"
+    STATUS_OF[$id]=${out%% *}
+    GRAPH[$id]=${out#* }
+  done
+}
+
+# reaches <from> <to>: <to> is reachable from <from> along blocked-by edges
+# (or is <from> itself).
+reaches() {
+  local node next
+  local -A seen=()
+  local todo=("$1")
+  while [ ${#todo[@]} -gt 0 ]; do
+    node=${todo[-1]}
+    unset 'todo[-1]'
+    [ "$node" != "$2" ] || return 0
+    [ -z "${seen[$node]:-}" ] || continue
+    seen[$node]=1
+    for next in ${GRAPH[$node]:-}; do
+      todo+=("$next")
+    done
+  done
+  return 1
+}
+
+set_blocked() {
+  local file=$1
+  shift
+  WT_VALUE=$(yaml_id_list "$@") fm_update "$file" \
+    '.["blocked-by"] = (strenv(WT_VALUE) | from_yaml) | .["blocked-by"] style = "flow"'
+}
+
+# yaml_id_list <id>...: a flow list of unique ids in numeric order.
+yaml_id_list() {
+  local ids
+  ids=$(printf '%s\n' "$@" | awk 'NF' | sort -nu | paste -sd, -)
+  printf '[%s]\n' "$ids"
+}
+
+# stage_copy <var> <file>: a working copy beside <file>; commit_stage renames it back.
+stage_copy() {
+  local f
+  f=$(mktemp "$(dirname "$2")/.stage.XXXXXX" 2>/dev/null) || die 1 "cannot write in $(dirname "$2")"
+  TMPFILES+=("$f")
+  cp "$2" "$f" 2>/dev/null || die 1 "cannot write $f"
+  printf -v "$1" '%s' "$f"
+}
+
+commit_stage() {
+  mv -f "$1" "$2" 2>/dev/null || die 1 "cannot write $2"
+}
+
 ticket_title_ok() {
   [ -n "$1" ] || die 1 "title is empty"
   [[ $1 != *$'\n'* && $1 != *$'\r'* ]] || die 1 "title must be one line"

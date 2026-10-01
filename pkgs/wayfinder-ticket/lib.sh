@@ -173,16 +173,22 @@ section_hash() {
   section_get "$1" "$2" | sha256sum | cut -d' ' -f1
 }
 
+trim_blank_lines() {
+  tr -d '\r' | awk '
+    NF { for (i = 1; i <= nb; i++) print held[i]; nb = 0; print; started = 1; next }
+    started { held[++nb] = $0 }
+  '
+}
+
 # prepare_content <var> <source> <kind file>: LF-normalised, trimmed copy of the
 # input; rejects a line equal to a reserved heading of that file kind.
 prepare_content() {
   local var=$1 src=$2 kind=$3 out name
-  [ -r "$src" ] && [ ! -d "$src" ] || die 1 "cannot read $src"
+  if [ ! -r "$src" ] || [ -d "$src" ]; then
+    die 1 "cannot read $src"
+  fi
   new_tmp out
-  tr -d '\r' <"$src" | awk '
-    NF { for (i = 1; i <= nb; i++) print held[i]; nb = 0; print; started = 1; next }
-    started { held[++nb] = $0 }
-  ' >"$out"
+  trim_blank_lines <"$src" >"$out"
   local IFS='|'
   for name in $(reserved_sections "$kind"); do
     if grep -qxF -- "## $name" "$out"; then
@@ -235,6 +241,15 @@ emit_section() {
     cat "$2"
     printf '\n'
   fi
+}
+
+# section_append <file> <name> <line>: add one line to the end of a section.
+section_append() {
+  local content
+  new_tmp content
+  section_get "$1" "$2" | trim_blank_lines >"$content"
+  printf '%s\n' "$3" >>"$content"
+  section_set "$1" "$2" "$content"
 }
 
 section_is_empty() {

@@ -121,9 +121,25 @@ claim_guards() {
   [ "$T_STATUS" = open ] || die 4 "ticket closed: $ref"
   blockers=$(open_blockers | paste -sd, -)
   [ -z "$blockers" ] || die 7 "blocked by $blockers"
-  if [ -n "$phase" ] && [ "$T_PHASE" != "$phase" ]; then
-    die 5 "phase is ${T_PHASE:--}, expected $phase"
+  if [ -n "$phase" ]; then
+    [ "$T_PHASE" = "$phase" ] || die 5 "phase is ${T_PHASE:--}, expected $phase"
+    checkout_guard spec "$T_SPEC"
+    checkout_guard plan "$T_PLAN"
   fi
+}
+
+# checkout_guard <spec|plan> <path>: the file must exist and belong to this
+# checkout. Ownership is the file's own toplevel, never a path prefix, since
+# ticket worktrees nest under the main root.
+checkout_guard() {
+  local kind=$1 path=$2 owner here
+  [ -n "$path" ] || return 0
+  [ -f "$path" ] || die 1 "$kind $path is missing"
+  owner=$(git -C "$(dirname "$path")" rev-parse --show-toplevel 2>/dev/null) ||
+    die 1 "$kind $path is not inside a git worktree"
+  here=$(git rev-parse --show-toplevel 2>/dev/null) || die 1 "the current directory is not inside a git worktree"
+  owner=$(realpath "$owner")
+  [ "$owner" = "$(realpath "$here")" ] || die 1 "$kind lives in worktree $owner; restart there"
 }
 
 # require_owner <ref>: this session holds a live claim on the loaded ticket.

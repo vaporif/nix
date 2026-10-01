@@ -4,5 +4,6 @@
     ./agents.nix
     ./commands.nix
     ./rules.nix
+    ./superpowers.nix
   ];
 }

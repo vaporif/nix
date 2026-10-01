@@ -17,12 +17,6 @@
       find $out -name '*.sh' -exec sed -i '1s|#!/bin/bash|#!/usr/bin/env bash|' {} \;
     '';
 
-  patchedSuperpowers = pkgs.applyPatches {
-    name = "superpowers-patched";
-    src = inputs.superpowers;
-    patches = [../../patches/superpowers-customizations.patch];
-  };
-
   # Uses runCommand instead of applyPatches so it survives upstream churn —
   # only file presence and the description string are touched.
   patchedWshobsonAgents = pkgs.runCommand "wshobson-agents-patched" {nativeBuildInputs = [pkgs.jq];} ''
@@ -88,7 +82,7 @@
     {
       name = "superpowers";
       description = "Core skills: TDD, debugging, collaboration patterns";
-      source = patchedSuperpowers;
+      source = config.custom.llm.superpowersPackage;
       version = readPluginVersion inputs.superpowers;
     }
     {

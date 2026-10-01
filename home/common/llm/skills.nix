@@ -6,7 +6,7 @@
   patchedMattpocockSkills = pkgs.applyPatches {
     name = "mattpocock-skills-patched";
     src = inputs.mattpocock-skills;
-    patches = [../../../patches/mattpocock-skills-customizations.patch];
+    patches = map (n: ../../../patches/mattpocock + "/${n}") ["improve-codebase-architecture.patch"];
   };
 in {
   custom.llm.skills = {

@@ -1,0 +1,219 @@
+diff --git orig/skills/subagent-driven-development/SKILL.md mod/skills/subagent-driven-development/SKILL.md
+index f7bbf6a..7251255 100644
+--- orig/skills/subagent-driven-development/SKILL.md
++++ mod/skills/subagent-driven-development/SKILL.md
+@@ -218,6 +218,68 @@ that implementer. Single-file mechanical fixes also take the cheapest tier.
+ - Touches multiple files with integration concerns → standard model
+ - Requires design judgment or broad codebase understanding → most capable model
+ 
++## Batching: Parallel Where Independent, Sequential Where Dependent
++
++Read the plan's `## Task Dependency Graph` section to compute batches:
++
++- A **batch** is a set of tasks whose `depends on` lists are all satisfied (every predecessor's review passed).
++- The first batch is every task with `depends on: none`. Dispatch ALL of them in parallel — one Task tool call per task in the same response. Use the agent types from `## Agent Assignments`.
++- After every task in the current batch passes its per-task two-stage review (spec compliance + code quality), compute the next batch (every pending task whose predecessors are now complete) and dispatch that batch in parallel.
++- Continue until all tasks are done. A plan with no parallelism is just a chain of single-task batches.
++
++**Why this matters:** parallel dispatch of independent tasks is the whole point of subagents. Don't run independent tasks one-at-a-time — that wastes the orchestration model. But never speculatively parallelise tasks that share files or consume each other's output; that causes merge conflicts and broken interfaces. Default to sequential when independence is not obvious from the dependency graph.
++
++**Single-task plans:** trivially one batch with one dispatch. No parallelism overhead, but still via subagent — never inline.
++
++**If the plan lacks `## Task Dependency Graph`:** default every task to "depends on prior task" (full sequential chain) and note the gap so writing-plans can add the section next time. Better safe-sequential than unsafe-parallel.
++
++## Subagent Type Selection
++
++The `subagent_type` for each implementer comes from the plan's `## Agent Assignments` section (copied from the spec). Do NOT re-decide during execution. If the plan lacks an assignment for a task, fall back to the table below based on the task's primary language/domain:
++
++| Domain / Language      | subagent_type                        |
++|------------------------|--------------------------------------|
++| Rust                   | rust-engineer                        |
++| Go                     | systems-programming:golang-pro       |
++| Python                 | python-development:python-pro        |
++| Bevy game / engine     | bevy-engineer                        |
++| Unity game / C#        | unity-csharp-engineer                |
++| Solidity / Web3 / DeFi | blockchain-web3:blockchain-developer |
++| Security audit         | security-scanning:security-auditor   |
++| Code review            | git-pr-workflows:code-reviewer       |
++| General / other        | general-purpose (default)            |
++
++For code quality reviews of Web3/Solidity code, use `git-pr-workflows:code-reviewer` and additionally dispatch `security-scanning:security-auditor` for a parallel security review.
++
++For Bevy projects (any crate that depends on `bevy = ...` in `Cargo.toml` or imports `bevy::prelude::*`), pick `bevy-engineer` over `rust-engineer` — it carries Bevy ECS, scheduling, plugin, and migration conventions on top of the Rust baseline.
++
++For Unity projects (a `ProjectSettings/ProjectVersion.txt`, an `Assets/` + `Packages/manifest.json` layout, `.asmdef` files, or `.cs` files importing `UnityEngine`), pick `unity-csharp-engineer` for any C# gameplay task — it carries MonoBehaviour lifecycle, ScriptableObject, GC/Jobs performance, and unity-mcp Editor-loop conventions on top of the C# baseline.
++
++## Plan Checkbox State (resume-safe progress log)
++
++The plan file's `- [ ]` / `- [x]` checkboxes are the durable, cross-session record of what's done, complementing the ledger. The controller (you) is responsible for keeping them accurate.
++
++**At plan load (before dispatching anything):**
++1. `grep -nE '^- \[(x| )\]' <plan-file>` to enumerate every step and its state.
++2. For every step already `- [x]`: mark its TodoWrite todo as completed and never include that step in any implementer prompt. The implementer must not see done steps in its task description.
++3. If every step in a task is `- [x]`, that task is done — skip it entirely. Move to the next task with pending steps.
++4. If checkbox state is internally inconsistent (later steps `- [x]` while earlier steps in the same task are `- [ ]`, or `- [x]` next to obviously missing artifacts on disk), pause and surface this to the human partner before starting. Do NOT silently re-run or "trust the checkboxes".
++5. Pending steps (`- [ ]`) seed the TodoWrite list and the implementer prompts.
++
++**After a task passes spec review + code quality review + prose cleanup (and BEFORE marking the TodoWrite todo complete):**
++1. Edit the plan file: flip every `- [ ]` belonging to that task's steps to `- [x]`. Use Edit on the literal `- [ ]` prefix per step line. Do not reformat surrounding lines.
++2. Commit the plan file edit (alongside any final cleanup commits, or as its own commit). The commit message can be terse: `plan: mark Task N complete`.
++3. Then mark the TodoWrite todo complete and proceed to the next task.
++
++**If the implementer reported flipping individual step boxes during execution (it should — see implementer-prompt.md):**
++- Verify the boxes match what was actually implemented before you start review. A `- [x]` next to unverified work is a bug; flip it back and re-run.
++- Do NOT double-flip steps the implementer already flipped. Only flip ones still `- [ ]`.
++
++**Never:**
++- Author or accept new pre-checked `- [x]` boxes (those are skip-this signals; manufacturing them skips real work).
++- Batch all flips at the end of the whole plan — the resume point is lost.
++- Touch unrelated checkboxes in the plan file.
++
+ ## The Task Loop
+ 
+ **Batch small same-shape work.** When the plan lists several tasks that are
+@@ -442,6 +504,27 @@ Then mark the todo complete and move on. Never move to the next task while
+ the review has open Critical/Important issues that are neither fixed nor
+ parked-with-ruling at the cap.
+ 
++## Prose Cleanup Pass
++
++After code quality review passes (0 critical/medium) and before flipping the plan's checkboxes for the task, run a prose cleanup pass on the task's changed files. This is a quick scan, not a full review.
++
++Trim comments hard first, then humanize what survives — in that order.
++
++**What to fix:**
++- Cut every low-value comment, not just AI-slop. Anything that restates the code ("// increment counter", "// return result"), narrates the obvious ("// First, set up the client"), or decorates (banners, dividers) goes — whoever wrote it. You have license to delete; when in doubt, delete. A wrong or stale comment is worse than none.
++- Strip comments that smell like AI generated them ("// Ensures proper handling of...", "// Leverages the X pattern to facilitate...")
++- Whatever *why* comments survive: rewrite them to sound human — direct, specific, no filler
++- Humanize docstrings: no "This function serves as...", no "facilitates", no "ensures". Just say what it does.
++- Humanize error messages: no "Failed to successfully...", no "Unable to properly..."
++- Humanize commit messages if they haven't been committed yet
++
++**What NOT to touch:**
++- Code logic, structure, tests
++- Comments that explain *why* (keep those, they're valuable)
++- License headers, generated code markers
++
++**How to dispatch:** Send the implementer subagent a focused cleanup prompt with the list of changed files. Keep it short — this is a 2-minute pass, not a rewrite.
++
+ ## Final Review
+ 
+ The final whole-branch review gets a package too: run
+@@ -468,6 +551,14 @@ the four classes above stop you here. There is no second fix wave —
+ residual load-bearing findings surface to your human partner when
+ finishing-a-development-branch presents the options.
+ 
++## Post-Implementation Polish (always, via subagent named in the plan)
++
++After the final whole-branch review is clean but BEFORE deleting the workspace or finishing the branch, **always** run the post-implementation-polish pipeline as a single dispatched subagent. Do NOT run polish inline, do NOT skip it, and do NOT ask the user.
++
++Read the `Polish: post-implementation-polish → <agent type>` line from the plan's `## Agent Assignments` section and dispatch using that agent type. If the plan has no Polish line, fall back to `general-purpose` and note the gap so writing-plans can fix it next time.
++
++The polish subagent owns all six phases (three review rounds, idiomatic pass, /cleanup, strip + humanize comments). It runs them in order, committing between phases, and reports back which phases ran, which were skipped (with reason), commits made, and any unresolved Critical/Important findings. If it surfaces unresolved Critical/Important findings, treat them as a regression: dispatch a fix subagent, then re-run the affected phase. Loop until clean (max 10 iterations across the whole polish stage), then surface to your human partner.
++
+ ## Finish
+ 
+ Before you delete anything, collect every ledger line containing `Ruling:` —
+@@ -479,10 +570,10 @@ took on your human partner's behalf reach them — they read it and rework
+ whatever you got wrong. A ruling that dies with the workspace was a decision
+ made in secret.
+ 
+-When the final whole-branch review is clean and its fixes are merged,
+-delete this plan's workspace (`rm -rf <workspace>`) — the git history is
+-the record now. Sibling directories belong to other plans; leave them
+-alone.
++When the final whole-branch review is clean, its fixes are merged, and
++post-implementation-polish reports DONE, delete this plan's workspace
++(`rm -rf <workspace>`) — the git history is the record now. Sibling
++directories belong to other plans; leave them alone.
+ 
+ Use superpowers:finishing-a-development-branch.
+ 
+@@ -506,8 +597,8 @@ Use superpowers:finishing-a-development-branch.
+ You: I'm using Subagent-Driven Development to execute this plan.
+ 
+ [Setup: worktree verified]
+-[Read plan file once: docs/superpowers/plans/feature-plan.md]
+-[Resolve workspace: bash scripts/sdd-workspace docs/superpowers/plans/feature-plan.md — no ledger inside, fresh start]
++[Read plan file once: docs/plans/feature-plan.md]
++[Resolve workspace: bash scripts/sdd-workspace docs/plans/feature-plan.md — no ledger inside, fresh start]
+ [Create todos for all tasks]
+ 
+ Task 1: Hook installation script
+diff --git orig/skills/subagent-driven-development/implementer-prompt.md mod/skills/subagent-driven-development/implementer-prompt.md
+index 5c8ecd6..81cf422 100644
+--- orig/skills/subagent-driven-development/implementer-prompt.md
++++ mod/skills/subagent-driven-development/implementer-prompt.md
+@@ -3,7 +3,7 @@
+ Use this template when dispatching an implementer subagent.
+ 
+ ```
+-Subagent (general-purpose):
++Subagent ({subagent_type from plan's ## Agent Assignments section, or Subagent Type Selection table as fallback}):
+   description: "Implement Task N: [task name]"
+   model: [MODEL — REQUIRED: choose per SKILL.md Model Selection; an omitted
+          model silently inherits the session's most expensive one]
+@@ -59,6 +59,26 @@ Subagent (general-purpose):
+     would strengthen my report" — that review is already scheduled.
+     Report instead.
+ 
++    ## Plan File Checkbox Tracking
++
++    The plan file is at: [plan path, e.g. `docs/plans/<filename>.md`]
++
++    Steps under your task use `- [ ]` checkboxes. Treat these as durable progress
++    state, not decoration:
++    - When you finish a step AND its verification passes (test green, command
++      output matches expected), edit the plan file and flip that step's leading
++      `- [ ]` to `- [x]` BEFORE moving on. Use Edit on the literal `- [ ]` prefix
++      of the step line; do not reformat anything else.
++    - One flip per verified step. Do not batch flips at the end.
++    - If a verification fails after you flipped, flip it back to `- [ ]` and treat
++      the step as pending.
++    - If you encounter a step already marked `- [x]` when you start, the
++      controller already accounted for it — do NOT redo it. If the side effects
++      look missing, stop and report it as DONE_WITH_CONCERNS rather than silently
++      re-running.
++    - Include the plan file's checkbox edits in your task commit (or as a final
++      `plan: progress on Task N` commit) so the resume point survives.
++
+     ## Code Organization
+ 
+     You reason best about code you can hold in context at once, and your edits are more
+@@ -89,6 +109,36 @@ Subagent (general-purpose):
+     The controller can provide more context, re-dispatch with a more capable model,
+     or break the task into smaller pieces.
+ 
++    ## Comments: Trim Hard
++
++    Default to NO comment. A comment has to earn its place by explaining something the
++    code cannot say itself.
++
++    - If the plan's code blocks contain comments, do NOT copy them through. Strip them
++      as you adopt the code. The plan's prose was for you; it does not belong in the diff.
++    - Delete any comment that restates what the code does ("// increment counter",
++      "// return the result"), narrates the obvious ("// First, set up the client"), or
++      decorates (section banners, dividers).
++    - Keep only genuine *why* comments: a hidden constraint, a workaround for a known
++      bug, a non-obvious invariant, or an external reference (issue/RFC/spec link).
++    - When in doubt, delete it. A wrong or stale comment is worse than no comment.
++
++    ## Prose Quality
++
++    Any non-code text you write (the *why* comments that survive the trim, docstrings,
++    error messages, documentation, commit messages) must sound like a person wrote it.
++    Avoid AI-isms: no "serves as", "leverages", "ensures", "facilitates", no significance
++    inflation ("crucial", "pivotal"), no filler ("in order to", "it is important to
++    note"), no sycophantic tone. Be direct and specific. Trim first, then humanize what
++    is left — never the other way round.
++
++    ## Document Decision Trade-offs
++
++    When you make a choice not explicitly specified in the plan (picking between two
++    valid approaches, choosing a data structure, deciding on an error handling pattern),
++    note the pros and cons briefly in your report. If the decision is significant enough
++    to affect the design, flag it as DONE_WITH_CONCERNS so the controller can review it.
++
+     ## Before Reporting Back: Self-Review
+ 
+     Review your work with fresh eyes. Ask yourself:

@@ -1,0 +1,195 @@
+diff --git orig/skills/writing-plans/SKILL.md mod/skills/writing-plans/SKILL.md
+index 4cf0275..4baab03 100644
+--- orig/skills/writing-plans/SKILL.md
++++ mod/skills/writing-plans/SKILL.md
+@@ -7,13 +7,13 @@ description: Use when you have a spec or requirements for a multi-step task, bef
+ 
+ ## Overview
+ 
+-Write implementation plans for an engineer who has not seen this codebase or this spec. Assume they write idiomatic code in the project's language once they know the exact interface and the exact test, and that they will make a reasonable choice wherever the plan leaves one open. What they cannot know is what you decided: which files, which names and signatures, which values from the spec, which tests prove each task. Document those. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
++Write implementation plans for an engineer who has not seen this codebase or this spec. Assume they write idiomatic code in the project's language once they know the exact interface and the exact test, and that they will make a reasonable choice wherever the plan leaves one open. What they cannot know is what you decided: which files, which names and signatures, which values from the spec, which tests prove each task. Document those. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. KISS. Frequent commits.
+ 
+ **Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
+ 
+ **Context:** If working in an isolated worktree, it should have been created via the `superpowers:using-git-worktrees` skill at execution time.
+ 
+-**Save plans to:** `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`
++**Save plans to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
+ - (User preferences for plan location override this default)
+ 
+ ## Scope Check
+@@ -47,7 +47,6 @@ independently testable deliverable.
+ - "Run it to make sure it fails" - step
+ - "Implement the minimal code to make the test pass" - step
+ - "Run the tests and make sure they pass" - step
+-- "Commit" - step
+ 
+ ## Plan Document Header
+ 
+@@ -56,7 +55,7 @@ independently testable deliverable.
+ ```markdown
+ # [Feature Name] Implementation Plan
+ 
+-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
++> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or `/team-feature` to implement this plan task-by-task, per the Execution Strategy below. Steps use checkbox (`- [ ]`) syntax — these are **persistent durable state**, not visual decoration. The executor edits the plan file in place: `- [ ]` → `- [x]` the instant a step verifies, before moving on. On resume (new session, crash, takeover), the executor scans existing `- [x]` marks and skips them — these steps are NOT redone. TodoWrite mirrors this state in-session; the plan file is the source of truth across sessions.
+ 
+ **Goal:** [One sentence describing what this builds]
+ 
+@@ -67,6 +66,35 @@ independently testable deliverable.
+ **Spec:** [path to the spec/design doc this plan implements — the plan
+ argues from the spec, so the spec travels with it; executors read both]
+ 
++## Execution Strategy
++
++[Copy verbatim from the spec's `## Execution Strategy` section. Must name exactly one of: **Subagents**, **Agent teams**. Include the one-paragraph reason. There is no inline-controller strategy — that is the degraded fallback in executing-plans, not a normal choice. This is authoritative — subagent-driven-development and `/team-feature` read from here. Do NOT ask the user to change it.
++
++If the spec lacks an `## Execution Strategy` section (e.g. plan written outside the brainstorming flow), write **Subagents** here with reason "default — no spec override". Only deviate if the user has explicitly asked for a different strategy in this conversation.]
++
++## Task Dependency Graph
++
++[Copy verbatim from the spec, or derive it from the plan's task list if the spec lacks the section. List every task with its predecessors. Format:
++
++- Task 1 [AFK]: depends on `none` → first batch
++- Task 2 [AFK]: depends on `none` → first batch (parallel with Task 1)
++- Task 3 [HITL]: depends on `Task 1, Task 2` → second batch (sequential after both complete; needs human design review)
++- Task 4 [AFK]: depends on `Task 3` → third batch (sequential)
++
++Tasks in the same batch are dispatched in parallel; later batches start only after every task in the previous batch passes its per-task review. A single-task plan has one batch with one task. Default to sequential ("depends on prior task") when independence is not obvious — false parallelism causes merge pain.]
++
++## Agent Assignments
++
++[Copy verbatim from the spec's `## Agent Assignments` section. Format:
++
++- Task 1: <task name> → <agent type> (<language/domain>)
++- Task 2: <task name> → <agent type> (<language/domain>)
++- Polish: post-implementation-polish → <agent type> (default: general-purpose)
++
++The Polish line is **mandatory** in every plan — polish always runs as a single dispatched subagent at the end of execution, and the plan picks which agent type owns it. Default is `general-purpose`. Pick a specialist (e.g. `git-pr-workflows:code-reviewer` for Web3, `rust-engineer` for a Rust-only diff) only when the diff is uniformly in that domain. If the spec lacks a Polish line, write `Polish: post-implementation-polish → general-purpose` here and proceed.
++
++This table is authoritative for subagent-driven-development and `/team-feature`. Do NOT re-pick agents during execution.]
++
+ ## Global Constraints
+ 
+ [The spec's project-wide requirements — version floors, dependency limits,
+@@ -129,14 +157,25 @@ algorithm they do not determine.
+ Run: `pytest tests/path/test.py::test_name -v`
+ Expected: PASS
+ 
+-- [ ] **Step 5: Commit**
+-
+-```bash
+-git add tests/path/test.py src/path/file.py
+-git commit -m "feat: add specific feature"
+-```
+ ````
+ 
++## Checkbox State Tracking (the plan file is the durable progress log)
++
++Every actionable step uses a `- [ ]` checkbox. These are not cosmetic — they encode persistent execution state:
++
++- `- [ ]` = pending. Must still be done.
++- `- [x]` = completed. Verified passing. Do NOT redo.
++
++**Contract for plan authors:**
++- Every step that an executor must perform gets its own `- [ ]` checkbox on a line by itself, in the form `- [ ] **Step N: <imperative description>**`. Sub-bullets, code blocks, and explanatory prose hang under the step but do not get their own checkboxes.
++- Tasks themselves (the `### Task N: ...` headings) are NOT checkboxed — task completion is implied by all steps inside being `- [x]`.
++- Header notes outside any task (Goal, Architecture, Execution Strategy, Agent Assignments) never get checkboxes.
++- Do not author a plan with any pre-checked `- [x]` boxes. Executors interpret them as "skip this".
++
++**Contract for executors** (see executing-plans / subagent-driven-development for the full procedure):
++- On load, scan for `- [x]` and skip those steps.
++- On step verify, immediately edit the plan file to flip `- [ ]` → `- [x]` for that exact line. Commit periodically — the file is the cross-session resume point.
++
+ ## What a Step Contains
+ 
+ A step is done when the implementer can write exactly one reasonable thing
+@@ -176,29 +215,70 @@ After writing the complete plan, look at the spec with fresh eyes and check the
+ 
+ If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
+ 
++## Humanize Plan Prose
++
++Apply the `humanizer` skill to all non-code text in the plan document. The Goal, Architecture, task descriptions, and any explanatory prose must read like a person wrote them, not like an LLM assembled them from templates.
++
++**Applies to:** Goal statement, Architecture summary, task description text, explanatory notes, context sections.
++
++**Does NOT apply to:** code blocks, file paths, commands, expected output, step labels.
++
++Watch for and strip: significance inflation, promotional language, copula avoidance ("serves as" instead of "is"), superficial -ing phrases, filler, generic conclusions, rule-of-three padding. Be direct and specific.
++
++## Plan Code Blocks Carry No Comments
++
++This is where AI comment-slop is born. Implementers copy plan code close to verbatim, so any comment you write in a plan code block ships in the final diff. Write plan code the way you want it to land: clean.
++
++**In every code block in the plan:**
++- No inline comments that restate the code (`// increment counter`, `# loop over items`).
++- No narration comments (`// First, we set up the client`, `// Now handle the response`) — the surrounding step prose already explains intent to the implementer.
++- No section dividers, banners, or decorative comments.
++- No placeholder comments (`// ... rest of impl`, `// your logic here`) — that is a No Placeholders failure too.
++
++**The only comments allowed in plan code** are genuine *why* comments: a hidden constraint, a workaround for a known bug, a non-obvious invariant, or an external reference (issue/RFC/spec link). If you would not defend the comment in review, do not write it.
++
++Explanation belongs in the step's prose, not in the code block. The prose is for the implementer; the code block is the artifact. Keep them separate.
++
++## Document Pros and Cons
++
++When the plan makes design choices (data structure, API shape, error strategy, library selection), include brief pros and cons inline. Keep it proportional to the decision's weight: a one-liner each for minor choices, a full list for major ones. The engineer reading this plan should understand what was considered and what trade-offs were accepted. If one option is strictly better (all pros, no cons vs alternatives), auto-select it and note: "Auto-selected — no downsides compared to alternatives. Let me know if you disagree."
++
++## Remember
++- Exact file paths always
++- Complete code in plan (not "add validation")
++- Exact commands with expected output
++- DRY, YAGNI, TDD, KISS, frequent commits (one commit per verified step, paired with the `- [x]` flip)
++- Reuse existing utilities and dependencies before introducing new ones
++- Plan code blocks carry no comments except genuine *why* comments — they ship verbatim in the implementer's diff (see "Plan Code Blocks Carry No Comments")
++- Follow project security guidelines (CLAUDE.md, AGENTS.md) — validate inputs at system boundaries, review OWASP Top 10 and SWC Registry for relevant threat patterns
++
++## Plan Review Loop (multi-agent)
++
++After writing the complete plan, run iterations of finder → merge → validator → fix until clean:
++
++1. **Find:** dispatch 2 `plan-document-reviewer` subagents in parallel (template: `skills/writing-plans/plan-document-reviewer-prompt.md`). Each gets the plan file path, the spec file path, and precise review context — never your session history. They independently produce issue lists covering spec coverage, placeholders, type consistency, and any other plan-quality concerns.
++2. **Merge:** deduplicate and consolidate the two lists into one set of distinct findings.
++3. **Validate:** dispatch 2 validator subagents in parallel against the merged set. Each confirms which findings are real critical/blocker issues and rejects false positives. Keep only findings at least one validator confirms.
++4. **Fix:** apply fixes for the confirmed critical/blocker issues. If a spec requirement has no task, add the task.
++5. **Loop:** repeat from step 1. Stop when validators confirm 0 critical/blocker issues.
++6. **Cap:** after 10 iterations, stop and surface to the user for direction.
++
++Only proceed to Execution Handoff once validators confirm zero critical/blocker issues.
++
+ ## Execution Handoff
+ 
+-After saving and self-reviewing the plan, link it for your human partner
+-to read. If they have already explicitly supplied an execution method, ask
+-them to review the plan and confirm it captures what they want; wait for that
+-review before implementation, then use the preserved method. Otherwise, ask
+-them to review the plan and choose an execution method before implementation.
++After saving and self-reviewing the plan, link it for your human partner to read. The plan's `## Execution Strategy` section is authoritative for *how* the work runs — do NOT re-ask the user to pick an execution method. Announce:
+ 
+-**When no execution method has already been supplied:**
++> "Plan complete and saved to `docs/plans/<filename>.md`. Strategy: **<strategy>**. <N> tasks parallelisable in <K> batches, <M> sequential. Proceeding with <sub-skill>."
+ 
+-**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Please review the plan. Which execution approach would you prefer?**
++Then transition directly based on the strategy. **If the strategy is missing or unrecognised, default to Subagents.** Only an explicit user request in the current conversation overrides this default.
+ 
+-- **Subagent-driven** - A fresh subagent implements each task and a fresh reviewer checks it before the next one starts, then a whole-branch review at the end. Most thorough; costs a fresh context per task and per review.
+-- **Native** - I implement every task myself in this session, the way this harness runs work, then one fresh reviewer on the most capable model checks the whole branch. Cheapest and fastest; no independent review until the end. Runs well with a mid-tier session model, since the plan carries the design.
+-
+-**For this plan I recommend <one of the two>, because <one sentence from the plan: how much the tasks depend on each other's interfaces, how many there are, what a shipped mistake would cost>. Does the plan capture what you want, and which approach should we use?"**
+-
+-**When an execution method has already been supplied:**
+-
+-**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Please review the plan. Does it capture what you want?"**
+-
+-**If Subagent-driven chosen:**
++**Subagents (default):**
+ - **REQUIRED SUB-SKILL:** Use superpowers:subagent-driven-development
++- Read `## Task Dependency Graph` to compute batches: tasks in a batch dispatch in parallel; later batches wait for the prior batch's reviews to pass.
++- Each task gets a fresh subagent + two-stage review (spec compliance, then code quality).
++- Use the agent types listed in `## Agent Assignments`.
+ 
+-**If Native chosen:**
+-- **REQUIRED SUB-SKILL:** Use superpowers:executing-plans
++**Agent teams:**
++- Spawn via `/team-feature`
++- The team-lead reads `## Task Dependency Graph` for batching and `## Agent Assignments` for implementer roles, and enforces the two-stage review gates documented in brainstorming's Implementation section.

@@ -44,6 +44,17 @@ case $command in
 map-new | maps | map-edit | map-complete | new | block | unblock | show | show-map | edit | attach | claim | release | advance | resolve | close | drop | frontier | status | main-root | merged | base-ref | default-branch | trailer)
   dispatch "$command" "$@"
   ;;
+__hold)
+  hold_main "$@"
+  ;;
+__agent-pid)
+  found=$(agent_walk) || die 1 "$NO_AGENT"
+  printf '%s\n' "${found%% *}"
+  ;;
+__agent-start)
+  [ $# -eq 1 ] || usage_error "__agent-start <pid>"
+  agent_start "$1" || die 1 "no such process: $1"
+  ;;
 -h | --help | help)
   usage
   ;;

@@ -317,7 +317,7 @@ test_outside_repo() {
   cd outside
   export GIT_CEILING_DIRECTORIES=$PWD/..
   for cmd in "maps" "show foo#1" "show-map foo" "new foo task title" "edit foo#1 Notes --file /dev/null" \
-    "main-root" "default-branch" "merged main" "base-ref foo#1"; do
+    "main-root" "default-branch" "merged main" "base-ref foo#1" "claim foo#1" "release foo#1"; do
     # shellcheck disable=SC2086
     assert_exit 1 "$WT" $cmd
     assert_contains "$ERR" "not inside a git repository"
@@ -627,4 +627,212 @@ test_base_ref_no_blockers_origin_strictly_ahead() {
   push_origin_commit diverged.txt
   assert_exit 0 "$WT" base-ref foo#1
   assert_eq "$OUT" main "diverged prefers local"
+}
+
+# --- Stage C: claim protocol ---
+
+claimed_by() {
+  fm_of "$(map_path "${1%%#*}")/${1#*#}.md" '.["claimed-by"]'
+}
+
+pid_file() {
+  echo "$TMPDIR/wayfinder-$AGENT_SESSION_ID/${1%%#*}-${1#*#}.pid"
+}
+
+lock_is_free() {
+  flock -n "$(map_path "${1%%#*}")/${1#*#}.claim" true
+}
+
+setup_map_with_ticket() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo "${1:-task}" >/dev/null
+}
+
+test_claim_requires_session_id() {
+  setup_map_with_ticket
+  new_session
+  unset AGENT_SESSION_ID
+  assert_unchanged "$(map_path foo)" assert_exit 1 "$WT" claim foo#1
+  assert_contains "$ERR" "AGENT_SESSION_ID is not set; start the agent through claude-sandboxed or codex-sandboxed"
+  assert_eq "$(claimed_by foo#1)" ""
+}
+
+test_claim_no_agent_ancestor() {
+  skip_if_agent_ancestor
+  setup_map_with_ticket
+  new_session
+  unset WAYFINDER_AGENT_PID
+  assert_unchanged "$(map_path foo)" assert_exit 1 "$WT" claim foo#1
+  assert_contains "$ERR" "no agent process found (looked for .claude-unwrapped, claude, codex-raw, codex)"
+  assert_eq "$(claimed_by foo#1)" ""
+  if "$WT" __agent-pid >/dev/null 2>&1; then fail "__agent-pid found an agent"; fi
+}
+
+test_claim_agent_pid_exited() {
+  setup_map_with_ticket
+  new_session
+  kill_agent
+  assert_unchanged "$(map_path foo)" assert_exit 1 "$WT" claim foo#1
+  assert_contains "$ERR" "no agent process found (looked for .claude-unwrapped, claude, codex-raw, codex)"
+  assert_eq "$(claimed_by foo#1)" ""
+  lock_is_free foo#1 || fail "lock held"
+}
+
+test_concurrent_claims_one_wins() {
+  local a_sid a_pid b_sid b_pid rcs w1 w2
+  setup_map_with_ticket
+  new_session
+  a_sid=$AGENT_SESSION_ID a_pid=$WAYFINDER_AGENT_PID
+  new_session
+  b_sid=$AGENT_SESSION_ID b_pid=$WAYFINDER_AGENT_PID
+  (
+    set +e
+    AGENT_SESSION_ID=$a_sid WAYFINDER_AGENT_PID=$a_pid "$WT" claim foo#1 >/dev/null 2>../err.a
+    echo $? >../rc.a
+  ) &
+  w1=$!
+  (
+    set +e
+    AGENT_SESSION_ID=$b_sid WAYFINDER_AGENT_PID=$b_pid "$WT" claim foo#1 >/dev/null 2>../err.b
+    echo $? >../rc.b
+  ) &
+  w2=$!
+  wait "$w1" "$w2"
+  rcs=$(cat ../rc.a ../rc.b | sort | paste -sd' ' -)
+  assert_eq "$rcs" "0 6" "exit codes"
+  if [ "$(cat ../rc.a)" = 0 ]; then
+    assert_eq "$(claimed_by foo#1)" "$a_sid"
+    assert_contains "$(cat ../err.b)" "claimed by another session ($a_sid)"
+  else
+    assert_eq "$(claimed_by foo#1)" "$b_sid"
+    assert_contains "$(cat ../err.a)" "claimed by another session ($b_sid)"
+  fi
+}
+
+test_claim_reentrant_owner() {
+  setup_map_with_ticket
+  new_session
+  assert_exit 0 "$WT" claim foo#1
+  assert_eq "$OUT" ""
+  assert_eq "$(claimed_by foo#1)" "$AGENT_SESSION_ID"
+  [ -f "$(pid_file foo#1)" ] || fail "no pid file"
+  assert_exit 0 "$WT" claim foo#1
+  assert_eq "$OUT" "" "re-entrant claim prints nothing"
+  assert_eq "$(claimed_by foo#1)" "$AGENT_SESSION_ID"
+  if lock_is_free foo#1; then fail "lock not held"; fi
+}
+
+test_owner_killed_then_reclaim() {
+  local old
+  setup_map_with_ticket
+  new_session
+  old=$AGENT_SESSION_ID
+  assert_exit 0 "$WT" claim foo#1
+  kill_agent
+  wait_unlocked foo 1
+  new_session
+  assert_exit 0 "$WT" claim foo#1
+  assert_contains "$OUT" "took over stale claim from $old"
+  assert_eq "$(claimed_by foo#1)" "$AGENT_SESSION_ID"
+  if lock_is_free foo#1; then fail "lock not held after takeover"; fi
+}
+
+test_pid_reuse_is_stale() {
+  local f
+  setup_map_with_ticket
+  new_session
+  assert_exit 0 "$WT" claim foo#1
+  f=$(pid_file foo#1)
+  assert_eq "$(wc -l <"$f" | tr -d ' ')" 3
+  assert_eq "$(sed -n 2p "$f")" "$WAYFINDER_AGENT_PID"
+  kill -0 "$(sed -n 1p "$f")" || fail "holder not running"
+  sed '3s/.*/reused process start/' "$f" >"$f.new"
+  mv "$f.new" "$f"
+  wait_unlocked foo 1
+  kill -0 "$WAYFINDER_AGENT_PID" || fail "agent should still be alive"
+}
+
+test_reclaim_right_after_release() {
+  setup_map_with_ticket
+  new_session
+  assert_exit 0 "$WT" claim foo#1
+  assert_exit 0 "$WT" release foo#1
+  assert_eq "$(claimed_by foo#1)" ""
+  [ ! -e "$(pid_file foo#1)" ] || fail "pid file left behind"
+  lock_is_free foo#1 || fail "lock held after release"
+  assert_exit 0 "$WT" claim foo#1
+  assert_exit 0 "$WT" release foo#1
+  new_session
+  assert_exit 0 "$WT" claim foo#1
+  assert_eq "$OUT" "" "no takeover after a release"
+  assert_eq "$(claimed_by foo#1)" "$AGENT_SESSION_ID"
+}
+
+test_release_rejects_non_owner() {
+  local owner
+  setup_map_with_ticket
+  new_session
+  assert_unchanged "$(map_path foo)" assert_exit 1 "$WT" release foo#1
+  assert_contains "$ERR" "not owner of foo#1"
+  assert_exit 0 "$WT" claim foo#1
+  owner=$AGENT_SESSION_ID
+  new_session
+  assert_unchanged "$(map_path foo)" assert_exit 6 "$WT" release foo#1
+  assert_contains "$ERR" "claimed by another session ($owner)"
+  assert_unchanged "$(map_path foo)" assert_exit 1 "$WT" release foo#1 --force
+}
+
+test_claim_phase_mismatch() {
+  setup_map_with_ticket implementation
+  new_session
+  assert_unchanged "$(map_path foo)" assert_exit 5 "$WT" claim foo#1 --phase superpowers:writing-plans
+  assert_contains "$ERR" "phase is superpowers:brainstorming, expected superpowers:writing-plans"
+  assert_eq "$(claimed_by foo#1)" ""
+  lock_is_free foo#1 || fail "lock held after a rejected claim"
+  assert_exit 0 "$WT" claim foo#1 --phase superpowers:brainstorming
+  assert_unchanged "$(map_path foo)" assert_exit 5 "$WT" claim foo#1 --phase superpowers:executing-plans
+  assert_contains "$ERR" "phase is superpowers:brainstorming, expected superpowers:executing-plans"
+  assert_eq "$(claimed_by foo#1)" "$AGENT_SESSION_ID"
+  if lock_is_free foo#1; then fail "re-entrant rejection dropped the claim"; fi
+}
+
+test_claim_blocked() {
+  mk_origin
+  mk_clone
+  mk_map foo >/dev/null
+  mk_ticket foo task >/dev/null
+  mk_ticket foo task >/dev/null
+  mk_ticket foo task --blocked-by 1 2 >/dev/null
+  new_session
+  assert_unchanged "$(map_path foo)" assert_exit 7 "$WT" claim foo#3
+  assert_contains "$ERR" "blocked by 1,2"
+  assert_eq "$(claimed_by foo#3)" ""
+  lock_is_free foo#3 || fail "lock held after a rejected claim"
+}
+
+test_claim_failed_write_leaves_lock_free() {
+  local dir
+  setup_map_with_ticket
+  new_session
+  dir=$(map_path foo)
+  chmod a-w "$dir"
+  assert_exit 1 "$WT" claim foo#1
+  chmod u+w "$dir"
+  lock_is_free foo#1 || fail "lock held after a failed write"
+  wait_unlocked foo 1
+  assert_eq "$(claimed_by foo#1)" ""
+  [ ! -e "$(pid_file foo#1)" ] || fail "holder started"
+}
+
+test_claim_returns_with_piped_stdout() {
+  local start
+  setup_map_with_ticket
+  new_session
+  start=$(date +%s)
+  timeout 5 "$WT" claim foo#1 | cat
+  [ $(($(date +%s) - start)) -lt 5 ] || fail "claim took too long"
+  assert_eq "$(claimed_by foo#1)" "$AGENT_SESSION_ID"
+  if lock_is_free foo#1; then fail "holder not holding the lock"; fi
 }

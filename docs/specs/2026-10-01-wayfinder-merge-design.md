@@ -72,7 +72,9 @@ Facts about this repo that the design depends on:
   keep choice) run inside `subagent-driven-development`. The exception is its Inline-Degraded path,
   which does its own polish and finish. Our patch is inconsistent about when that path runs: its
   gate requires both "no subagent support" and "user accepted", while its "When to Use" list and
-  router rule 1 accept either. T9 settles one rule.
+  router rule 1 accept either. T9 settles it as OR: the path runs when the user explicitly asks
+  for inline execution, or when no subagent tool is available and the user, told so, accepts. The
+  gate's two bullets are rewritten to match; router rule 1 and the rationalization row already do.
 - `patchedSuperpowers` is a `let` binding in `claude/home/plugins.nix`. The overlay in `overlays/`
   only receives `vim-tidal` and `difftastic-src`, so flake inputs are not reachable from it.
 - Inside sandnix on this Mac, `ps` can inspect the agent process. It is BSD `ps` (adv_cmds) either
@@ -98,8 +100,10 @@ last two; the same goes for the `handoff` patch target.
 `improve-codebase-architecture` (installed today) calls a `codebase-design` skill that is not
 installed. Rather than install it, which would put one more skill description in every session on
 both harnesses for a helper only this user-invoked skill uses, its `SKILL.md` (as
-`CODEBASE-DESIGN.md`), `DEEPENING.md` and `DESIGN-IT-TWICE.md` are vendored into the
-`improve-codebase-architecture` directory by that skill's patch. The six calls (three in `SKILL.md`,
+`CODEBASE-DESIGN.md`), `DEEPENING.md` and `DESIGN-IT-TWICE.md` are copied into the
+`improve-codebase-architecture` directory in a `prePatch` step of the existing `applyPatches` call
+(a new-file hunk would always apply, so upstream changes would drift silently) and then edited by
+that skill's patch through context hunks, so drift fails the build. The six calls (three in `SKILL.md`,
 three in `HTML-REPORT.md`) become "read `CODEBASE-DESIGN.md`" / "read `DESIGN-IT-TWICE.md`", the
 copied files' `[SKILL.md](SKILL.md)` links are repointed, and `DESIGN-IT-TWICE.md`'s `CONTEXT.md`
 reference moves to `docs/arch/glossary.md` with the rest of the glossary change.
@@ -244,7 +248,7 @@ backends.
 | `show <ref>` / `show-map <slug>` | print ticket or map (frontmatter and body) and its path or URL | — |
 | `edit <ref> <Question\|Notes\|Title> --file <f>` | replace that body section (Title: the `title` field) | closed; live claim by another session |
 | `attach <ref> --findings <f>` | copy into `findings/<id>.md`, set `findings:` | not owner; closed |
-| `claim <ref> [--phase <p>]` | acquire claim (see protocol) | map or ticket not found (distinct message; on remote backends includes failing the map-membership check); live claim by another session; closed; blocked; `phase` ≠ `<p>` (reports the actual phase); no agent process found |
+| `claim <ref> [--phase <p>]` | acquire claim (see protocol) | map or ticket not found (distinct message; on remote backends includes failing the map-membership check); live claim by another session; closed; blocked; `phase` ≠ `<p>` (reports the actual phase); with `--phase`, a recorded `spec`/`plan` that can't be read from this checkout (names the worktree that holds it; claim protocol step 8); no agent process found |
 | `release <ref> [--force]` | stop own holder, clear `claimed-by`; `--force` clears another session's claim (remote backends only) | not owner |
 | `advance <ref> <from> <to> [spec=…] [plan=…]` | CAS `phase`, set fields; **keeps the claim** | phase ≠ from; not owner; illegal edge |
 | `resolve <ref> --answer <f>` | write `## Answer`, close, append a pointer to Decisions so far, release | not owner; implementation ticket; `research:options` not in `wayfinder:resolve` |
@@ -257,8 +261,8 @@ backends.
 `trailer` keeps harness detection out of skill prose: it inspects the agent process (step 2 below;
 `WAYFINDER_HARNESS=claude|codex` overrides it for tests)
 and prints `/clear` + `/wayfinder offline-sync` for Claude or `/clear` + `$wayfinder offline-sync`
-for Codex; phase skills map to `/superpowers:<skill>` in Claude and `$<skill>` in Codex (Codex has
-no plugin namespace).
+for Codex; phase skills map to `/superpowers:<skill>` in Claude and `$<skill>` in Codex (there the
+skills are plain copied directories, not a plugin; see Codex parity).
 
 **Map upkeep without a claim.** `edit`, `drop` and `block`/`unblock` succeed on an open ticket that
 this session owns, that is unclaimed, or whose claim is stale; they reject closed tickets and live
@@ -273,7 +277,10 @@ with `show` only after `claim`, so they never act on text edited in between.
 **Pending upkeep.** When an upkeep command rejects because another session holds the ticket live
 (an implementation ticket keeps its claim across phases, so this can last days), wayfinder appends
 `pending: <ref> <edit|drop|block|unblock> <what>` to the map's Notes via `map-edit Notes --expect …` and
-tells the user the holder and phase from `status`. On every map entry, before the state check
+tells the user the holder and phase from `status`. `<what>` is a one-line intent plus the decision
+reference that triggered it (e.g. "narrow Question to X per `offline-sync#7`"), not a stored
+payload: the retry re-applies it to the ticket's text as it is then, so it merges with whatever
+the holder changed meanwhile. On every map entry, before the state check
 below, wayfinder retries each pending line whose ticket's claim is now free or stale and removes the
 line once it succeeds. If the ticket was closed in the meantime, the retry can never succeed: if it
 was closed by `drop`, the pending action is moot and wayfinder just removes the line; otherwise
@@ -397,7 +404,8 @@ happens in `subagent-driven-development`, not in wayfinder.
    (`git symbolic-ref refs/remotes/origin/HEAD`, falling back to `main`/`master`) and no other open
    ticket's `spec`/`plan` lives there. Otherwise it creates one, in every layout (asking first; if
    the user declines, work stays in place), under the main checkout's
-   `.claude/worktrees/<branch>/`. On Claude that is where
+   `.claude/worktrees/<branch>/` (not a `git wb` sibling: `scripts/git-worktree-new.sh` hard-codes
+   `origin/main`, and a sibling lies outside the toplevel). On Claude that is where
    the native `EnterWorktree` puts it; on Codex, which has no native tool, the brainstorming patch
    declares `.claude/worktrees/` as the preferred directory for upstream's `git worktree add`
    fallback (same rationale as the prototype location: gitignored, writable in both sandboxes).
@@ -413,10 +421,20 @@ happens in `subagent-driven-development`, not in wayfinder.
    has exited; "the same process re-claims" above holds only when the cwd already follows.
    After `close` or `drop`, `spec` and `plan` are historical pointers and may no longer resolve
    (finishing can remove the worktree); nothing reads them after close except re-file on discard,
-   which already handles a missing file.
-   A sandboxed session in another worktree outside `~/Repos` cannot read the spec and plan. `claim` warns (does
-   not reject) when a recorded `spec` or `plan` lies outside `git rev-parse --show-toplevel` of the
-   claiming checkout, which catches a later phase started from the wrong checkout.
+   which already handles a missing file. The spec stays uncommitted by design (the plan is
+   committed through SDD's checkbox commits), so on Merge in a normal clone finishing's Step 6
+   stops at its commit / move / delete prompt for the untracked spec; "move to the main root"
+   keeps it.
+   A sandboxed session in another worktree outside `~/Repos` cannot read the spec and plan. `claim --phase`
+   rejects (nothing written) when a recorded `spec` or `plan` lies outside
+   `git rev-parse --show-toplevel` of the claiming checkout or the file is missing, and names the
+   worktree that holds it. That catches a later phase started from the wrong checkout on every
+   backend, through the phase skills' existing "any other rejection: print the reason and stop"
+   rule, with no backend-specific prose. The guards run before `claimed-by` is written, so a fresh
+   session in the wrong checkout holds nothing; the owner's re-entrant claim stays held, and the
+   user restarts in the named worktree. If the file is gone for good (worktree moved or deleted),
+   the ticket can't pass the guard again; recovery is re-filing it and
+   `drop <ref> --superseded-by <new-id>`, as for a discard.
 
 #### Backends
 
@@ -432,7 +450,7 @@ building on upstream's "Wayfinding operations" in `issue-tracker-{github,gitlab}
 | Blocking | native dependencies, falling back to a `Blocked by:` line | `/blocked_by` where the tier has it, else a `Blocked by:` line |
 | Claim | assignee plus a `wayfinder-session: <id>` comment; only the latest `wayfinder-session:` comment counts. "Held by another session" means it names a different id; free means there is none or the latest is `wayfinder-session: none`. `release` and `release --force` post `wayfinder-session: none` and unassign | same |
 | Findings | a comment headed `<!-- wayfinder:findings -->`, its URL in `findings:`; `attach` fails loudly over the size limit | same |
-| `spec`/`plan` | `<branch>:<repo-relative path>`; `advance` always takes an absolute path and stores `$(git branch --show-current):<path relative to git rev-parse --show-toplevel>`, rejecting a detached HEAD or a path outside the toplevel (an uncommitted or unpushed file is accepted). To avoid that rejection landing after the user approved a spec, `claim --phase superpowers:brainstorming` rejects a detached HEAD up front ("check out a branch first"). Phase skills read the file at `$(git rev-parse --show-toplevel)/<path>`; `claim` warns when the current worktree isn't on that branch or the file is missing, and on that warning the skill writes a Notes line, `release`s and stops (claim protocol step 8 keeps every phase in one worktree, so this means the session started in the wrong checkout) | same |
+| `spec`/`plan` | `<branch>:<repo-relative path>`; `advance` always takes an absolute path and stores `$(git branch --show-current):<path relative to git rev-parse --show-toplevel>`, rejecting a detached HEAD or a path outside the toplevel (an uncommitted or unpushed file is accepted). To avoid that rejection landing after the user approved a spec, `claim --phase superpowers:brainstorming` rejects a detached HEAD up front ("check out a branch first"). Phase skills read the file at `$(git rev-parse --show-toplevel)/<path>`; `claim --phase` rejects when the current worktree isn't on that branch or the file is missing, the same guard as the local backend (claim protocol step 8) | same |
 
 Metadata lives in hidden `<!-- -->` blocks that `edit`/`map-edit` preserve, since bodies render for
 humans. There is no lock and no liveness signal, so claims are advisory, a stale claim needs
@@ -584,8 +602,8 @@ One patch per upstream skill directory, so a bad bump fails one patch:
   `git worktree remove` + `prune` (keeping upstream's never-`--force`, ask-on-refusal rule), and
   Discard removes the worktree *before* `git branch -D`; for a host-owned worktree Discard stops
   and reports that the branch can't be deleted while it exists).
-- `patches/mattpocock/<skill>.patch` for `improve-codebase-architecture` (including the vendored
-  `codebase-design` files), `wayfinder`,
+- `patches/mattpocock/<skill>.patch` for `improve-codebase-architecture` (including edits to the
+  `codebase-design` files copied in by `prePatch`), `wayfinder`,
   `setup-matt-pocock-skills`, `domain-modeling`, `handoff`.
 
 ### Codex parity
@@ -600,7 +618,11 @@ derivation from building. Claude's plugin list and
 Codex both read it, so they share one derivation, and neither `flake.nix` nor the overlay changes.
 Codex gets each skill directory as `~/.codex/skills/<skill>/` through its own `home.file` entries in
 `home/common/codex/default.nix`, not through `custom.llm.skills` (which would also install a second
-copy under `~/.claude/skills/`).
+copy under `~/.claude/skills/`). Pinned superpowers does ship a Codex plugin
+(`.codex-plugin/plugin.json`), but installing it is interactive and writes to Codex's own cache;
+copying the directories keeps the install declarative and on the same `patchedSuperpowers`
+derivation. Copied skills carry no `superpowers:` prefix, so `trailer` emits `$<skill>` and the
+`superpowers:<skill>` mentions in skill prose resolve by bare name.
 
 ### "Asking the user" rules
 
@@ -613,7 +635,12 @@ Both bwrap wrappers resolve `git rev-parse --show-toplevel` and
 `git rev-parse --path-format=absolute --git-common-dir` and bind each read-write when it is outside
 the working directory (`--chdir` stays the cwd). `.meta`, `.bare` and `.git` next to the worktree are
 resolved from the top level's parent, not the cwd's, so the `git bclone` `.meta` bind survives. This
-covers bare clones, linked worktrees of normal clones, and starting in a subdirectory. On macOS
+covers bare clones, linked worktrees of normal clones, and starting in a subdirectory. Every
+read-write workspace bind (cwd, toplevel, common dir, `.bare`/`.git`/`.meta`) is emitted after all
+`bind_ro` calls: bwrap applies mounts in order, and today `bind_ro "$HOME/.config/nix-darwin"`
+shadows `--bind $(pwd)`, leaving this repo read-only on the VMs and its common-dir `wayfinder/`
+unwritable. This intentionally makes `~/.config/nix-darwin` writable when the agent is launched
+from it, matching the macOS `"."` rwx grant. On macOS
 sandnix has no binds, and it defines `add_paths` only after the `preHook` runs, so the hook can't
 call it. Instead it resolves the same two directories with `realpath` and, for each one that exists,
 appends `file-read*`, `file-write*`, `file-ioctl` and `process-exec` `(subpath …)` rules to
@@ -680,7 +707,7 @@ by T13.
   reports the takeover), then `close --evidence` from that session succeeding; that same claim
   against a closed ticket, an earlier phase (rejects, reports the actual phase) and a live claim by
   another session (rejects, nothing written); a failed
-  `claimed-by` write leaving the lock free; `claim` with no agent ancestor and
+  `claimed-by` write leaving the lock free; `claim --phase` from a checkout that doesn't hold the recorded `spec` (rejects, names the right worktree, nothing written); `claim` with no agent ancestor and
   with `WAYFINDER_AGENT_PID` pointing at an exited process (rejected, `claimed-by` empty); `trailer`
   with no harness; malformed frontmatter
   and references escaping the map; `trailer` output per harness, its restart line when the
@@ -710,6 +737,8 @@ by T13.
   stub runs under its own wrapper invocation (so each gets a distinct `AGENT_SESSION_ID`) and,
   inside the sandbox, starts a background `sleep` and exports `WAYFINDER_AGENT_PID`/
   `WAYFINDER_AGENT_START` for it before calling `claim`; set outside, `--clearenv` would drop them.
+  A further case starts the stub with its cwd inside a `bind_ro` path (a fake
+  `$HOME/.config/nix-darwin` repo) and asserts it can write to the cwd and `<common-dir>/wayfinder`.
 - **Re-enabled `tests/codex.nix`.**
 - **Manual checklist** (T12), in [docs/ai-workflow.md](../ai-workflow.md#testing). Adds: SDD
   invoked directly with no reference reads the plan's handoff block, runs as a non-ticket run when
@@ -749,7 +778,7 @@ not touch `home/common/packages.nix`; T2 is its only editor.
 | T6 | Vendor `research-options` with the changes listed under Research; extend `tests/llm-skills.nix` | AFK | T5 |
 | T7 | Ferrex gating (CLAUDE.md split, commands, `/docs`, permission filter in `claude/home.nix`, `~/.ferrex` binds); re-enable `tests/codex.nix`; extend `tests/llm-skills.nix` | AFK | T6, T13 |
 | T8 | Wayfinder patch: all tracker access via `wayfinder-ticket`, references, ticket types and research subtypes, map upkeep without a claim, pending upkeep and its retry on entry, "history is never reopened" corrections, prototype override (`.claude/worktrees/` location), background subagents only for `research:fact`, implementation-ticket rule, resume `mine` first, map-state check on entry (incl. `map-complete`), `research:fact` subagents `attach` instead of upstream's `research/<name>` branch, routing by phase, trailers via `trailer`, dissent hook, "Asking the user"; register the patch in `skills.nix` | HITL | T6 |
-| T9 | Superpowers patches: ticket mode per the Phase handoff table (brainstorming incl. the ticket worktree via using-git-worktrees, Architectural-only and Spike/Bounded handling, writing-plans incl. ticket-mode plan approval, executing-plans, subagent-driven-development incl. drop-or-re-file on discard), review gate (dissent then loop cap 3; findings against closed tickets always "ask"), finishing-a-development-branch ticket-mode worktree cleanup and Discard ordering (Patch layout), restore `plan-document-reviewer-prompt.md`, reconcile the executing-plans Inline-Degraded gate with its "When to Use" list and router rule 1, "Asking the user" | HITL | T1, T2, T5 |
+| T9 | Superpowers patches: ticket mode per the Phase handoff table (brainstorming incl. the ticket worktree via using-git-worktrees, Architectural-only and Spike/Bounded handling, writing-plans incl. ticket-mode plan approval, executing-plans, subagent-driven-development incl. drop-or-re-file on discard), review gate (dissent then loop cap 3; findings against closed tickets always "ask"), finishing-a-development-branch ticket-mode worktree cleanup and Discard ordering (Patch layout), restore `plan-document-reviewer-prompt.md`, reconcile the executing-plans Inline-Degraded gate with its "When to Use" list and router rule 1 (OR rule, see Context), "Asking the user" | HITL | T1, T2, T5 |
 | T10 | GitHub/GitLab backends in `wayfinder-ticket` per the Backends mapping (advisory claims, `release --force`), cases added to `tests/wayfinder-ticket.nix`; rewrite the GitHub/GitLab "Wayfinding operations" sections in the setup patch | AFK | T4, T13 |
 | T11 | Codex parity: superpowers skill directories into `~/.codex/skills/` via `home/common/codex/default.nix`; extend `tests/llm-skills.nix` | AFK | T7, T9 |
 | T12 | Manual end-to-end checklist (normal clone, linked worktree, bare clone; Claude and Codex; macOS and NixOS VM; a prototype ticket follows the T8 override); update `docs/ai-workflow.md` status, repo `CLAUDE.md` and README | HITL | T6, T8, T10, T11, T13 |

@@ -1,6 +1,7 @@
 # Override global ignores - track these in this repo
 !.claude
 .claude/rules/
+.claude/worktrees/
 !CLAUDE.md
 result
 result-*

@@ -155,6 +155,7 @@ in {
     tmux.autoAttach = lib.mkEnableOption "auto-attach to a persistent tmux session on interactive SSH logins, keeping the shell and running programs alive across disconnects (e.g. the work VM)";
     gitlab.enable = lib.mkEnableOption "GitLab integration (work VM only): the read-only GitLab MCP server and gitlab.nvim for in-editor merge-request review. Both read the API URL and token from the gitlab-api-url and gitlab-token sops secrets";
     mattermost.enable = lib.mkEnableOption "the matterhorn config for the work Mattermost (work VM only); reads its host from the mattermost-host sops secret, and since the server is SAML-only, login reads a personal access token or MMAUTHTOKEN session cookie from the mattermost-token secret";
+    workSsh.enable = lib.mkEnableOption "the work SSH host blocks (bastion + ProxyJump hosts; work VM only). The ssh_config snippet lives in the ssh-work-config sops secret and is pulled in with Include, so work IPs stay out of the nix source";
     qdrant.enable = lib.mkOption {
       type = lib.types.bool;
       default = false;

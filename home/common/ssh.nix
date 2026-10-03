@@ -1,7 +1,18 @@
-_: {
+{
+  config,
+  lib,
+  ...
+}: let
+  cfg = config.custom;
+in {
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
+    # Work hosts sit in sops so the bastion IP and internal layout never reach
+    # the public repo; a missing secret just skips the Include.
+    includes = lib.optionals (cfg.workSsh.enable && cfg.secrets.ssh-work-config != null) [
+      cfg.secrets.ssh-work-config
+    ];
     extraOptionOverrides = {
       StrictHostKeyChecking = "ask";
       HashKnownHosts = "yes";

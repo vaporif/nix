@@ -15,6 +15,7 @@ lib: let
 
   optional = [
     "context7-key"
+    "ssh-work-config"
   ];
 
   sopsLines = lib.splitString "\n" (builtins.readFile ../secrets/secrets.yaml);

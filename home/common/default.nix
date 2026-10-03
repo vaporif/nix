@@ -206,6 +206,9 @@ in {
         # close pane without confirmation prompt
         bind x kill-pane
         bind A display-popup -E -w 90% -h 90% -d "#{pane_current_path}" "claude agents"
+        # agent swarm runs on its own socket (claude-swarm-N); attach the newest
+        bind S display-popup -E -w 95% -h 90% \
+          'TMUX= tmux -L "$(ls /tmp/tmux-$(id -u) | grep claude-swarm | sort -V | tail -1)" attach -t claude-swarm'
 
         bind m switch-client -T movewin
         bind -T movewin n swap-window -t -1 \; switch-client -T movewin

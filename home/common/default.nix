@@ -88,6 +88,7 @@ in {
       # Same path on both platforms so the host and the sandboxes share one
       # cache; projects opt in via RUSTC_WRAPPER in their own flakes.
       SCCACHE_DIR = "$HOME/.cache/sccache";
+      SCCACHE_CACHE_SIZE = "256G";
     };
     file = {
       ".envrc".text = ''

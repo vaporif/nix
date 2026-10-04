@@ -8,9 +8,14 @@
     src = inputs.mattpocock-skills;
     patches = [../../../patches/mattpocock-skills-customizations.patch];
   };
+  patchedHumanizer = pkgs.applyPatches {
+    name = "humanizer-patched";
+    src = inputs.humanizer;
+    patches = [../../../patches/humanizer-customizations.patch];
+  };
 in {
   custom.llm.skills = {
-    humanizer.source = "${inputs.humanizer}/SKILL.md";
+    humanizer.source = "${patchedHumanizer}/SKILL.md";
     napkin.source = "${inputs.napkin}/SKILL.md";
     concise.source = ../../../llm/shared/skills/concise.md;
     post-implementation-polish.source = ../../../llm/shared/skills/post-implementation-polish.md;

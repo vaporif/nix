@@ -1,0 +1,20 @@
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -44,6 +44,17 @@
+ 
+ Without a sample, take the voice from the kind of text. Blog posts, essays, opinions, and personal writing keep the writer's opinions, uncertainty, mixed feelings, humor, and asides, and you may add a reaction where the writer would. Reference, technical, legal, and factual text stays neutral and plain. Removing tells is half the job; the result must still sound like a person.
+ 
++### Plain, compact English
++
++This applies in every mode and voice, including when a writing sample is given. Write so a non-native reader understands each sentence on the first pass.
++
++- Use common words. Pick "use" over "leverage", "help" over "facilitate", "start" over "commence". Keep technical terms the reader needs, and do not swap them for vaguer ones.
++- Keep sentences short: one idea each, usually under 20 words. Split a sentence that needs two commas to hold together.
++- Put the subject and verb early. Prefer active voice.
++- Cut words that carry nothing: "in order to" becomes "to", "due to the fact that" becomes "because", "it is important to note that" goes away.
++- No idioms, metaphors, or wordplay that a translator would trip on.
++- Shorter is better only while meaning survives. Do not drop articles, facts, or the steps of an argument to save words.
++
+ ### What to return
+ 
+ **Pasted text (default).** Return the draft, a short list of remaining patterns, and the final rewrite.

@@ -81,7 +81,7 @@
     # Read-write home paths
     bind_rw "$HOME/.claude"
     bind_rw "$HOME/.cache/nix"
-    bind_rw "$HOME/.cache/huggingface" "$HOME/.cache/sccache"
+    bind_rw "$HOME/.cache/huggingface"
     bind_rw "$HOME/.cache/sccache"
     bind_rw "$HOME/.cargo"
     bind_rw "$HOME/Repos"
@@ -199,7 +199,7 @@
     # Read-write home paths
     bind_rw "$HOME/.codex"
     bind_rw "$HOME/.cache/nix"
-    bind_rw "$HOME/.cache/huggingface" "$HOME/.cache/sccache"
+    bind_rw "$HOME/.cache/huggingface"
     bind_rw "$HOME/.cache/sccache"
     bind_rw "$HOME/.cargo"
     bind_rw "$HOME/.ferrex"

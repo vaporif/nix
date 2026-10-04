@@ -40,6 +40,16 @@ globs: "**/*.rs"
 - `#![deny(warnings)]` in CI builds — zero warnings policy
 - Use `rust-analyzer` as LSP
 
+## Build cache (sccache)
+
+sccache is opt-in per project, wired up in the project's own `flake.nix` devShell. The machine already sets `SCCACHE_DIR=~/.cache/sccache`, shared by the host shell and the agent sandboxes.
+
+- Hook it up by adding `pkgs.sccache` to the devShell `packages` and setting `RUSTC_WRAPPER = "sccache";` on the devShell — nothing else
+- Never set `SCCACHE_DIR` in a project — the sandbox can only write `~/.cache/sccache`, any other path breaks sandboxed builds
+- Never set `SCCACHE_SERVER_UDS` / `SCCACHE_SERVER_PORT` — each sandbox runs its own sccache server on a private socket so compiles never run outside the sandbox; overriding it can attach to the host's server
+- Don't put `rustc-wrapper` in `.cargo/config.toml` — it breaks builds for anyone without sccache; keep it in the devShell
+- Verify with `sccache --show-stats` after a build; workspace crates in incremental (dev) builds are never cached, only dependencies and release builds
+
 ## Security
 
 - Validate all input at system boundaries (user input, API responses, file reads) — trust nothing from outside

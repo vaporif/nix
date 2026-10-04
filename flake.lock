@@ -764,11 +764,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791143069,
-        "narHash": "sha256-8+5vRN6U6P4dU9+S9VWuf9IIJYgR+JFtofLfSM8iiw8=",
+        "lastModified": 1791143924,
+        "narHash": "sha256-8w52wPterr2NUh24XvyzKsEJPTNVZC3ZvCrxnsL9wMU=",
         "owner": "vaporif",
         "repo": "nix-devshells",
-        "rev": "d152faf09efaf5fe8fdbc478bbfaa397eadaf540",
+        "rev": "03718eaaa2048c30c7f61e9f8d5a4753478a671d",
         "type": "github"
       },
       "original": {

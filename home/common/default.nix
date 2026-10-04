@@ -85,6 +85,9 @@ in {
       # Silence Boehm GC's "repeated allocation of very large block" noise
       # during nix evaluation; it is a heuristic, not a leak.
       GC_LARGE_ALLOC_WARN_INTERVAL = "1000";
+      # Same path on both platforms so the host and the sandboxes share one
+      # cache; projects opt in via RUSTC_WRAPPER in their own flakes.
+      SCCACHE_DIR = "$HOME/.cache/sccache";
     };
     file = {
       ".envrc".text = ''

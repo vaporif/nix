@@ -22,8 +22,12 @@
       export CARGO_NET_GIT_FETCH_WITH_CLI
       LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
       export LIBCLANG_PATH
+      # Own sccache server per sandbox: a host server would run
+      # sandbox-supplied compiler args outside the seatbelt profile.
+      SCCACHE_SERVER_UDS="''${TMPDIR:-/tmp}/sccache-${sandboxEnv}-$$.sock"
+      export SCCACHE_SERVER_UDS
 
-      mkdir -p "$HOME/Library/Application Support/kurtosis"
+      mkdir -p "$HOME/Library/Application Support/kurtosis" "$HOME/.cache/sccache"
 
       cat >> "$PROFILE_FILE" <<SBPL
       ;; Scoped mach-lookup: only services needed beyond system.sb
@@ -83,6 +87,7 @@
         rw = [
           "$HOME/.cache/nix"
           "$HOME/.cache/huggingface"
+          "$HOME/.cache/sccache"
           "$HOME/.cache/gh"
           "$HOME/.ferrex"
           "$HOME/Library/Application Support/kurtosis"
@@ -124,6 +129,7 @@
         rw = [
           "$HOME/.cache/nix"
           "$HOME/.cache/huggingface"
+          "$HOME/.cache/sccache"
           "$HOME/.cache/gh"
           "$HOME/.ferrex"
           "$HOME/Library/Application Support/Codex"

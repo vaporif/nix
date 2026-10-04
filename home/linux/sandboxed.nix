@@ -24,8 +24,12 @@
     export CARGO_NET_GIT_FETCH_WITH_CLI
     LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
     export LIBCLANG_PATH
+    # Own sccache server per sandbox (socket on the private /tmp): a host
+    # server would run sandbox-supplied compiler args outside bwrap.
+    SCCACHE_SERVER_UDS=/tmp/sccache.sock
+    export SCCACHE_SERVER_UDS
 
-    mkdir -p "$HOME/.claude" "$HOME/.cache/nix" "$HOME/.cache/huggingface"
+    mkdir -p "$HOME/.claude" "$HOME/.cache/nix" "$HOME/.cache/huggingface" "$HOME/.cache/sccache"
 
     args=(
       --unshare-ipc
@@ -77,7 +81,8 @@
     # Read-write home paths
     bind_rw "$HOME/.claude"
     bind_rw "$HOME/.cache/nix"
-    bind_rw "$HOME/.cache/huggingface"
+    bind_rw "$HOME/.cache/huggingface" "$HOME/.cache/sccache"
+    bind_rw "$HOME/.cache/sccache"
     bind_rw "$HOME/.cargo"
     bind_rw "$HOME/Repos"
     bind_ro "$HOME/.local/share/gh"
@@ -146,8 +151,12 @@
     export CARGO_NET_GIT_FETCH_WITH_CLI
     LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
     export LIBCLANG_PATH
+    # Own sccache server per sandbox (socket on the private /tmp): a host
+    # server would run sandbox-supplied compiler args outside bwrap.
+    SCCACHE_SERVER_UDS=/tmp/sccache.sock
+    export SCCACHE_SERVER_UDS
 
-    mkdir -p "$HOME/.codex" "$HOME/.cache/nix" "$HOME/.cache/huggingface" "$HOME/.ferrex"
+    mkdir -p "$HOME/.codex" "$HOME/.cache/nix" "$HOME/.cache/huggingface" "$HOME/.cache/sccache" "$HOME/.ferrex"
 
     args=(
       --unshare-ipc
@@ -190,7 +199,8 @@
     # Read-write home paths
     bind_rw "$HOME/.codex"
     bind_rw "$HOME/.cache/nix"
-    bind_rw "$HOME/.cache/huggingface"
+    bind_rw "$HOME/.cache/huggingface" "$HOME/.cache/sccache"
+    bind_rw "$HOME/.cache/sccache"
     bind_rw "$HOME/.cargo"
     bind_rw "$HOME/.ferrex"
     bind_rw "$HOME/Repos"

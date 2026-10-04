@@ -114,6 +114,8 @@ in {
         proc_tree = true;
         proc_sorting = "cpu lazy";
         proc_per_core = false;
+        proc_cpu_graphs = false;
+        mem_graphs = false;
         proc_gradient = false;
         theme_background = false;
         rounded_corners = true;

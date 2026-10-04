@@ -107,7 +107,10 @@ in {
   programs = {
     home-manager.enable = true;
 
-    btop.enable = true;
+    btop = {
+      enable = true;
+      settings.update_ms = 100;
+    };
 
     tmux = {
       enable = true;

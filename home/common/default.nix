@@ -118,7 +118,7 @@ in {
         theme_background = false;
         rounded_corners = true;
         graph_symbol = "braille";
-        show_battery = pkgs.stdenv.isDarwin;
+        show_battery = pkgs.stdenv.hostPlatform.isDarwin;
         disks_filter = "exclude=/nix /nix/store /boot";
       };
     };

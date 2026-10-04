@@ -7,3 +7,4 @@ result-*
 nix.conf
 .direnv/
 .fastembed_cache
+.claude/worktrees/

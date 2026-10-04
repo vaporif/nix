@@ -22,9 +22,9 @@ fmt-lua:
 
 # Lint nix files (fast: formatting + static analysis only)
 lint-nix:
-    alejandra --check . --exclude ./result --exclude ./.direnv
-    statix check
-    deadnix --fail --exclude result .
+    alejandra --check . --exclude ./result --exclude ./.direnv --exclude ./.claude/worktrees
+    statix check -i .direnv .claude/worktrees
+    deadnix --fail --exclude result .claude/worktrees -- .
 
 # Full flake check (slow: evaluates every config, builds VM tests)
 flake-check:
@@ -32,7 +32,7 @@ flake-check:
 
 # Format nix files
 fmt-nix:
-    alejandra . --exclude ./result --exclude ./.direnv
+    alejandra . --exclude ./result --exclude ./.direnv --exclude ./.claude/worktrees
 
 # Validate JSON configs
 lint-json:

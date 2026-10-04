@@ -6,7 +6,7 @@ pre-commit:
   parallel: true
   commands:
     fmt-nix:
-      run: alejandra --check .
+      run: alejandra --check . --exclude ./.claude/worktrees
     fmt-lua:
       run: stylua --check config/
     fmt-toml:
@@ -18,7 +18,7 @@ pre-push:
     lint-lua:
       run: (cd config/nvim && selene lua after init.lua) && stylua --check config/
     lint-nix:
-      run: alejandra --check . && statix check -i .direnv && deadnix --fail
+      run: alejandra --check . --exclude ./.claude/worktrees && statix check -i .direnv .claude/worktrees && deadnix --fail --exclude .claude/worktrees
     lint-json:
       run: jq empty config/karabiner/karabiner.json
     lint-toml:

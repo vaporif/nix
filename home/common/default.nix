@@ -109,7 +109,18 @@ in {
 
     btop = {
       enable = true;
-      settings.update_ms = 100;
+      settings = {
+        update_ms = 100;
+        proc_tree = true;
+        proc_sorting = "cpu lazy";
+        proc_per_core = false;
+        proc_gradient = false;
+        theme_background = false;
+        rounded_corners = true;
+        graph_symbol = "braille";
+        show_battery = pkgs.stdenv.isDarwin;
+        disks_filter = "exclude=/nix /nix/store /boot";
+      };
     };
 
     tmux = {

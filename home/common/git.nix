@@ -7,6 +7,10 @@
   cfg = config.custom;
   homeDir = config.home.homeDirectory;
   hasSigningKey = cfg.git.signingKey != "";
+  hasGitlabSecrets =
+    cfg.gitlab.enable
+    && cfg.secrets.gitlab-token != null
+    && cfg.secrets.gitlab-api-url != null;
   glabAliases = pkgs.writeText "glab-aliases.yml" ''
     ci: pipeline ci
     co: mr checkout
@@ -107,9 +111,39 @@ in {
     };
   };
 
-  home.activation.glabAliases = lib.hm.dag.entryAfter ["writeBoundary"] ''
-    $DRY_RUN_CMD install -Dm600 ${glabAliases} "$HOME/.config/glab-cli/aliases.yml"
-  '';
+  home.activation = {
+    glabAliases = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      $DRY_RUN_CMD install -Dm600 ${glabAliases} "$HOME/.config/glab-cli/aliases.yml"
+    '';
+
+    # Rendered from the sops secrets at switch time so `glab auth status` and
+    # shells that never source zshrc see the token. The api-url secret carries
+    # /api/v4, which glab's host key must not have.
+    glabConfig = lib.mkIf hasGitlabSecrets (lib.hm.dag.entryAfter ["writeBoundary"] ''
+      if [[ -r ${cfg.secrets.gitlab-token} && -r ${cfg.secrets.gitlab-api-url} ]]; then
+        glabHost="$(<${cfg.secrets.gitlab-api-url})"
+        glabHost="''${glabHost%/api/v4}"
+        glabHost="''${glabHost#https://}"
+        if [[ -z "''${DRY_RUN:-}" ]]; then
+          mkdir -p "$HOME/.config/glab-cli"
+          (
+            umask 077
+            cat > "$HOME/.config/glab-cli/config.yml" <<EOF
+      git_protocol: ssh
+      check_update: false
+      host: $glabHost
+      hosts:
+        $glabHost:
+          token: $(<${cfg.secrets.gitlab-token})
+          api_protocol: https
+          git_protocol: ssh
+      EOF
+          )
+          chmod 600 "$HOME/.config/glab-cli/config.yml"
+        fi
+      fi
+    '');
+  };
 
   home.file = lib.mkIf hasSigningKey {
     ".ssh/signing_key.pub".text = cfg.git.signingKey + "\n";

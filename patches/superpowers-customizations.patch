@@ -292,6 +292,45 @@ index 6099312..0cb45cb 100644
  
  ```
  Subagent (general-purpose):
+diff --git orig/skills/diagnosing-superpowers/SKILL.md mod/skills/diagnosing-superpowers/SKILL.md
+index f1d479f..fa347c6 100644
+--- orig/skills/diagnosing-superpowers/SKILL.md
++++ mod/skills/diagnosing-superpowers/SKILL.md
+@@ -39,7 +39,10 @@ Create a todo per step. Steps 5–7 run only on their stated condition.
+    `prompts/`: `skill-timeline.md`,
+    `plan-adherence.md`, `repeated-work.md`, `stumbles.md`,
+    `quality-evidence.md`, `request-conflicts.md`, `cost-and-time.md`.
+-   Split a dimension by turn range when the transcript is long. Discard
++   Split a dimension by turn range when the transcript is long. Keep at
++   most 8 analysts alive at once; if splitting yields more, run them in waves
++   of 8, and `TaskStop` each wave once its reports are read (finished agents
++   stay resident) before dispatching the next. Discard
+    any returned finding without `path:line`.
+ 4. **Report.** Fill every section of `templates/report.md` in order, write
+    it to the workspace, show it, and give the path. Check what cited content
+@@ -66,7 +69,8 @@ Create a todo per step. Steps 5–7 run only on their stated condition.
+    say scrubbing can miss things: they must review every file before sharing.
+ 7. **Similar sessions** — when asked. Turn confirmed findings into a
+    signature, list candidates by mtime and size, find marker line numbers,
+-   dispatch `prompts/similar-session.md` per candidate in parallel, and
++   dispatch `prompts/similar-session.md` per candidate in parallel (waves of
++   at most 8, each reaped with `TaskStop` before the next), and
+    append report §9.
+ 
+ ## Quick reference
+diff --git orig/skills/dispatching-parallel-agents/SKILL.md mod/skills/dispatching-parallel-agents/SKILL.md
+index 3fa091b..2e84b79 100644
+--- orig/skills/dispatching-parallel-agents/SKILL.md
++++ mod/skills/dispatching-parallel-agents/SKILL.md
+@@ -76,6 +76,8 @@ Subagent (general-purpose): "Fix tool-approval-race-conditions.test.ts failures"
+ 
+ Multiple dispatch calls in one response = parallel execution. One per response = sequential.
+ 
++**At most 8 agents alive at once.** More than 8 domains → dispatch in waves of 8. A finished agent stays resident holding its whole context until stopped, so read each wave's reports, `TaskStop` every agent in it, and only then dispatch the next wave.
++
+ ### 4. Review and Integrate
+ 
+ When agents return:
 diff --git orig/skills/executing-plans/SKILL.md mod/skills/executing-plans/SKILL.md
 index 49077ad..eeab57c 100644
 --- orig/skills/executing-plans/SKILL.md
@@ -485,10 +524,10 @@ index 6d995da..100a7f6 100644
    HEAD_SHA: 3df7661
  
 diff --git orig/skills/subagent-driven-development/SKILL.md mod/skills/subagent-driven-development/SKILL.md
-index f7bbf6a..7251255 100644
+index f7bbf6a..e43f2a1 100644
 --- orig/skills/subagent-driven-development/SKILL.md
 +++ mod/skills/subagent-driven-development/SKILL.md
-@@ -218,6 +218,68 @@ that implementer. Single-file mechanical fixes also take the cheapest tier.
+@@ -218,6 +218,69 @@ that implementer. Single-file mechanical fixes also take the cheapest tier.
  - Touches multiple files with integration concerns → standard model
  - Requires design judgment or broad codebase understanding → most capable model
  
@@ -497,8 +536,9 @@ index f7bbf6a..7251255 100644
 +Read the plan's `## Task Dependency Graph` section to compute batches:
 +
 +- A **batch** is a set of tasks whose `depends on` lists are all satisfied (every predecessor's review passed).
-+- The first batch is every task with `depends on: none`. Dispatch ALL of them in parallel — one Task tool call per task in the same response. Use the agent types from `## Agent Assignments`.
-+- After every task in the current batch passes its per-task two-stage review (spec compliance + code quality), compute the next batch (every pending task whose predecessors are now complete) and dispatch that batch in parallel.
++- The first batch is every task with `depends on: none`. Dispatch them in parallel — one Task tool call per task in the same response. Use the agent types from `## Agent Assignments`.
++- **At most 8 agents alive at once — implementers and reviewers combined.** A finished agent stays resident holding its whole context until you `TaskStop` it, so returning is not the same as freeing a slot. Implementers are resumed for fix rounds, so stop an implementer and its reviewers only once that task's two-stage review passes (or is parked at the cap); stop everything else as soon as its report is read. A batch that doesn't fit goes out as slots free up.
++- After every task in the current batch passes its per-task two-stage review (spec compliance + code quality), compute the next batch (every pending task whose predecessors are now complete) and dispatch it under the same 8-alive limit.
 +- Continue until all tasks are done. A plan with no parallelism is just a chain of single-task batches.
 +
 +**Why this matters:** parallel dispatch of independent tasks is the whole point of subagents. Don't run independent tasks one-at-a-time — that wastes the orchestration model. But never speculatively parallelise tasks that share files or consume each other's output; that causes merge conflicts and broken interfaces. Default to sequential when independence is not obvious from the dependency graph.
@@ -557,7 +597,18 @@ index f7bbf6a..7251255 100644
  ## The Task Loop
  
  **Batch small same-shape work.** When the plan lists several tasks that are
-@@ -442,6 +504,27 @@ Then mark the todo complete and move on. Never move to the next task while
+@@ -279,7 +342,9 @@ and fix-round diffs need it.
+   a pointer to that ledger entry in the dispatch.
+ - Record the implementer's agent identity from the dispatch result —
+   fix-loop rounds 1-3 resume this agent.
+-- Never dispatch multiple implementation subagents in parallel (conflicts).
++- Never dispatch implementation subagents in parallel unless the dependency
++  graph marks their tasks independent (shared files conflict), and never with
++  more than 8 agents alive (see Batching).
+ 
+ Template: [implementer-prompt.md](implementer-prompt.md)
+ 
+@@ -442,6 +507,27 @@ Then mark the todo complete and move on. Never move to the next task while
  the review has open Critical/Important issues that are neither fixed nor
  parked-with-ruling at the cap.
  
@@ -585,7 +636,7 @@ index f7bbf6a..7251255 100644
  ## Final Review
  
  The final whole-branch review gets a package too: run
-@@ -468,6 +551,14 @@ the four classes above stop you here. There is no second fix wave —
+@@ -468,6 +554,14 @@ the four classes above stop you here. There is no second fix wave —
  residual load-bearing findings surface to your human partner when
  finishing-a-development-branch presents the options.
  
@@ -600,7 +651,7 @@ index f7bbf6a..7251255 100644
  ## Finish
  
  Before you delete anything, collect every ledger line containing `Ruling:` —
-@@ -479,10 +570,10 @@ took on your human partner's behalf reach them — they read it and rework
+@@ -479,10 +573,10 @@ took on your human partner's behalf reach them — they read it and rework
  whatever you got wrong. A ruling that dies with the workspace was a decision
  made in secret.
  
@@ -615,7 +666,7 @@ index f7bbf6a..7251255 100644
  
  Use superpowers:finishing-a-development-branch.
  
-@@ -506,8 +597,8 @@ Use superpowers:finishing-a-development-branch.
+@@ -506,8 +600,8 @@ Use superpowers:finishing-a-development-branch.
  You: I'm using Subagent-Driven Development to execute this plan.
  
  [Setup: worktree verified]

@@ -51,10 +51,11 @@ already parked. Then split each finding by trying to write a `-` con line for it
 A con is a concrete cost — invalidates sessions, touches 4 call sites, rules out an
 approach the author may want. "Might not be what they meant" is not a con.
 
-**c. Validate** — one `general-purpose` verifier per finding, **at most 10 per message**.
-More than 10 findings → dispatch in waves of 10, waiting for each wave before the next.
-Never one message with more agents than that; the concurrency is what exhausts memory,
-not the total. Order waves by severity so critical/major get verified first.
+**c. Validate** — one `general-purpose` verifier per finding, **at most 8 alive at once**.
+More than 8 findings → dispatch in waves of 8. A finished agent stays resident holding
+its whole context until stopped, so read each wave's reports, `TaskStop` every agent in
+it, and only then dispatch the next wave. Stop both finders from step a before the first
+wave. Order waves by severity so critical/major get verified first.
 
 ```
 Finding: <block>   Doc: <path>
@@ -120,8 +121,8 @@ recommendation without a stated reason isn't one.
   are how a review corrupts a good doc.
 - Finding it yourself instead of dispatching. Your context is polluted by the fixes you
   just made.
-- Dispatching more than 10 agents in one message. A round with 30 findings is 3 waves,
-  not one 30-agent message that eats the machine.
+- More than 8 agents alive at once. A round with 24 findings is 3 waves, each reaped
+  before the next, not 24 resident agents that eat the machine.
 - Editing source files.
 - Looping past round 3. Unresolved blockers are a valid outcome.
 - Auto-fixing a human-call to reach a clean round. Deciding something the author didn't

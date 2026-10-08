@@ -97,6 +97,7 @@
     bind_ro "$HOME/.config/claude-agents"
     bind_ro "$HOME/.config/nix-darwin"
     bind_ro "$HOME/.config/git"
+    bind_ro "$HOME/.config/glab-cli"
     bind_ro "$HOME/.config/direnv"
     # SSH: copy config files so they're owned by current user (nix store files
     # are root-owned, which appears as nobody in the user namespace — OpenSSH rejects that)
@@ -211,6 +212,7 @@
     bind_ro "$HOME/.local/state/nix"
     bind_ro "$HOME/.config/nix-darwin"
     bind_ro "$HOME/.config/git"
+    bind_ro "$HOME/.config/glab-cli"
     bind_ro "$HOME/.config/direnv"
     # SSH: copy config files so they're owned by current user (nix store files
     # are root-owned, which appears as nobody in the user namespace — OpenSSH rejects that)

@@ -19,3 +19,12 @@ git diff "$(git merge-base HEAD main)"
 RUST_LOG=debug cargo test
 cargo test -- --nocapture
 ls "$HOME/Documents"
+git push
+git push origin main
+git push -u origin feature/x
+GIT_TRACE=1 git push origin main
+git -C /tmp/repo push --set-upstream origin main
+git push --no-force-with-lease origin main
+git merge feature/x
+git merge --no-ff feature/x
+gh pr merge 12 --squash

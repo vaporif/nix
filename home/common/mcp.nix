@@ -18,16 +18,15 @@
 
   # github-mcp-server ships 85 tools and defaults to a 44-tool set; every one of
   # those names is spent in each session's prompt. Drop the `copilot` toolset,
-  # then exclude the write tools that duplicate the git/gh CLI. Those writes also
-  # route around the `Bash(git push:*)` deny in claude/security, so excluding
-  # them keeps the MCP surface consistent with it. Yields 31 tools.
+  # then exclude the write tools that duplicate the git/gh CLI. push_files and
+  # merge_pull_request stay: pushing and merging are allowed, and push_files
+  # can't force-update a ref, so it doesn't route around the force-push deny
+  # in claude/security. Yields 33 tools.
   githubToolsets = ["context" "repos" "issues" "pull_requests" "users"];
   githubExcludeTools = [
     "create_or_update_file"
     "delete_file"
-    "push_files"
     "create_branch"
-    "merge_pull_request"
     "create_repository"
     "fork_repository"
     "list_repository_collaborators"

@@ -91,9 +91,9 @@ import ./run-vm-test.nix pkgs {
     machine.succeed(f"jq -e '.permissions.deny | map(select(contains(\".ssh\"))) | length > 0' {settings}")
     machine.succeed(f"jq -e '.permissions.deny | map(select(contains(\".aws\"))) | length > 0' {settings}")
 
-    # Test 3: Deny list has Read/Write/Edit triples for directories
+    # Test 3: Deny list has Read/Edit pairs for directories (Edit rules also cover Write)
     machine.succeed(f"jq -e '.permissions.deny | map(select(startswith(\"Read(/home/testuser/.ssh/\"))) | length == 1' {settings}")
-    machine.succeed(f"jq -e '.permissions.deny | map(select(startswith(\"Write(/home/testuser/.ssh/\"))) | length == 1' {settings}")
+    machine.succeed(f"jq -e '.permissions.deny | map(select(startswith(\"Write(\"))) | length == 0' {settings}")
     machine.succeed(f"jq -e '.permissions.deny | map(select(startswith(\"Edit(/home/testuser/.ssh/\"))) | length == 1' {settings}")
 
     # Test 4: Deny list has file entries without glob

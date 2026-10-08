@@ -154,6 +154,32 @@ while IFS= read -r line; do
   esac
 done <<<"$MATCHES"
 
+# Force push. Plain `git push` is allowed, so the prefix rules above can't
+# express this: force flags may sit anywhere after `push` (`git push origin
+# main -f`) and git global options may sit before it (`git -C dir push`).
+# A null token after `push` could expand to a force flag or `+refspec`, and
+# a null token standing in for `push` itself could hide the subcommand, so
+# both downgrade to ask.
+FORCE_PUSH=$(jq -r '
+  def isForce: test("^(--force|--mirror$|-[^-]*f|\\+)");
+  [.[] | select(length > 0 and (.[0] | split("/") | last) == "git") |
+    (.[1:]) as $args |
+    ([$args | to_entries[] | select(.value == "push") | .key] | first) as $i |
+    if $i != null then
+      ($args[$i + 1:]) as $rest |
+      if any($rest[]; . != null and isForce) then "deny"
+      elif any($rest[]; . == null) then "ask"
+      else empty end
+    elif any($args[]; . == null) and any($args[]; . != null and isForce) then "ask"
+    else empty end
+  ] | if index("deny") then "deny" elif index("ask") then "ask" else "" end
+' <<<"$CMDS")
+
+case $FORCE_PUSH in
+  deny) deny "Force push is denied." ;;
+  ask) ask "git push with expansion or escape may hide a force flag — review." ;;
+esac
+
 # Pipe-fetch detection. Deny if any source command and any sink interpreter
 # both appear as CallExpr basenames in the same command sequence —
 # catches `curl x | sh`, `curl x; bash /tmp/x`, `wget x && python3 /tmp/x`.

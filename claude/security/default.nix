@@ -129,7 +129,6 @@ in {
         deniedSubcommands = lib.mkOption {
           type = lib.types.listOf lib.types.str;
           default = [
-            "git push"
             "git reset --hard"
             "git reset --merge"
             "git reset --keep"
@@ -250,7 +249,7 @@ in {
           "~/.bash_sessions"
         ];
         description = ''
-          Directories denied for Read/Write/Edit. Each generates 3 deny rules with /** glob suffix.
+          Directories denied for Read/Write/Edit. Each generates Read+Edit deny rules with /** glob suffix (Edit rules also cover Write).
           Denying a nonexistent path is a no-op in Claude Code, so cross-platform defaults are harmless.
         '';
       };
@@ -265,7 +264,7 @@ in {
           "~/.zsh_history"
           "~/.bash_history"
         ];
-        description = "Individual files denied for Read/Write/Edit. Each generates 3 deny rules (no glob).";
+        description = "Individual files denied for Read/Write/Edit. Each generates Read+Edit deny rules (no glob).";
       };
 
       deniedAbsolutePaths = lib.mkOption {
@@ -276,7 +275,7 @@ in {
 
       deniedBashCommands = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = ["git push"];
+        default = [];
         description = "Bash commands to deny. Each generates a Bash(<cmd>:*) deny rule.";
       };
 

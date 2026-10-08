@@ -6,7 +6,6 @@
       blockedCommands = ["sudo" "doas" "eval" "dd" "mkfs" "shred"];
       blockedSubcommands = [];
       deniedSubcommands = [
-        "git push"
         "git reset --hard"
         "git reset --merge"
         "git reset --keep"

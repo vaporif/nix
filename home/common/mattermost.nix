@@ -63,6 +63,7 @@
         /mute /key unbind meta-b
         /mute /key unbind meta-s
         /mute /key unbind meta-m
+        /mouse enable
         ${lib.concatStringsSep "\n" (lib.mapAttrsToList (key: cmd: "/key bind ${key} ${cmd}") keys)}
       '';
     };

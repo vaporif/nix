@@ -246,6 +246,7 @@ in {
         bind h split-window -h -c "#{pane_current_path}"
         # close pane without confirmation prompt
         bind x kill-pane
+        bind Escape copy-mode
         bind A display-popup -E -w 90% -h 90% -d "#{pane_current_path}" "claude agents"
         # agent swarm runs on its own socket (claude-swarm-N); attach the newest
         bind S display-popup -E -w 95% -h 90% \

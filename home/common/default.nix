@@ -167,6 +167,9 @@ in {
         set -as terminal-features 'xterm-ghostty:extkeys'
         set -g history-limit 50000
         set -g set-clipboard on
+        # Don't answer OSC 52 clipboard queries: over ssh the reply can arrive
+        # after the asking app exits and lands in the shell as base64 input.
+        set -g get-clipboard off
         set -g allow-passthrough on
         set -g set-titles on
         set -g set-titles-string "#T"

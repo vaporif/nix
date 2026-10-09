@@ -40,6 +40,21 @@ opt.smartcase = true
 
 vim.lsp.inlay_hint.enable(true)
 
+-- Over ssh, copy via OSC 52 but never query the terminal on paste: tmux
+-- ignores the query (get-clipboard off), and a late reply would land in the
+-- shell after nvim exits. Paste falls back to the unnamed register.
+if vim.env.SSH_TTY ~= nil then
+  local osc52 = require 'vim.ui.clipboard.osc52'
+  local function paste()
+    return { vim.fn.getreg('"', 1, true), vim.fn.getregtype '"' }
+  end
+  g.clipboard = {
+    name = 'OSC 52 (copy only)',
+    copy = { ['+'] = osc52.copy '+', ['*'] = osc52.copy '*' },
+    paste = { ['+'] = paste, ['*'] = paste },
+  }
+end
+
 -- Setup clipboard (deferred to avoid startup issues)
 vim.schedule(function()
   opt.clipboard = 'unnamedplus'

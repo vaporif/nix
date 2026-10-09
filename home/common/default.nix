@@ -46,6 +46,7 @@ in {
     ./ssh.nix
     ./mcp.nix
     ./lspmux.nix
+    ./mattermost.nix
     ./xdg.nix
     ./packages.nix
     ./shell.nix

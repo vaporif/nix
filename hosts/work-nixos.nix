@@ -21,7 +21,6 @@
       publicKey = lib.mkForce "";
     };
     gitlab.enable = true;
-    mattermost.enable = true;
     workSsh.enable = true;
     qdrant.enable = false;
     tmux.autoAttach = true;

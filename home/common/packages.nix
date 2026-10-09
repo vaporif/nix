@@ -105,8 +105,5 @@ in {
     ]
     ++ lib.optionals cfg.gitlab.enable [
       pkgs.glab
-    ]
-    ++ lib.optionals cfg.mattermost.enable [
-      pkgs.matterhorn
     ];
 }

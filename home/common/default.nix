@@ -33,6 +33,23 @@
   ];
   windowName = "#{s/^(⠿|[?]|✓|·) //:window_name}";
   countState = glyph: "#{n:#{W:#{?${isState glyph},x,}}}";
+  # Shell command state from the zsh hooks in shell.nix, read from the @sh
+  # window option. Distinct glyphs and colors from Claude's set above. "Quiet"
+  # is a running command that tripped monitor-silence: likely a prompt.
+  isSh = state: "#{==:#{@sh},${state}}";
+  isQuiet = "#{&&:${isSh "run"},#{window_silence_flag}}";
+  shellGlyph = lib.concatStrings [
+    "#{?${isQuiet},#[fg=${c.base0A}]… ,"
+    "#{?${isSh "run"},#[fg=${c.base0D}]▶ ,"
+    "#{?${isSh "done"},#[fg=${c.base0E}]● ,"
+    "#{?${isSh "err"},#[fg=${c.base08}]✗ ,"
+    "}}}}"
+  ];
+  countSh = cond: "#{n:#{W:#{?${cond},x,}}}";
+  shellSummary = lib.concatStrings [
+    "#{?#{!=:${countSh isQuiet},0},#[fg=${c.base0A}]${countSh isQuiet} quiet  ,}"
+    "#{?#{!=:${countSh (isSh "err")},0},#[fg=${c.base08}]${countSh (isSh "err")} failed  ,}"
+  ];
   claudeSummary = lib.concatStrings [
     "#{?#{!=:${countState "[?]"},0},#[fg=${c.base08}#,bold]${countState "[?]"} waiting#[nobold]  ,}"
     "#{?#{!=:${countState "⠿"},0},#[fg=${c.base0B}]${countState "⠿"} working  ,}"
@@ -205,13 +222,13 @@ in {
         set -g status-left " "
         set -g status-left-length 1
 
-        set -g status-right "${claudeSummary}#[fg=${c.base03}]%H:%M "
-        set -g status-right-length 40
+        set -g status-right "${claudeSummary}${shellSummary}#[fg=${c.base03}]%H:%M "
+        set -g status-right-length 60
 
         # tabs: dim inactive, bold accent active, no backgrounds
         set -g window-status-separator "  "
-        set -g window-status-format "#[fg=${c.base03}]#I ${claudeGlyph}#[fg=${c.base04}#,nobold]${windowName}"
-        set -g window-status-current-format "#[fg=${c.base0C},bold]#I ${claudeGlyph}#[fg=${c.base0C},bold]${windowName}"
+        set -g window-status-format "#[fg=${c.base03}]#I ${shellGlyph}${claudeGlyph}#[fg=${c.base04}#,nobold]${windowName}"
+        set -g window-status-current-format "#[fg=${c.base0C},bold]#I ${shellGlyph}${claudeGlyph}#[fg=${c.base0C},bold]${windowName}"
         set -g window-status-activity-style "fg=${c.base09}"
         set -g window-status-bell-style "fg=${c.base08},bold"
 

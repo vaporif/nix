@@ -180,6 +180,55 @@
 
           bindkey '^F' fzf-file-widget
           bindkey -r '^T'
+
+          # Command state for the tmux status bar, kept apart from Claude's
+          # glyphs: Claude renames the window, this sets a window option (@sh)
+          # that the status format reads. Done/error only stick for commands
+          # that ran 10s+, so quick ones never flash. Interactive programs are
+          # skipped, since "running" would just mean "open". A running command
+          # that goes quiet trips monitor-silence, which the format shows as
+          # possibly waiting for input.
+          if [[ -n "''${TMUX:-}" && -n "''${TMUX_PANE:-}" ]]; then
+            zmodload zsh/datetime
+            typeset -g _sh_started=0
+            typeset -ga _sh_interactive=(
+              nvim vim vi less man more htop btop top watch fzf
+              a ar claude claude-sandboxed o or ox codex codex-sandboxed
+              weechat yazi lazygit tig ssh mosh tmux
+            )
+
+            _sh_preexec() {
+              local typed=''${''${(z)1}[1]} expanded=''${''${(z)2}[1]}
+              if (( ''${_sh_interactive[(Ie)$typed]} || ''${_sh_interactive[(Ie)$expanded]} )); then
+                _sh_started=0
+                tmux set -wu -t "$TMUX_PANE" @sh 2>/dev/null
+                return
+              fi
+              _sh_started=$EPOCHSECONDS
+              tmux set -w -t "$TMUX_PANE" @sh run \; set -w -t "$TMUX_PANE" monitor-silence 15 2>/dev/null
+            }
+
+            _sh_precmd() {
+              local rc=$?
+              (( _sh_started )) || return 0
+              local took=$(( EPOCHSECONDS - _sh_started ))
+              _sh_started=0
+              local -a clear=(set -wu -t "$TMUX_PANE" monitor-silence)
+              # 130 = Ctrl-C: you stopped it yourself, nothing to report.
+              if (( took < 10 || rc == 130 )); then
+                tmux set -wu -t "$TMUX_PANE" @sh \; "''${clear[@]}" 2>/dev/null
+              elif (( rc )); then
+                tmux set -w -t "$TMUX_PANE" @sh err \; "''${clear[@]}" 2>/dev/null
+              else
+                tmux set -w -t "$TMUX_PANE" @sh done \; "''${clear[@]}" 2>/dev/null
+              fi
+              return 0
+            }
+
+            autoload -Uz add-zsh-hook
+            add-zsh-hook preexec _sh_preexec
+            add-zsh-hook precmd _sh_precmd
+          fi
         ''
         + lib.optionalString config.custom.claude.enable (let
           # Resolved through PATH, not a baked-in store path: a shell that has

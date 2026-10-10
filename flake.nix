@@ -72,6 +72,10 @@
       url = "github:wshobson/agents";
       flake = false;
     };
+    unity-agent-plugin = {
+      url = "github:Unity-Technologies/unity-agent-plugin";
+      flake = false;
+    };
     bevy-migration-gist = {
       url = "git+https://gist.github.com/tobyhede/f03ab33c3ccdf1ac2ccfbfe76d6af912";
       flake = false;

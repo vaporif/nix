@@ -88,6 +88,15 @@
     rm -rf $out/agents
   '';
 
+  # The repo root is the plugin; drop the other agents' manifests and the
+  # repo's own marketplace.json so only plugin.json remains under .claude-plugin.
+  unityPlugin = pkgs.runCommand "claude-plugin-unity" {} ''
+    cp -r ${inputs.unity-agent-plugin} $out
+    chmod -R u+w $out
+    rm -rf $out/.agents $out/.codex-plugin $out/.github $out/scripts
+    rm -f $out/.claude-plugin/marketplace.json
+  '';
+
   plugins = [
     {
       name = "feature-dev";
@@ -149,6 +158,12 @@
       description = "Multi-agent team orchestration for parallel review, debugging, and development";
       source = wshobsonPlugin "agent-teams";
       version = readPluginVersion "${inputs.wshobson-agents}/plugins/agent-teams";
+    }
+    {
+      name = "unity";
+      description = "Unity's official game development skills (drives the Editor via the Unity CLI)";
+      source = unityPlugin;
+      version = readPluginVersion inputs.unity-agent-plugin;
     }
   ];
 
@@ -285,6 +300,8 @@
     "blockchain-web3"
     "ralph-loop"
     "security-scanning"
+    # enabled per project via .claude/settings.local.json in Unity repos
+    "unity"
   ];
 
   enabledPlugins = builtins.listToAttrs (map (p: {

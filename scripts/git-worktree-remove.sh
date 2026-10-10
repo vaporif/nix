@@ -12,6 +12,21 @@ branch=$1
 top=$(git rev-parse --show-toplevel)
 dest="$(dirname "${top}")/${branch}"
 
+# git worktree remove deletes ignored files without --force, and git meta puts
+# docs/specs and docs/plans in info/exclude. Refuse while any of them is missing
+# from .meta or differs from the archived copy.
+meta="$(dirname "$(cd "$(git rev-parse --git-common-dir)" && pwd -P)")/.meta"
+unsaved=()
+while IFS= read -r -d '' f; do
+  cmp -s "${dest}/${f}" "${meta}/${f}" || unsaved+=("${f}")
+done < <(git -C "${dest}" ls-files -z --others --ignored --exclude-standard -- docs/specs docs/plans)
+if [[ ${#unsaved[@]} -gt 0 ]]; then
+  echo "refusing: ${dest} has specs/plans not saved in .meta:" >&2
+  printf '  %s\n' "${unsaved[@]}" >&2
+  echo "copy them out (or run 'git meta link' there), then retry" >&2
+  exit 1
+fi
+
 git worktree remove "${dest}"
 
 if ! git branch -d "${branch}"; then

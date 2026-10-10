@@ -1,10 +1,10 @@
 local hint_ns = vim.api.nvim_create_namespace 'yanky_hint'
 local hint_augroup = vim.api.nvim_create_augroup('yanky_hint', { clear = true })
 
+-- Returned from an expr mapping rather than fed with nvim_feedkeys: by the time
+-- fed keys run, the pending register and count ("ap, 3p) are gone.
 local function put_with_hint(plug)
   return function()
-    local keys = vim.api.nvim_replace_termcodes(plug, true, true, true)
-    vim.api.nvim_feedkeys(keys, 'm', false)
     vim.schedule(function()
       local buf = vim.api.nvim_get_current_buf()
       local row = vim.api.nvim_win_get_cursor(0)[1] - 1
@@ -31,10 +31,10 @@ require('lze').load {
     dep_of = 'substitute.nvim',
     event = 'DeferredUIEnter',
     keys = {
-      { 'p', put_with_hint '<Plug>(YankyPutAfter)', mode = { 'n', 'x' }, desc = 'Put after' },
-      { 'P', put_with_hint '<Plug>(YankyPutBefore)', mode = { 'n', 'x' }, desc = 'Put before' },
-      { 'gp', put_with_hint '<Plug>(YankyGPutAfter)', mode = { 'n', 'x' }, desc = 'GPut after' },
-      { 'gP', put_with_hint '<Plug>(YankyGPutBefore)', mode = { 'n', 'x' }, desc = 'GPut before' },
+      { 'p', put_with_hint '<Plug>(YankyPutAfter)', mode = { 'n', 'x' }, desc = 'Put after', expr = true, remap = true },
+      { 'P', put_with_hint '<Plug>(YankyPutBefore)', mode = { 'n', 'x' }, desc = 'Put before', expr = true, remap = true },
+      { 'gp', put_with_hint '<Plug>(YankyGPutAfter)', mode = { 'n', 'x' }, desc = 'GPut after', expr = true, remap = true },
+      { 'gP', put_with_hint '<Plug>(YankyGPutBefore)', mode = { 'n', 'x' }, desc = 'GPut before', expr = true, remap = true },
       { '<c-p>', '<Plug>(YankyPreviousEntry)', desc = 'Yanky previous' },
       { '<c-n>', '<Plug>(YankyNextEntry)', desc = 'Yanky next' },
     },

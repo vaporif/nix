@@ -161,6 +161,13 @@ vim.lsp.enable 'just_ls'
 -- roslyn.nvim starts the client itself; it reads this via vim.lsp.config.
 -- Disable dynamic didChangeWatchedFiles registration (roslyn handles file watching).
 vim.lsp.config.roslyn = {
+  -- roslyn-ls 5.9.0 rejects the --daemon-mode flag that roslyn.nvim passes by default
+  cmd = {
+    'Microsoft.CodeAnalysis.LanguageServer',
+    '--stdio',
+    '--clientProcessId',
+    tostring(vim.uv.os_getpid()),
+  },
   capabilities = {
     workspace = {
       didChangeWatchedFiles = {

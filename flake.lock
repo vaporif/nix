@@ -963,6 +963,7 @@
         "sops-nix": "sops-nix",
         "stylix": "stylix",
         "superpowers": "superpowers",
+        "unity-agent-plugin": "unity-agent-plugin",
         "vim-tidal": "vim-tidal",
         "vim-tidal-lua": "vim-tidal-lua",
         "wezterm-agent-deck": "wezterm-agent-deck",
@@ -1282,6 +1283,22 @@
       "original": {
         "owner": "numtide",
         "repo": "treefmt-nix",
+        "type": "github"
+      }
+    },
+    "unity-agent-plugin": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791295192,
+        "narHash": "sha256-ymZtolRrGH+MXv4Xple9af0eMyZgzyKwora3AUgOOGU=",
+        "owner": "Unity-Technologies",
+        "repo": "unity-agent-plugin",
+        "rev": "cf6b2da24e424b0a60d560a57f39f676cb6f79f3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Unity-Technologies",
+        "repo": "unity-agent-plugin",
         "type": "github"
       }
     },

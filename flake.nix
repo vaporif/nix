@@ -72,6 +72,10 @@
       url = "github:wshobson/agents";
       flake = false;
     };
+    unity-agent-plugin = {
+      url = "github:Unity-Technologies/unity-agent-plugin";
+      flake = false;
+    };
     bevy-migration-gist = {
       url = "git+https://gist.github.com/tobyhede/f03ab33c3ccdf1ac2ccfbfe76d6af912";
       flake = false;
@@ -303,6 +307,22 @@
         shellHook = ''
           lefthook install
         '';
+      };
+      # Everything `just check` calls, pinned by flake.lock so CI runs the same versions as local.
+      lint = pkgs.mkShell {
+        packages = [
+          pkgs.actionlint
+          pkgs.alejandra
+          pkgs.deadnix
+          pkgs.jq
+          pkgs.just
+          pkgs.selene
+          pkgs.shellcheck
+          pkgs.statix
+          pkgs.stylua
+          pkgs.taplo
+          pkgs.typos
+        ];
       };
     });
 

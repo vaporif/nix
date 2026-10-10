@@ -22,7 +22,11 @@ in {
       qbittorrent
       mpv-unwrapped
     ];
-    sessionPath = [homebrewPath];
+    sessionPath = [
+      homebrewPath
+      # Unity CLI installs itself here
+      "$HOME/.unity/bin"
+    ];
     sessionVariables =
       lib.optionalAttrs (cfg.sshAgent == "secretive") {
         SSH_AUTH_SOCK = "${homeDir}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";
@@ -42,7 +46,8 @@ in {
   };
 
   programs.zsh.initContent = ''
-    unity() {
+    # Not `unity`: that name belongs to the Unity CLI binary.
+    uo() {
       open -a "Unity Hub" --args --projectPath "''${1:A}"
     }
   '';

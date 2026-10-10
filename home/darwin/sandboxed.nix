@@ -81,6 +81,33 @@
     '';
   };
 
+  # Unity batchmode (headless tests): AppKit/LaunchServices bootstrap.
+  # Claude-only, alongside the Unity paths in its cli lists.
+  unityBatchmode = {
+    preHook = ''
+      # The wrapper forwards the caller's PATH, which may predate sessionPath.
+      PATH="$HOME/.unity/bin:$PATH"
+      export PATH
+
+      cat >> "$PROFILE_FILE" <<SBPL
+      ;; Unity CLI reads the Hub sign-in. Regex rather than cli.rw so the
+      ;; SQLite side files are covered even before they exist.
+      (allow file-read* file-write*
+        (regex #"^$HOME/Library/Application Support/UnityHub/accounts\\.db(-wal|-shm|-journal)?$"))
+      (allow system-info (info-type "vfs.disk-space"))
+      (allow mach-lookup
+        (global-name "com.apple.lsd.mapdb")
+        (global-name "com.apple.lsd.modifydb")
+        (global-name "com.apple.coreservices.launchservicesd")
+        (global-name "com.apple.CoreServices.coreservicesd")
+        (global-name "com.apple.CARenderServer")
+        (global-name "com.apple.PowerManagement.control")
+        (global-name "com.apple.DiskArbitration.diskarbitrationd")
+        (global-name-prefix "com.apple.distributed_notifications"))
+      SBPL
+    '';
+  };
+
   claudeDarwin = mkSandboxed "claude-sandboxed" [
     inputs.sandnix.sandnixModules.git
     inputs.sandnix.sandnixModules.gh
@@ -93,7 +120,8 @@
         tmp = true;
       };
       cli = {
-        rwx = ["." "$HOME/.claude" "$HOME/Repos" "$HOME/.cargo"];
+        # ~/.unity: Unity CLI binary + its state
+        rwx = ["." "$HOME/.claude" "$HOME/Repos" "$HOME/.cargo" "$HOME/.unity"];
         rw = [
           "$HOME/.cache/nix"
           "$HOME/.cache/huggingface"
@@ -104,9 +132,14 @@
           "$HOME/.orbstack/run"
           "$HOME/Library/Caches/go-build"
           "$HOME/go/pkg/mod"
+          # Unity batchmode (headless test runs)
+          "$HOME/Library/Unity"
+          "$HOME/Library/Logs/Unity"
+          "$HOME/Library/Application Support/Unity"
         ];
         rox = [
           "/Applications/OrbStack.app/Contents/MacOS/xbin"
+          "/Applications/Unity/Hub/Editor"
         ];
         ro = [
           "$HOME/.config/claude-rules"
@@ -122,6 +155,7 @@
     }
     (darwinExtras "CLAUDE_SANDBOX")
     tuicrBroker
+    unityBatchmode
   ];
 
   codexDarwin = mkSandboxed "codex-sandboxed" [

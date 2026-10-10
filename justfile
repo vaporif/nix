@@ -67,6 +67,10 @@ check-pinned:
         grep -n '"type": "indirect"' flake.lock >&2; \
         exit 1; \
     fi
+    @if grep -nE '^\s*-?\s*uses:' .github/workflows/*.yml | grep -vE 'uses:\s*[^@[:space:]]+@[0-9a-f]{40}(\s|$)' >&2; then \
+        echo "ERROR: workflow actions must be pinned to a full commit SHA" >&2; \
+        exit 1; \
+    fi
     @echo "All inputs properly pinned."
 
 # Format all

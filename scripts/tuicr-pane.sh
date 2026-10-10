@@ -26,37 +26,38 @@ validate_args() {
 
 # Runs on the host: split next to PANE, block until tuicr exits.
 open_pane() {
-  local dir=$1 pane=$2 chan="tuicr-pane-$$-$RANDOM"
+  local dir=$1 pane=$2 chan="tuicr-pane-$$-${RANDOM}"
   shift 2
   # argv form: tmux execs this directly, no shell parses the revset.
   # shellcheck disable=SC2016 # $0/$@ belong to the inner bash
-  tmux split-window -h -t "$pane" -c "$dir" -- \
-    bash -c 'tuicr "$@"; tmux wait-for -S "$0"' "$chan" "$@"
-  tmux wait-for "$chan"
+  tmux split-window -h -t "${pane}" -c "${dir}" -- \
+    bash -c 'tuicr "$@"; tmux wait-for -S "$0"' "${chan}" "$@"
+  tmux wait-for "${chan}"
 }
 
 serve() {
   local dir=$1 owner=$2 root=$3 pane=$4 line resp target
   local -a fields
-  exec 3<>"$dir/req"
+  exec 3<>"${dir}/req"
   # The owner's PID survives its exec into the sandbox, so this ends with it.
-  while kill -0 "$owner" 2>/dev/null; do
+  while kill -0 "${owner}" 2>/dev/null; do
     IFS= read -r -t 1 line <&3 || continue
-    IFS=$'\t' read -r -a fields <<<"$line"
+    IFS=$'\t' read -r -a fields <<<"${line}"
     resp=${fields[0]:-}
-    [[ $resp =~ ^resp\.[0-9]+$ && -p "$dir/$resp" ]] || continue
+    [[ ${resp} =~ ^resp\.[0-9]+$ && -p "${dir}/${resp}" ]] || continue
     target=$(realpath -e -- "${fields[1]:-}" 2>/dev/null) || target=
-    if [[ -z $target || ($target != "$root" && $target != "$root"/*) ]]; then
-      echo "rejected: directory outside $root" 1<>"$dir/$resp"
+    # shellcheck disable=SC2310 # the exit status is the branch condition
+    if [[ -z ${target} || (${target} != "${root}" && ${target} != "${root}"/*) ]]; then
+      echo "rejected: directory outside ${root}" 1<>"${dir}/${resp}"
     elif ! validate_args "${fields[@]:2}"; then
-      echo "rejected: only -w or -r <revset>" 1<>"$dir/$resp"
-    elif open_pane "$target" "$pane" "${fields[@]:2}"; then
-      echo "closed" 1<>"$dir/$resp"
+      echo "rejected: only -w or -r <revset>" 1<>"${dir}/${resp}"
+    elif open_pane "${target}" "${pane}" "${fields[@]:2}"; then
+      echo "closed" 1<>"${dir}/${resp}"
     else
-      echo "failed: could not open tmux pane" 1<>"$dir/$resp"
+      echo "failed: could not open tmux pane" 1<>"${dir}/${resp}"
     fi
   done
-  rm -rf -- "$dir"
+  rm -rf -- "${dir}"
 }
 
 if [[ ${1:-} == serve ]]; then
@@ -65,6 +66,7 @@ if [[ ${1:-} == serve ]]; then
   exit
 fi
 
+# shellcheck disable=SC2310 # validate_args only returns a status
 validate_args "$@" || usage
 
 if [[ -z ${TUICR_BROKER:-} ]]; then
@@ -73,20 +75,20 @@ if [[ -z ${TUICR_BROKER:-} ]]; then
     echo "tuicr-pane: not inside tmux, start tuicr yourself" >&2
     exit 1
   }
-  open_pane "$PWD" "$TMUX_PANE" "$@"
+  open_pane "${PWD}" "${TMUX_PANE}" "$@"
   echo "closed"
   exit
 fi
 
 resp="resp.$$"
-mkfifo "$TUICR_BROKER/$resp"
+mkfifo "${TUICR_BROKER}/${resp}"
 trap 'rm -f "$TUICR_BROKER/$resp"' EXIT
 # Held read-write so an instant reply cannot be lost before we read it.
-exec 4<>"$TUICR_BROKER/$resp"
+exec 4<>"${TUICR_BROKER}/${resp}"
 (
   IFS=$'\t'
-  printf '%s\n' "$resp	$PWD	$*"
-) >"$TUICR_BROKER/req"
+  printf '%s\n' "${resp}	${PWD}	$*"
+) >"${TUICR_BROKER}/req"
 IFS= read -r status <&4
-echo "$status"
-[[ $status == closed ]]
+echo "${status}"
+[[ ${status} == closed ]]

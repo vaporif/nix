@@ -102,6 +102,9 @@ in {
         env =
           {
             CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
+            # The Bash tool otherwise runs the login shell (zsh), which
+            # breaks bash idioms: no word splitting, unmatched globs error.
+            CLAUDE_CODE_SHELL = lib.getExe pkgs.bash;
           }
           // lib.optionalAttrs tabState {
             # The tab-state hooks own OSC 2; without this Claude keeps

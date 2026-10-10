@@ -340,8 +340,16 @@ in {
 
     home.file = {
       "${nixPluginsPath}".source = nixPluginsTree;
-      ".claude/plugins/installed_plugins.json".text = installedPlugins;
-      ".claude/plugins/known_marketplaces.json".text = knownMarketplaces;
+      # Claude Code rewrites these at runtime, replacing the symlink; force so
+      # switch overwrites instead of tripping on a stale .backup.
+      ".claude/plugins/installed_plugins.json" = {
+        text = installedPlugins;
+        force = true;
+      };
+      ".claude/plugins/known_marketplaces.json" = {
+        text = knownMarketplaces;
+        force = true;
+      };
     };
   };
 }

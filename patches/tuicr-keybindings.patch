@@ -204,7 +204,7 @@ index 15193c3..fd44d6b 100644
  
      #[test]
 diff --git a/src/main.rs b/src/main.rs
-index a1e5552..917ae46 100644
+index a1e5552..ca36405 100644
 --- a/src/main.rs
 +++ b/src/main.rs
 @@ -412,6 +412,9 @@ fn main() -> anyhow::Result<()> {
@@ -278,10 +278,25 @@ index a1e5552..917ae46 100644
                          _ => {}
                      }
  
-@@ -951,6 +992,13 @@ fn handle_comment_vim_key(app: &mut App, key: crossterm::event::KeyEvent) -> boo
+@@ -934,7 +975,11 @@ fn handle_comment_vim_key(app: &mut App, key: crossterm::event::KeyEvent) -> boo
+     // directly, in any mode — no double-press. Alt is the one modified Enter/Esc
+     // that reaches the app across terminals, including browser/web terminals
+     // like zellij web (where Shift/Cmd+Enter get stripped or grabbed). Plain
+-    // Enter still inserts a newline in Insert mode, so Alt+Enter is free here.
++    // Enter saves too; `o`/`O` still open a new line from Normal mode.
++    if key.code == KeyCode::Enter && key.modifiers.is_empty() {
++        app.save_comment();
++        return true;
++    }
+     if key.modifiers.contains(KeyModifiers::ALT) {
+         match key.code {
+             KeyCode::Enter => {
+@@ -951,14 +996,17 @@ fn handle_comment_vim_key(app: &mut App, key: crossterm::event::KeyEvent) -> boo
  
      let normal = app.comment_vim_in_normal_mode();
  
+-    // In Normal mode a first plain Enter/Esc arms a confirm (header shows the
+-    // hint); a second consecutive press saves (`:w`) / cancels (`:q`).
 +    if normal && !ctrl && !key.modifiers.contains(KeyModifiers::ALT)
 +        && let KeyCode::Char(c @ ('Z' | 'Q')) = key.code
 +        && app.comment_vim_shift_z(c)
@@ -289,6 +304,27 @@ index a1e5552..917ae46 100644
 +        return true;
 +    }
 +
-     // In Normal mode a first plain Enter/Esc arms a confirm (header shows the
-     // hint); a second consecutive press saves (`:w`) / cancels (`:q`).
++    // In Normal mode a first plain Esc arms a confirm (header shows the
++    // hint); a second consecutive press cancels (`:q`).
      if normal && key.modifiers.is_empty() {
+         match key.code {
+-            KeyCode::Enter => {
+-                app.comment_vim_enter_normal();
+-                return true;
+-            }
+             // `q` behaves exactly like Esc here (arm/confirm cancel).
+             KeyCode::Esc | KeyCode::Char('q') => {
+                 app.comment_vim_esc_normal();
+diff --git a/src/ui/comment_panel.rs b/src/ui/comment_panel.rs
+index de028a6..9b8910a 100644
+--- a/src/ui/comment_panel.rs
++++ b/src/ui/comment_panel.rs
+@@ -158,7 +158,7 @@ pub fn format_comment_input_lines(
+     // Top border with type label and hints. In vim mode the hints describe the
+     // modal bindings and a `[MODE]` tag is shown after the type label.
+     let hint = match vim_mode {
+-        Some(_) => "(i:insert  Alt-Enter:save  Esc:normal  :w save  :q discard)".to_string(),
++        Some(_) => "(i:insert  Enter:save  Esc:normal  :w save  :q discard)".to_string(),
+         None => format!("(Tab/S-Tab:type Enter:save {newline_hint}:newline Esc:cancel)"),
+     };
+     let mut header_spans = vec![

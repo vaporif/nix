@@ -22,6 +22,7 @@ local function put_with_hint(plug)
         end,
       })
     end)
+    return plug
   end
 end
 

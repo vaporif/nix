@@ -304,6 +304,22 @@
           lefthook install
         '';
       };
+      # Everything `just check` calls, pinned by flake.lock so CI runs the same versions as local.
+      lint = pkgs.mkShell {
+        packages = [
+          pkgs.actionlint
+          pkgs.alejandra
+          pkgs.deadnix
+          pkgs.jq
+          pkgs.just
+          pkgs.selene
+          pkgs.shellcheck
+          pkgs.statix
+          pkgs.stylua
+          pkgs.taplo
+          pkgs.typos
+        ];
+      };
     });
 
     formatter = lib.genAttrs supportedSystems (

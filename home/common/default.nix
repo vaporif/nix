@@ -66,6 +66,7 @@ in {
     ./mattermost.nix
     ./xdg.nix
     ./packages.nix
+    ./tuicr.nix
     ./shell.nix
     ./neovim.nix
     ./sandboxed.nix

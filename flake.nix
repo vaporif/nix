@@ -85,10 +85,6 @@
       url = "github:vaporif/earthtone.nvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    difftastic-nvim = {
-      url = "github:clabby/difftastic.nvim";
-      flake = false;
-    };
     difftastic-src = {
       url = "github:Wilfred/difftastic";
       flake = false;
@@ -107,6 +103,10 @@
     };
     gitlab-nvim = {
       url = "github:harrisoncramer/gitlab.nvim/v4.1.2";
+      flake = false;
+    };
+    review-nvim = {
+      url = "github:georgeguimaraes/review.nvim/f72a347538913ac558d2440dd3899426a2dd85ae";
       flake = false;
     };
 

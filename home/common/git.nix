@@ -68,6 +68,11 @@ in {
           pl = "pull";
           d = "diff";
           ds = "diff --staged";
+          # Structural diffs on demand; diff.external stays unset so tools that
+          # parse `git diff` (agents, patch generation) get a real patch.
+          dft = "-c diff.external=difft diff";
+          dfts = "-c diff.external=difft diff --staged";
+          dfl = "-c diff.external=difft log -p --ext-diff";
           undo = "reset --soft HEAD~1";
           upd = "!git add -A && git commit -m upd";
           discard = "reset HEAD --hard";
@@ -86,7 +91,6 @@ in {
         rebase.autosquash = true;
         rebase.autostash = true;
         commit.verbose = true;
-        diff.external = "difft";
         diff.algorithm = "histogram";
         feature.experimental = true;
         help.autocorrect = "prompt";

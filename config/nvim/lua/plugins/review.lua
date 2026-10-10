@@ -78,7 +78,7 @@ local function pick_mr()
               end
               vim.cmd 'checktime'
               with_base(function(base)
-                vim.cmd('DiffviewOpen ' .. base .. '...HEAD --imply-local')
+                vim.cmd('CodeDiff ' .. base .. '...')
               end)
             end)
           end)
@@ -93,23 +93,16 @@ local function map(lhs, rhs, desc, mode)
 end
 map('<leader>cvb', function()
   with_base(function(base)
-    vim.cmd('DiffviewOpen ' .. base .. '...HEAD --imply-local')
+    vim.cmd('CodeDiff ' .. base .. '...')
   end)
 end, 'vs [b]ase branch')
 
 map('<leader>cvl', function()
   with_base(function(base)
-    vim.cmd('DiffviewFileHistory --range=' .. base .. '...HEAD')
+    vim.cmd('CodeDiff history ' .. base .. '..HEAD')
   end)
 end, 'commit-by-commit [l]og')
 
-map('<leader>cvf', function()
-  with_base(function(base)
-    vim.cmd('Difft ' .. base .. '...HEAD')
-  end)
-end, 'structural di[f]f vs base')
-
-map('<leader>cvq', '<cmd>DiffviewClose<CR>', '[q]uit diff view')
 map('<leader>cvo', pick_mr, 'check[o]ut an MR')
 map('<leader>cvw', function()
   vim.system({ 'glab', 'mr', 'view', '--web' }, { text = true }, function(res)
@@ -120,6 +113,69 @@ map('<leader>cvw', function()
     end
   end)
 end, 'open MR in [w]eb')
+
+-- Matched on command or title: the sandboxed wrapper can leave either one
+-- without "claude" in it, depending on platform.
+local function agent_pane()
+  if not vim.env.TMUX then
+    return nil
+  end
+  local res = vim.system({ 'tmux', 'list-panes', '-s', '-F', '#{window_active} #{pane_id} #{pane_current_command} #{pane_title}' }, { text = true }):wait()
+  if res.code ~= 0 then
+    return nil
+  end
+  local fallback
+  for line in res.stdout:gmatch '[^\n]+' do
+    local active, id, rest = line:match '^(%d) (%S+) (.*)$'
+    if rest and rest:lower():find('claude', 1, true) then
+      if active == '1' then
+        return id
+      end
+      fallback = fallback or id
+    end
+  end
+  return fallback
+end
+
+-- Pasted without Enter so the review can be amended before it is sent.
+local function send_to_agent(markdown)
+  local pane = agent_pane()
+  if not pane then
+    vim.notify('No Claude pane in this tmux session, review is on the clipboard', vim.log.levels.WARN)
+    return
+  end
+  vim.system({ 'tmux', 'load-buffer', '-b', 'review', '-' }, { stdin = markdown }):wait()
+  vim.system({ 'tmux', 'paste-buffer', '-p', '-d', '-b', 'review', '-t', pane }):wait()
+end
+
+require('lze').load {
+  {
+    'codediff.nvim',
+    cmd = 'CodeDiff',
+    on_require = 'codediff',
+    after = function()
+      require('codediff').setup {}
+    end,
+  },
+  {
+    -- Loaded eagerly rather than on :Review so notes left on plain files render on open.
+    'review.nvim',
+    event = 'DeferredUIEnter',
+    keys = {
+      { '<leader>cvv', '<cmd>Review<CR>', desc = 're[v]iew working tree' },
+      { '<leader>cvC', '<cmd>Review commits<CR>', desc = 'review [C]ommits' },
+      { '<leader>cvB', '<cmd>Review branch<CR>', desc = 'review [B]ranch' },
+      { '<leader>cvi', '<cmd>Review note<CR>', desc = 'note on l[i]ne' },
+      { '<leader>cvi', ':Review note<CR>', desc = 'note on range', mode = 'v' },
+      { '<leader>cve', '<cmd>Review export<CR>', desc = '[e]xport review' },
+    },
+    after = function()
+      require('review').setup {
+        export = { on_export = send_to_agent },
+      }
+    end,
+  },
+}
 
 if not settings.enable then
   return

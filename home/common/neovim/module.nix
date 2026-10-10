@@ -23,13 +23,6 @@ inputs: {
       doCheck = false;
     };
 
-  difftastic-nvim-lib = pkgs.rustPlatform.buildRustPackage {
-    pname = "difftastic-nvim-lib";
-    version = "unstable";
-    src = inputs.difftastic-nvim;
-    cargoLock.lockFile = "${inputs.difftastic-nvim}/Cargo.lock";
-  };
-
   gitlab-nvim-server = pkgs.buildGoModule {
     pname = "gitlab-nvim-server";
     version = "4.1.2";
@@ -41,16 +34,27 @@ inputs: {
 
   gitlab-nvim-plugin = mkPluginNoCheck "gitlab.nvim" inputs.gitlab-nvim;
 
-  difftastic-nvim-plugin = (mkPluginNoCheck "difftastic.nvim" inputs.difftastic-nvim).overrideAttrs (old: {
-    postInstall =
-      (old.postInstall or "")
-      + ''
-        mkdir -p $out/target/release
-        cp ${difftastic-nvim-lib}/lib/libdifftastic_nvim.* $out/target/release/
-        local lib=$(basename $out/target/release/libdifftastic_nvim.*)
-        ln -sf "$lib" $out/target/release/difftastic_nvim.so
-      '';
-  });
+  review-nvim-plugin = mkPluginNoCheck "review.nvim" inputs.review-nvim;
+
+  # codediff.nvim downloads this into its own plugin dir on first use, which is
+  # the read-only store here. It checks PATH first, so ship it there. The tag
+  # must match VERSION in the plugin's lua/codediff/core/installer/watcher.lua.
+  codediff-watcher = let
+    src = pkgs.fetchFromGitHub {
+      owner = "esmuellert";
+      repo = "codediff";
+      rev = "v0.23.2";
+      hash = "sha256-YiDCNp5buIYQhnquC/1hjLGBjGtzSMu6BAgHtcYCt5o=";
+    };
+  in
+    pkgs.rustPlatform.buildRustPackage {
+      pname = "codediff-watcher";
+      version = "0.23.2";
+      inherit src;
+      cargoLock.lockFile = "${src}/Cargo.lock";
+      cargoBuildFlags = ["-p" "watcher" "--bin" "codediff-watcher"];
+      doCheck = false;
+    };
 in {
   imports = [wlib.wrapperModules.neovim];
 
@@ -222,8 +226,9 @@ in {
           (with pkgs.vimPlugins; [
             gitsigns-nvim
             diffview-nvim
+            codediff-nvim
           ])
-          ++ [difftastic-nvim-plugin]
+          ++ [review-nvim-plugin]
           ++ lib.optional config.gitlab.enable gitlab-nvim-plugin;
       };
 
@@ -302,7 +307,8 @@ in {
             golangci-lint
             mermaid-cli
             imagemagick
-          ]);
+          ])
+          ++ [codediff-watcher];
       };
     };
   };

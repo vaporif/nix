@@ -1,7 +1,7 @@
 {
   vim-tidal,
   difftastic-src,
-}: final: _: let
+}: final: prev: let
   mkTest = name: cmd:
     final.runCommand "${name}-test" {} ''
       ${cmd}
@@ -15,6 +15,11 @@ in {
   codex = final.callPackage ../pkgs/codex.nix {};
 
   gitlab-mcp = final.callPackage ../pkgs/gitlab-mcp.nix {};
+
+  # Keys remapped to match codediff.nvim/review.nvim (]c ]f ]n, i/e/F/C, t, gg/gf/g?).
+  tuicr = prev.tuicr.overrideAttrs (old: {
+    patches = (old.patches or []) ++ [../patches/tuicr-keybindings.patch];
+  });
 
   difftastic = final.callPackage ../pkgs/difftastic.nix {inherit difftastic-src;};
 

@@ -203,22 +203,6 @@
         "type": "github"
       }
     },
-    "difftastic-nvim": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1783611154,
-        "narHash": "sha256-x5rm54LdloowVFPtNGs/N6dAqcVe3tHH7eJjPvxdqzk=",
-        "owner": "clabby",
-        "repo": "difftastic.nvim",
-        "rev": "c39bbe1c60eec06ad7d141bd09bb910fac4d2436",
-        "type": "github"
-      },
-      "original": {
-        "owner": "clabby",
-        "repo": "difftastic.nvim",
-        "type": "github"
-      }
-    },
     "difftastic-src": {
       "flake": false,
       "locked": {
@@ -933,12 +917,28 @@
         "type": "github"
       }
     },
+    "review-nvim": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1789657151,
+        "narHash": "sha256-yt5/ixbXwKzxonbwQJGUd3dPIdDeZe9E0KPiMJOK4bA=",
+        "owner": "georgeguimaraes",
+        "repo": "review.nvim",
+        "rev": "f72a347538913ac558d2440dd3899426a2dd85ae",
+        "type": "github"
+      },
+      "original": {
+        "owner": "georgeguimaraes",
+        "repo": "review.nvim",
+        "rev": "f72a347538913ac558d2440dd3899426a2dd85ae",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "augment-command-yazi": "augment-command-yazi",
         "bevy-migration-gist": "bevy-migration-gist",
         "claude-code-plugins": "claude-code-plugins",
-        "difftastic-nvim": "difftastic-nvim",
         "difftastic-src": "difftastic-src",
         "earthtone-nvim": "earthtone-nvim",
         "ferrex": "ferrex",
@@ -958,6 +958,7 @@
         "nix-devshells": "nix-devshells",
         "nixpkgs": "nixpkgs_4",
         "parry-guard": "parry-guard",
+        "review-nvim": "review-nvim",
         "sandnix": "sandnix",
         "sops-nix": "sops-nix",
         "stylix": "stylix",

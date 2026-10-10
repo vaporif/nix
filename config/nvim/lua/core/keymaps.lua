@@ -13,8 +13,8 @@ vim.keymap.set('n', ']e', function()
 end, { desc = 'Next error' })
 
 -- Code (generic)
-vim.keymap.set('n', '<leader>cd', '<cmd>Difft<CR>', { desc = '[d]iff unstaged' })
-vim.keymap.set('n', '<leader>cs', '<cmd>Difft --staged<CR>', { desc = 'diff [s]taged' })
+vim.keymap.set('n', '<leader>cd', '<cmd>CodeDiff<CR>', { desc = '[d]iff changes' })
+vim.keymap.set('n', '<leader>cs', '<cmd>CodeDiff --staged<CR>', { desc = 'diff [s]taged' })
 vim.keymap.set('n', '<leader>cF', '<cmd>DiffviewFileHistory<CR>', { desc = '[F]ilehistory' })
 
 vim.keymap.set('n', '<leader>/', 'gcc', { desc = 'toggle comment', remap = true })

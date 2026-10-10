@@ -23,7 +23,7 @@ done < <(git -C "${dest}" ls-files -z --others --ignored --exclude-standard -- d
 if [[ ${#unsaved[@]} -gt 0 ]]; then
   echo "refusing: ${dest} has specs/plans not saved in .meta:" >&2
   printf '  %s\n' "${unsaved[@]}" >&2
-  echo "copy them out (or run 'git meta link' there), then retry" >&2
+  echo "copy them into ${meta} ('git meta link' adds new files but never overwrites), then retry" >&2
   exit 1
 fi
 

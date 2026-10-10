@@ -18,6 +18,7 @@
     # Pre-load secrets before sandbox
     ${sandboxShared.secretPreload}
     ${sandboxShared.ghTokenPreload}
+    ${sandboxShared.tuicrBrokerPreload}
     CLAUDE_SANDBOX=1
     export CLAUDE_SANDBOX
     CARGO_NET_GIT_FETCH_WITH_CLI=true
@@ -86,6 +87,10 @@
     bind_rw "$HOME/.cargo"
     bind_rw "$HOME/Repos"
     bind_ro "$HOME/.local/share/gh"
+    # tuicr-pane runs tuicr on the host; share its session store so
+    # `tuicr review list/comments` inside the sandbox can see it.
+    mkdir -p "$HOME/.local/share/tuicr"
+    bind_rw "$HOME/.local/share/tuicr"
 
     # Claude config in $HOME root
     bind_rw "$HOME/.claude.json"
@@ -114,6 +119,11 @@
       args+=(--bind "$SSH_AUTH_SOCK" "$SSH_AUTH_SOCK")
     fi
 
+    # tuicr-pane request fifo; the host end can only open a tuicr split.
+    if [[ -n "''${TUICR_BROKER:-}" ]]; then
+      args+=(--bind "$TUICR_BROKER" "$TUICR_BROKER")
+    fi
+
     # D-Bus for gh keyring (Secret Service API)
     dbus_sock="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/bus"
     if [[ -S "$dbus_sock" ]]; then
@@ -130,6 +140,7 @@
       --setenv SHELL "''${SHELL:-/bin/sh}"
     )
     for var in LANG LC_ALL SSH_AUTH_SOCK \
+               TUICR_BROKER \
                XDG_CONFIG_HOME XDG_DATA_HOME XDG_CACHE_HOME \
                ${lib.concatStringsSep " " sandboxShared.sharedEnvNames}; do
       pass_env "$var"

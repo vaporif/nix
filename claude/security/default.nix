@@ -387,6 +387,7 @@ in {
           "Bash(tuicr review list:*)"
           "Bash(tuicr review comments:*)"
           "Bash(tuicr review add:*)"
+          "Bash(tuicr-pane:*)"
           "Bash(nix flake show:*)"
           "Bash(nix flake metadata:*)"
           "Bash(nix flake info:*)"

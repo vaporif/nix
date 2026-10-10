@@ -1,9 +1,30 @@
 {
   lib,
   config,
+  pkgs,
   ...
 }: let
   cfg = config.custom;
+
+  tuicrPane = pkgs.writeShellApplication {
+    name = "tuicr-pane";
+    runtimeInputs = [pkgs.coreutils];
+    text = builtins.readFile ../../scripts/tuicr-pane.sh;
+  };
+
+  # Host half of tuicr-pane, see scripts/tuicr-pane.sh. Started before the
+  # sandbox so the agent can open a review pane without the tmux socket; the
+  # wrapper still has to expose $TUICR_BROKER. Output goes nowhere, since the
+  # terminal belongs to the agent UI.
+  tuicrBrokerPreload = ''
+    if [ -n "''${TMUX_PANE:-}" ]; then
+      TUICR_BROKER="$(realpath "$(mktemp -d "''${TMPDIR:-/tmp}/tuicr-broker.XXXXXX")")"
+      mkfifo "$TUICR_BROKER/req"
+      export TUICR_BROKER
+      ${lib.getExe tuicrPane} serve "$TUICR_BROKER" "$$" "$(realpath .)" "$TMUX_PANE" </dev/null >/dev/null 2>&1 &
+    fi
+  '';
+
   # Secrets read outside the sandbox and forwarded in as env vars.
   # Filter out null entries so a fork without sops doesn't try to
   # interpolate a null path.
@@ -163,6 +184,6 @@
   '';
 in {
   _module.args.sandboxShared = {
-    inherit secretPreload ghTokenPreload sharedEnvNames;
+    inherit secretPreload ghTokenPreload sharedEnvNames tuicrPane tuicrBrokerPreload;
   };
 }

@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  sandboxShared,
   ...
 }: let
   c = config.lib.stylix.colors.withHashtag;
@@ -71,7 +72,7 @@
   };
 in {
   # Keys are patched to match codediff.nvim/review.nvim, see overlays/packages.nix.
-  home.packages = [pkgs.tuicr];
+  home.packages = [pkgs.tuicr sandboxShared.tuicrPane];
 
   xdg.configFile = {
     "tuicr/config.toml".source = toml.generate "tuicr-config.toml" {
@@ -85,9 +86,17 @@ in {
     "tuicr/themes/stylix.toml".source = toml.generate "tuicr-stylix.toml" theme;
   };
 
-  # Taken from the package source so the skill always matches the installed CLI.
+  # Taken from the package source so the skill always matches the installed
+  # CLI. Inside claude-sandboxed there is no $TMUX, so the tmux row points at
+  # tuicr-pane (scripts/tuicr-pane.sh) instead of the upstream wrapper.
   custom.llm.skills.tuicr = {
-    source = "${pkgs.tuicr.src}/skills/tuicr";
+    source = pkgs.runCommand "tuicr-skill" {} ''
+      cp -r ${pkgs.tuicr.src}/skills/tuicr $out
+      chmod -R u+w $out
+      substituteInPlace $out/SKILL.md --replace-fail \
+        '| `$TMUX` is set | Run `tuicr-wrapper.sh /path/to/repo -- <scope>` |' \
+        '| `$TMUX` or `$TUICR_BROKER` is set | Run `tuicr-pane <scope>` from the repo directory. It works inside the sandbox, blocks until the user quits tuicr, then prints `closed` |'
+    '';
     kind = "directory";
   };
 }

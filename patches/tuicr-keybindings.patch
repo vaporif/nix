@@ -1,3 +1,91 @@
+diff --git a/src/app/comment_vim.rs b/src/app/comment_vim.rs
+index 3fefd05..25b261f 100644
+--- a/src/app/comment_vim.rs
++++ b/src/app/comment_vim.rs
+@@ -32,6 +32,7 @@ impl App {
+             CommentVimPending::Cancel => {
+                 return Some(("Esc/q again to cancel".to_string(), true));
+             }
++            CommentVimPending::ShiftZ => return Some(("ZZ save · ZQ cancel".to_string(), false)),
+             CommentVimPending::None => {}
+         }
+         Some((
+@@ -70,6 +71,28 @@ impl App {
+         }
+     }
+ 
++    /// `ZZ` saves and `ZQ` cancels, as in vim. Returns false when the key is not
++    /// part of the sequence, so it reaches the editor as usual.
++    pub fn comment_vim_shift_z(&mut self, c: char) -> bool {
++        let armed = self.comment_vim_pending == CommentVimPending::ShiftZ;
++        self.comment_vim_pending = CommentVimPending::None;
++        match (c, armed) {
++            ('Z', false) => {
++                self.comment_vim_pending = CommentVimPending::ShiftZ;
++                true
++            }
++            ('Z', true) => {
++                self.save_comment();
++                true
++            }
++            ('Q', true) => {
++                self.exit_comment_mode();
++                true
++            }
++            _ => false,
++        }
++    }
++
+     /// Reset the pending double-press state; called when any other key
+     /// interrupts the sequence.
+     pub fn comment_vim_reset_pending(&mut self) {
+diff --git a/src/app/mod.rs b/src/app/mod.rs
+index ca99491..8cd739b 100644
+--- a/src/app/mod.rs
++++ b/src/app/mod.rs
+@@ -1091,6 +1091,8 @@ pub enum CommentVimPending {
+     None,
+     Save,
+     Cancel,
++    /// `Z` pressed in Normal mode, waiting for `Z` (save) or `Q` (cancel).
++    ShiftZ,
+ }
+ 
+ pub struct App {
+diff --git a/src/app/tests/target_selector_tests.rs b/src/app/tests/target_selector_tests.rs
+index 9e34e71..4c0871d 100644
+--- a/src/app/tests/target_selector_tests.rs
++++ b/src/app/tests/target_selector_tests.rs
+@@ -2878,3 +2878,29 @@ fn should_discard_stale_remote_threads_event_after_switching_pr() {
+     // then — stale result was dropped
+     assert!(app.forge_review_threads.is_empty());
+ }
++
++#[test]
++fn comment_vim_shift_z_saves_or_cancels() {
++    let mut app = build_app();
++    app.comment_vim_enabled = true;
++    app.enter_review_comment_mode();
++
++    // ZZ == :w; an empty comment is rejected, so the box stays open.
++    assert!(app.comment_vim_shift_z('Z'));
++    assert_eq!(app.comment_vim_pending, CommentVimPending::ShiftZ);
++    assert_eq!(
++        app.comment_vim_mode_label(),
++        Some(("ZZ save · ZQ cancel".to_string(), false))
++    );
++    assert!(app.comment_vim_shift_z('Z'));
++    assert_eq!(app.comment_vim_pending, CommentVimPending::None);
++    assert_eq!(app.input_mode, InputMode::Comment);
++
++    // A lone Q is not part of a sequence and goes to the editor.
++    assert!(!app.comment_vim_shift_z('Q'));
++
++    // ZQ == :q.
++    assert!(app.comment_vim_shift_z('Z'));
++    assert!(app.comment_vim_shift_z('Q'));
++    assert_eq!(app.input_mode, InputMode::Normal);
++}
 diff --git a/src/handler.rs b/src/handler.rs
 index cff93bc..1790f56 100644
 --- a/src/handler.rs
@@ -116,7 +204,7 @@ index 15193c3..fd44d6b 100644
  
      #[test]
 diff --git a/src/main.rs b/src/main.rs
-index a1e5552..88ad557 100644
+index a1e5552..917ae46 100644
 --- a/src/main.rs
 +++ b/src/main.rs
 @@ -412,6 +412,9 @@ fn main() -> anyhow::Result<()> {
@@ -190,3 +278,17 @@ index a1e5552..88ad557 100644
                          _ => {}
                      }
  
+@@ -951,6 +992,13 @@ fn handle_comment_vim_key(app: &mut App, key: crossterm::event::KeyEvent) -> boo
+ 
+     let normal = app.comment_vim_in_normal_mode();
+ 
++    if normal && !ctrl && !key.modifiers.contains(KeyModifiers::ALT)
++        && let KeyCode::Char(c @ ('Z' | 'Q')) = key.code
++        && app.comment_vim_shift_z(c)
++    {
++        return true;
++    }
++
+     // In Normal mode a first plain Enter/Esc arms a confirm (header shows the
+     // hint); a second consecutive press saves (`:w`) / cancels (`:q`).
+     if normal && key.modifiers.is_empty() {

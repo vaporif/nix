@@ -159,6 +159,7 @@
           ls = "eza -a";
           e = "nvim";
           x = "exit";
+          rv = "tuicr";
           mcp-scan = "${lib.getExe pkgs.uv} tool run mcp-scan@latest";
           init-solana = "nix flake init -t github:vaporif/nix-devshells#solana";
           init-rust = "nix flake init -t github:vaporif/nix-devshells#rust";

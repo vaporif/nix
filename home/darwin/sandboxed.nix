@@ -71,6 +71,16 @@
     '';
   };
 
+  # tuicr-pane request fifo; the host end can only open a tuicr split.
+  tuicrBroker = {
+    preHook = ''
+      ${sandboxShared.tuicrBrokerPreload}
+      if [ -n "''${TUICR_BROKER:-}" ]; then
+        echo "(allow file-read* file-write* (subpath \"$TUICR_BROKER\"))" >> "$PROFILE_FILE"
+      fi
+    '';
+  };
+
   claudeDarwin = mkSandboxed "claude-sandboxed" [
     inputs.sandnix.sandnixModules.git
     inputs.sandnix.sandnixModules.gh
@@ -107,10 +117,11 @@
           "$HOME/.docker/config.json"
           "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
         ];
-        env = sandboxShared.sharedEnvNames;
+        env = sandboxShared.sharedEnvNames ++ ["TUICR_BROKER"];
       };
     }
     (darwinExtras "CLAUDE_SANDBOX")
+    tuicrBroker
   ];
 
   codexDarwin = mkSandboxed "codex-sandboxed" [

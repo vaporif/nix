@@ -17,10 +17,38 @@
       find $out -name '*.sh' -exec sed -i '1s|#!/bin/bash|#!/usr/bin/env bash|' {} \;
     '';
 
+  # Brainstorming is spliced at anchor lines instead of diffed, since upstream
+  # rewrites that skill wholesale. --replace-fail turns a moved anchor into a
+  # build error rather than a silently misplaced section.
   patchedSuperpowers = pkgs.applyPatches {
     name = "superpowers-patched";
     src = inputs.superpowers;
     patches = [../../patches/superpowers-customizations.patch];
+    postPatch = let
+      dir = ../../patches/superpowers-brainstorming;
+    in ''
+      f=skills/brainstorming/SKILL.md
+      insertBefore() {
+        substituteInPlace "$f" --replace-fail "$1" "$(cat "$2")"$'\n\n'"$1"
+      }
+      substituteInPlace "$f" --replace-fail \
+        "Say what you'd look for. They decide whether you go." \
+        "Say what you'd look for. They decide whether you go. Inside a code repo, the repo itself is the exception: read its files, docs, ADRs, and recent commits without asking, early enough that it sharpens your questions. Offer recon only for what lies outside it."
+      insertBefore "**Show, don't tell.**" ${dir}/approaches.md
+      insertBefore 'If this is really several independent projects' ${dir}/sizing.md
+      insertBefore '**Builder check:**' ${dir}/execution.md
+      substituteInPlace "$f" --replace-fail \
+        'answers, then hand it over' \
+        'answers, run the spec review loop below, then hand it over'
+      insertBefore '<HARD-GATE>' ${dir}/review-loop.md
+      substituteInPlace "$f" --replace-fail \
+        '`docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`, committed.' \
+        '`docs/specs/YYYY-MM-DD-<topic>-design.md`. Do not commit it.'
+      grep -q 'invoke superpowers:writing-plans' "$f" \
+        || { echo "brainstorming no longer hands off to writing-plans" >&2; exit 1; }
+      cat ${dir}/addendum.md >> "$f"
+      cp ${dir}/spec-document-reviewer-prompt.md skills/brainstorming/
+    '';
   };
 
   # Uses runCommand instead of applyPatches so it survives upstream churn —

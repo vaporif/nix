@@ -1,7 +1,6 @@
 # Override global ignores - track these in this repo
 !.claude
 .claude/rules/
-!CLAUDE.md
 result
 result-*
 nix.conf

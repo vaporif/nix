@@ -79,6 +79,7 @@ switch host="":
     set -euo pipefail
     bash claude/update.sh --check || true
     bash scripts/update-codex.sh --check || true
+    bash scripts/check-superpowers.sh || true
     if [[ "$(uname)" == "Darwin" ]]; then
         bash scripts/update-librewolf.sh --check || true
         nom build ".#darwinConfigurations.burnedapple.system"
@@ -97,6 +98,10 @@ switch host="":
             tmux source-file "${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf" || true
         fi
     fi
+
+# Mark the locked superpowers brainstorming skill as reviewed against our splice-ins
+accept-superpowers:
+    bash scripts/check-superpowers.sh --accept
 
 # Bump claude/package.nix to the latest Anthropic release
 update-claude:

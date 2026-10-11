@@ -59,6 +59,11 @@ _claude_agents_link() {
     return 1
   fi
 
+  # A real file of the same name is the project's own; leave it alone.
+  if [[ -e "${dst}" && ! -L "${dst}" ]]; then
+    return 0
+  fi
+
   ln -sf "${src}" "${dst}"
 }
 
@@ -69,9 +74,10 @@ use_claude_agents() {
   # Watch central store for changes (re-eval after `just switch`)
   watch_file "${CLAUDE_AGENTS_STORE}"
 
-  # Remove only symlinks (preserve hand-written project agents)
+  # Remove only our own symlinks; hand-written files and links the repo
+  # owns stay.
   if [[ -d "${agents_dir}" ]]; then
-    find "${agents_dir}" -maxdepth 1 -type l -delete
+    find "${agents_dir}" -maxdepth 1 -type l -lname "${CLAUDE_AGENTS_STORE}/*" -delete
   fi
 
   local names=()

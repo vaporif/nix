@@ -47,6 +47,11 @@ _claude_rules_link() {
     return 1
   fi
 
+  # A real file of the same name is the project's own; leave it alone.
+  if [[ -e "${dst}" && ! -L "${dst}" ]]; then
+    return 0
+  fi
+
   ln -sf "${src}" "${dst}"
 }
 
@@ -57,9 +62,10 @@ use_claude_rules() {
   # Watch central store for changes (re-eval after `just switch`)
   watch_file "${CLAUDE_RULES_STORE}"
 
-  # Remove only symlinks (preserve hand-written project rules)
+  # Remove only our own symlinks; hand-written files and links the repo
+  # owns stay.
   if [[ -d "${rules_dir}" ]]; then
-    find "${rules_dir}" -maxdepth 1 -type l -delete
+    find "${rules_dir}" -maxdepth 1 -type l -lname "${CLAUDE_RULES_STORE}/*" -delete
   fi
 
   mkdir -p "${rules_dir}"

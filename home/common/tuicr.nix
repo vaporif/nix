@@ -9,7 +9,8 @@
   toml = pkgs.formats.toml {};
 
   # base16 has no tinted backgrounds, so diff add/del rows blend the accent
-  # into base00 the way GitHub-style diffs do.
+  # into base01 the way GitHub-style diffs do. base01 is lighter than base00
+  # on the light scheme, so the tint keeps text contrast instead of eating it.
   mix = ratio: fg: bg: let
     channel = hex: i: lib.fromHexString (builtins.substring (1 + i * 2) 2 hex);
     blend = i: let
@@ -18,24 +19,74 @@
     in
       lib.optionalString (v < 16) "0" + h;
   in "#${blend 0}${blend 1}${blend 2}";
-  tint = color: mix 0.18 color c.base00;
+  tint = color: mix 0.2 color c.base01;
+  # The scheme's accents sit around 3.5:1 on base00; darken them for text that
+  # has to stay readable on the tinted rows.
+  darken = ratio: mix ratio "#000000";
+
+  # Without syntax_theme tuicr falls back to base16-ocean.light, whose gray
+  # comments vanish on this background.
+  syntaxRule = scope: fg: style: ''
+    <dict>
+      <key>scope</key><string>${scope}</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key><string>${fg}</string>
+        <key>fontStyle</key><string>${style}</string>
+      </dict>
+    </dict>
+  '';
+  syntaxTheme = pkgs.writeText "tuicr-stylix.tmTheme" ''
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+    <dict>
+      <key>name</key><string>stylix</string>
+      <key>settings</key>
+      <array>
+        <dict>
+          <key>settings</key>
+          <dict>
+            <key>foreground</key><string>${c.base05}</string>
+            <key>background</key><string>${c.base00}</string>
+            <key>caret</key><string>${c.base0A}</string>
+            <key>selection</key><string>${c.base02}</string>
+            <key>lineHighlight</key><string>${c.base01}</string>
+          </dict>
+        </dict>
+        ${lib.concatStrings [
+      (syntaxRule "comment, punctuation.definition.comment" (darken 0.2 c.base04) "italic")
+      (syntaxRule "keyword, storage, storage.type, storage.modifier" (darken 0.2 c.base0E) "")
+      (syntaxRule "string, punctuation.definition.string" (darken 0.25 c.base0B) "")
+      (syntaxRule "constant, constant.numeric, constant.language, constant.character" (darken 0.25 c.base09) "")
+      (syntaxRule "entity.name.function, support.function, meta.function-call" (darken 0.2 c.base0C) "")
+      (syntaxRule "entity.name.type, support.type, entity.name.class, entity.other.inherited-class" (darken 0.2 c.base0A) "")
+      (syntaxRule "variable.parameter, variable.other.member, entity.other.attribute-name" c.base07 "")
+      (syntaxRule "punctuation, keyword.operator" c.base06 "")
+      (syntaxRule "markup.heading, entity.name.tag" (darken 0.15 c.base08) "bold")
+    ]}
+      </array>
+    </dict>
+    </plist>
+  '';
 
   theme = {
     panel_bg = c.base00;
     bg_highlight = c.base02;
     fg_primary = c.base05;
     fg_secondary = c.base04;
-    fg_dim = c.base03;
+    fg_dim = c.base04;
 
-    diff_add = c.base0B;
+    diff_add = darken 0.25 c.base0B;
     diff_add_bg = tint c.base0B;
-    diff_del = c.base08;
+    diff_del = darken 0.15 c.base08;
     diff_del_bg = tint c.base08;
     diff_context = c.base05;
     diff_hunk_header = c.base0D;
-    expanded_context_fg = c.base03;
+    expanded_context_fg = c.base04;
     syntax_add_bg = tint c.base0B;
     syntax_del_bg = tint c.base08;
+    syntax_theme = "${syntaxTheme}";
 
     file_added = c.base0B;
     file_modified = c.base0A;

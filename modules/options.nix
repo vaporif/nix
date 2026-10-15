@@ -156,6 +156,18 @@ in {
     gitlab.enable = lib.mkEnableOption "GitLab integration (work VM only): the read-only GitLab MCP server and gitlab.nvim for in-editor merge-request review. Both read the API URL and token from the gitlab-api-url and gitlab-token sops secrets";
     mattermost.enable = lib.mkEnableOption "Mattermost in the terminal (work VM only): a matterircd user service bridging to IRC on localhost, and a weechat that logs into it. Reads host and access token from the mattermost-host and mattermost-token sops secrets (SAML-only server, so no password login); username and team come from the API";
     workSsh.enable = lib.mkEnableOption "the work SSH host blocks (bastion + ProxyJump hosts; work VM only). The ssh_config snippet lives in the ssh-work-config sops secret and is pulled in with Include, so work IPs stay out of the nix source";
+    autotrash = {
+      minFreeGB = lib.mkOption {
+        type = lib.types.ints.positive;
+        default = 50;
+        description = "Hourly autotrash purges the oldest trashed files until at least this much disk is free (Linux only).";
+      };
+      maxAgeDays = lib.mkOption {
+        type = lib.types.ints.positive;
+        default = 30;
+        description = "Hourly autotrash also deletes anything trashed longer ago than this, regardless of free space (Linux only).";
+      };
+    };
     qdrant.enable = lib.mkOption {
       type = lib.types.bool;
       default = false;

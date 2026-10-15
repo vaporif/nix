@@ -1,5 +1,8 @@
 {pkgs, ...}: {
-  imports = [./sandboxed.nix];
+  imports = [
+    ./autotrash.nix
+    ./sandboxed.nix
+  ];
 
   home.packages = [pkgs.ghostty.terminfo];
 

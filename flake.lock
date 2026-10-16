@@ -920,17 +920,17 @@
     "review-nvim": {
       "flake": false,
       "locked": {
-        "lastModified": 1789657151,
-        "narHash": "sha256-yt5/ixbXwKzxonbwQJGUd3dPIdDeZe9E0KPiMJOK4bA=",
+        "lastModified": 1791990146,
+        "narHash": "sha256-Rjqbcp7LS/LD2D3sctJrMytbYeO1fjtArQBAxo0g0L4=",
         "owner": "georgeguimaraes",
         "repo": "review.nvim",
-        "rev": "f72a347538913ac558d2440dd3899426a2dd85ae",
+        "rev": "46fa59f63d71c883baf1f0f89cf52f91b42eaeb0",
         "type": "github"
       },
       "original": {
         "owner": "georgeguimaraes",
         "repo": "review.nvim",
-        "rev": "f72a347538913ac558d2440dd3899426a2dd85ae",
+        "rev": "46fa59f63d71c883baf1f0f89cf52f91b42eaeb0",
         "type": "github"
       }
     },

@@ -110,7 +110,7 @@
       flake = false;
     };
     review-nvim = {
-      url = "github:georgeguimaraes/review.nvim/f72a347538913ac558d2440dd3899426a2dd85ae";
+      url = "github:georgeguimaraes/review.nvim/46fa59f63d71c883baf1f0f89cf52f91b42eaeb0";
       flake = false;
     };
 

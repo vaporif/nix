@@ -29,14 +29,18 @@ in rec {
   extraPostPatch = ''
     # disable-data-reporting-at-compile-time.patch edits the vendored glean-core
     # crate, so cargo's directory-source checksums must be updated to match or
-    # the gkrust build aborts. Upstream does the same in scripts/librewolf-patches.py.
-    substituteInPlace third_party/rust/glean-core/.cargo-checksum.json \
-      --replace-fail \
-        5bc8c9bbe8c0eabe408d9a7cd7a8e6e09eee0ead817607643882b38a36d07c91 \
-        bddacbe056ce7458663a39dc99d5bb3434099aa69cae793cf0c57d4e54f5a6a4 \
-      --replace-fail \
-        c20989b1aa336b0849e96ec1b2beea1eab825ffd192c2c3a636e20f830b811d0 \
-        0b43fbc5f86c6c247c5189af58be425a829c3b09018c6b26589661eec9a5ad24
+    # the gkrust build aborts. The old/new hash pairs are read from upstream's
+    # scripts/librewolf-patches.py so they track each release without a manual bump.
+    glean_pairs=$(grep -oE "s/[0-9a-f]{64}/[0-9a-f]{64}/g' third_party/rust/glean-core/\.cargo-checksum\.json" \
+      ${source}/scripts/librewolf-patches.py | cut -d/ -f2,3)
+    if [ -z "$glean_pairs" ]; then
+      echo "no glean-core checksum rewrites found in librewolf-patches.py" >&2
+      exit 1
+    fi
+    for pair in $glean_pairs; do
+      substituteInPlace third_party/rust/glean-core/.cargo-checksum.json \
+        --replace-fail "''${pair%/*}" "''${pair#*/}"
+    done
 
     while read patch_name; do
       echo "applying LibreWolf patch: $patch_name"

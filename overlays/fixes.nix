@@ -87,6 +87,17 @@ in
       doCheck = false;
     });
 
+    # Skip atuin pty e2e tests that time out in the sandbox: the output-capture
+    # test and every bash-preexec shell variant (zsh/plain-bash variants pass)
+    atuin = prev.atuin.overrideAttrs (old: {
+      checkFlags =
+        (old.checkFlags or [])
+        ++ [
+          "--skip=filtered_commands_leave_no_captured_output"
+          "--skip=bash_preexec"
+        ];
+    });
+
     # Skip curl-impersonate check (AppleIDN not compiled on macOS 15)
     curl-impersonate = prev.curl-impersonate.overrideAttrs (_: {
       doCheck = false;

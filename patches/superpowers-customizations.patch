@@ -1,7 +1,7 @@
-diff --git orig/skills/diagnosing-superpowers/SKILL.md mod/skills/diagnosing-superpowers/SKILL.md
-index f1d479f..fa347c6 100644
---- orig/skills/diagnosing-superpowers/SKILL.md
-+++ mod/skills/diagnosing-superpowers/SKILL.md
+diff --git a/skills/diagnosing-superpowers/SKILL.md b/skills/diagnosing-superpowers/SKILL.md
+index dda2692..8fead1e 100644
+--- a/skills/diagnosing-superpowers/SKILL.md
++++ b/skills/diagnosing-superpowers/SKILL.md
 @@ -39,7 +39,10 @@ Create a todo per step. Steps 5–7 run only on their stated condition.
     `prompts/`: `skill-timeline.md`,
     `plan-adherence.md`, `repeated-work.md`, `stumbles.md`,
@@ -24,10 +24,10 @@ index f1d479f..fa347c6 100644
     append report §9.
  
  ## Quick reference
-diff --git orig/skills/dispatching-parallel-agents/SKILL.md mod/skills/dispatching-parallel-agents/SKILL.md
+diff --git a/skills/dispatching-parallel-agents/SKILL.md b/skills/dispatching-parallel-agents/SKILL.md
 index 3fa091b..2e84b79 100644
---- orig/skills/dispatching-parallel-agents/SKILL.md
-+++ mod/skills/dispatching-parallel-agents/SKILL.md
+--- a/skills/dispatching-parallel-agents/SKILL.md
++++ b/skills/dispatching-parallel-agents/SKILL.md
 @@ -76,6 +76,8 @@ Subagent (general-purpose): "Fix tool-approval-race-conditions.test.ts failures"
  
  Multiple dispatch calls in one response = parallel execution. One per response = sequential.
@@ -37,10 +37,10 @@ index 3fa091b..2e84b79 100644
  ### 4. Review and Integrate
  
  When agents return:
-diff --git orig/skills/executing-plans/SKILL.md mod/skills/executing-plans/SKILL.md
-index 49077ad..eeab57c 100644
---- orig/skills/executing-plans/SKILL.md
-+++ mod/skills/executing-plans/SKILL.md
+diff --git a/skills/executing-plans/SKILL.md b/skills/executing-plans/SKILL.md
+index ac77129..fcf0b97 100644
+--- a/skills/executing-plans/SKILL.md
++++ b/skills/executing-plans/SKILL.md
 @@ -1,10 +1,39 @@
  ---
  name: executing-plans
@@ -187,39 +187,10 @@ index 49077ad..eeab57c 100644
  
  Use superpowers:finishing-a-development-branch.
  
-@@ -319,6 +386,9 @@ Use superpowers:finishing-a-development-branch.
- | "The reviewer said Minor, so it's Minor" | The label graded the spec's silence. Grade what the person gets. Re-grade, then gate. |
- | "The fix is obvious, no need for a failing test first" | The failing test is the only proof the finding was real and is now gone. Without it you have a diff and a hope. |
- | "I'll fix the minors too while I'm in there" | Every minor you fix is a test, a fix, and a suite run your partner did not ask for. Ledger them; your partner decides. |
-+| "Running this inline is faster than dispatching subagents" | Inline is the degraded path, not a shortcut you pick. No subagent tool, or the user asked. Otherwise route. |
-+| "I'll flip all the checkboxes once the task is done" | The flip is the resume point. Batched at the end, it records nothing a crashed session can use. |
-+| "Polish is optional when the review came back clean" | Polish always runs. A clean review says the code is correct, not that it reads like a person wrote it. |
- 
- ## Example Workflow
- 
-@@ -326,8 +396,8 @@ Use superpowers:finishing-a-development-branch.
- You: I'm using the executing-plans skill to implement this plan inline.
- 
- [Setup: worktree verified]
--[Read plan once: docs/superpowers/plans/feature-plan.md; spec read]
--[Resolve workspace: sdd-workspace docs/superpowers/plans/feature-plan.md — no ledger inside, fresh start]
-+[Read plan once: docs/plans/feature-plan.md; spec read]
-+[Resolve workspace: sdd-workspace docs/plans/feature-plan.md — no ledger inside, fresh start]
- [Pre-flight scan: 2 shared-interface rows, 4 self-consistency rows, clean; written to ledger]
- [Create todos for all tasks]
- 
-@@ -367,6 +437,7 @@ Deferred minors:
- - README lacks a usage example
- - recovery.js could split verify/repair into two files
- 
-+[Polish: 3 review rounds (round 2 clean), idiomatic pass, /cleanup, comment strip + humanize — 4 commits]
- [Delete this plan's workspace — the record now lives in git]
- 
- Using superpowers:finishing-a-development-branch.
-diff --git orig/skills/requesting-code-review/SKILL.md mod/skills/requesting-code-review/SKILL.md
+diff --git a/skills/requesting-code-review/SKILL.md b/skills/requesting-code-review/SKILL.md
 index 68d338a..f3beb86 100644
---- orig/skills/requesting-code-review/SKILL.md
-+++ mod/skills/requesting-code-review/SKILL.md
+--- a/skills/requesting-code-review/SKILL.md
++++ b/skills/requesting-code-review/SKILL.md
 @@ -57,7 +57,7 @@ HEAD_SHA=$(git rev-parse HEAD)
  
  [Dispatch code reviewer subagent]
@@ -229,11 +200,11 @@ index 68d338a..f3beb86 100644
    BASE_SHA: a7981ec
    HEAD_SHA: 3df7661
  
-diff --git orig/skills/subagent-driven-development/SKILL.md mod/skills/subagent-driven-development/SKILL.md
-index f7bbf6a..e43f2a1 100644
---- orig/skills/subagent-driven-development/SKILL.md
-+++ mod/skills/subagent-driven-development/SKILL.md
-@@ -218,6 +218,69 @@ that implementer. Single-file mechanical fixes also take the cheapest tier.
+diff --git a/skills/subagent-driven-development/SKILL.md b/skills/subagent-driven-development/SKILL.md
+index ea170ed..ed60ec5 100644
+--- a/skills/subagent-driven-development/SKILL.md
++++ b/skills/subagent-driven-development/SKILL.md
+@@ -173,6 +173,69 @@ that implementer. Single-file mechanical fixes also take the cheapest tier.
  - Touches multiple files with integration concerns → standard model
  - Requires design judgment or broad codebase understanding → most capable model
  
@@ -302,8 +273,8 @@ index f7bbf6a..e43f2a1 100644
 +
  ## The Task Loop
  
- **Batch small same-shape work.** When the plan lists several tasks that are
-@@ -279,7 +342,9 @@ and fix-round diffs need it.
+ **Small same-shape work:** when the plan lists several small edits of the
+@@ -230,7 +293,9 @@ and fix-round diffs need it.
    a pointer to that ledger entry in the dispatch.
  - Record the implementer's agent identity from the dispatch result —
    fix-loop rounds 1-3 resume this agent.
@@ -314,7 +285,7 @@ index f7bbf6a..e43f2a1 100644
  
  Template: [implementer-prompt.md](implementer-prompt.md)
  
-@@ -442,6 +507,27 @@ Then mark the todo complete and move on. Never move to the next task while
+@@ -315,6 +380,27 @@ Then mark the todo complete and move on. Never move to the next task while
  the review has open Critical/Important issues that are neither fixed nor
  parked-with-ruling at the cap.
  
@@ -341,52 +312,11 @@ index f7bbf6a..e43f2a1 100644
 +
  ## Final Review
  
- The final whole-branch review gets a package too: run
-@@ -468,6 +554,14 @@ the four classes above stop you here. There is no second fix wave —
- residual load-bearing findings surface to your human partner when
- finishing-a-development-branch presents the options.
- 
-+## Post-Implementation Polish (always, via subagent named in the plan)
-+
-+After the final whole-branch review is clean but BEFORE deleting the workspace or finishing the branch, **always** run the post-implementation-polish pipeline as a single dispatched subagent. Do NOT run polish inline, do NOT skip it, and do NOT ask the user.
-+
-+Read the `Polish: post-implementation-polish → <agent type>` line from the plan's `## Agent Assignments` section and dispatch using that agent type. If the plan has no Polish line, fall back to `general-purpose` and note the gap so writing-plans can fix it next time.
-+
-+The polish subagent owns all six phases (three review rounds, idiomatic pass, /cleanup, strip + humanize comments). It runs them in order, committing between phases, and reports back which phases ran, which were skipped (with reason), commits made, and any unresolved Critical/Important findings. If it surfaces unresolved Critical/Important findings, treat them as a regression: dispatch a fix subagent, then re-run the affected phase. Loop until clean (max 10 iterations across the whole polish stage), then surface to your human partner.
-+
- ## Finish
- 
- Before you delete anything, collect every ledger line containing `Ruling:` —
-@@ -479,10 +573,10 @@ took on your human partner's behalf reach them — they read it and rework
- whatever you got wrong. A ruling that dies with the workspace was a decision
- made in secret.
- 
--When the final whole-branch review is clean and its fixes are merged,
--delete this plan's workspace (`rm -rf <workspace>`) — the git history is
--the record now. Sibling directories belong to other plans; leave them
--alone.
-+When the final whole-branch review is clean, its fixes are merged, and
-+post-implementation-polish reports DONE, delete this plan's workspace
-+(`rm -rf <workspace>`) — the git history is the record now. Sibling
-+directories belong to other plans; leave them alone.
- 
- Use superpowers:finishing-a-development-branch.
- 
-@@ -506,8 +600,8 @@ Use superpowers:finishing-a-development-branch.
- You: I'm using Subagent-Driven Development to execute this plan.
- 
- [Setup: worktree verified]
--[Read plan file once: docs/superpowers/plans/feature-plan.md]
--[Resolve workspace: bash scripts/sdd-workspace docs/superpowers/plans/feature-plan.md — no ledger inside, fresh start]
-+[Read plan file once: docs/plans/feature-plan.md]
-+[Resolve workspace: bash scripts/sdd-workspace docs/plans/feature-plan.md — no ledger inside, fresh start]
- [Create todos for all tasks]
- 
- Task 1: Hook installation script
-diff --git orig/skills/subagent-driven-development/implementer-prompt.md mod/skills/subagent-driven-development/implementer-prompt.md
+ When every task is complete, read
+diff --git a/skills/subagent-driven-development/implementer-prompt.md b/skills/subagent-driven-development/implementer-prompt.md
 index 5c8ecd6..81cf422 100644
---- orig/skills/subagent-driven-development/implementer-prompt.md
-+++ mod/skills/subagent-driven-development/implementer-prompt.md
+--- a/skills/subagent-driven-development/implementer-prompt.md
++++ b/skills/subagent-driven-development/implementer-prompt.md
 @@ -3,7 +3,7 @@
  Use this template when dispatching an implementer subagent.
  
@@ -460,10 +390,43 @@ index 5c8ecd6..81cf422 100644
      ## Before Reporting Back: Self-Review
  
      Review your work with fresh eyes. Ask yourself:
-diff --git orig/skills/writing-plans/SKILL.md mod/skills/writing-plans/SKILL.md
+diff --git a/skills/subagent-driven-development/references/final-review.md b/skills/subagent-driven-development/references/final-review.md
+index 851a5c5..8e8bf42 100644
+--- a/skills/subagent-driven-development/references/final-review.md
++++ b/skills/subagent-driven-development/references/final-review.md
+@@ -28,6 +28,14 @@ plan (top of SKILL.md) stop you here. There is no second fix wave —
+ residual load-bearing findings surface to your human partner when
+ finishing-a-development-branch presents the options.
+ 
++### Post-Implementation Polish (always, via subagent named in the plan)
++
++After the final whole-branch review is clean but BEFORE deleting the workspace or finishing the branch, **always** run the post-implementation-polish pipeline as a single dispatched subagent. Do NOT run polish inline, do NOT skip it, and do NOT ask the user.
++
++Read the `Polish: post-implementation-polish → <agent type>` line from the plan's `## Agent Assignments` section and dispatch using that agent type. If the plan has no Polish line, fall back to `general-purpose` and note the gap so writing-plans can fix it next time.
++
++The polish subagent owns all six phases (three review rounds, idiomatic pass, /cleanup, strip + humanize comments). It runs them in order, committing between phases, and reports back which phases ran, which were skipped (with reason), commits made, and any unresolved Critical/Important findings. If it surfaces unresolved Critical/Important findings, treat them as a regression: dispatch a fix subagent, then re-run the affected phase. Loop until clean (max 10 iterations across the whole polish stage), then surface to your human partner.
++
+ ### Finish
+ 
+ Before you delete anything, collect every ledger line containing `Ruling:` —
+@@ -39,9 +47,9 @@ took on your human partner's behalf reach them — they read it and rework
+ whatever you got wrong. A ruling that dies with the workspace was a decision
+ made in secret.
+ 
+-When the final whole-branch review is clean and its fixes are merged,
+-delete this plan's workspace (`rm -rf <workspace>`) — the git history is
+-the record now. Sibling directories belong to other plans; leave them
+-alone.
++When the final whole-branch review is clean, its fixes are merged, and
++post-implementation-polish reports DONE, delete this plan's workspace
++(`rm -rf <workspace>`) — the git history is the record now. Sibling
++directories belong to other plans; leave them alone.
+ 
+ Use superpowers:finishing-a-development-branch.
+diff --git a/skills/writing-plans/SKILL.md b/skills/writing-plans/SKILL.md
 index 4cf0275..113fb94 100644
---- orig/skills/writing-plans/SKILL.md
-+++ mod/skills/writing-plans/SKILL.md
+--- a/skills/writing-plans/SKILL.md
++++ b/skills/writing-plans/SKILL.md
 @@ -7,13 +7,13 @@ description: Use when you have a spec or requirements for a multi-step task, bef
  
  ## Overview

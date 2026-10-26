@@ -173,8 +173,21 @@
     # fastmcp satisfies mcp-nixos's `fastmcp>=3.2.0` constraint; the aarch64-linux
     # lupa/luajit issue the upstream overlay dropped pydocket to avoid is handled
     # by the lupa override in overlays/fixes.nix.
-    mcpNixosOverlay = final: _prev: {
-      mcp-nixos = inputs.mcp-nixos.lib.mkMcpNixos {pkgs = final;};
+    #
+    # Its fastmcp4 extension also decides `mcp` from `pyPrev.mcp-types.version`,
+    # but nixpkgs' mcp-types now inherits version/src from the final `mcp`, so
+    # the scope recurses infinitely. nixpkgs' mcp 2.x already meets the bounds,
+    # so keep that pair and rebuild the dependency list from the fixed scope.
+    mcpNixosOverlay = final: _prev: let
+      fastmcp4 = import "${inputs.mcp-nixos}/nix/fastmcp4.nix" {inherit (final) lib;};
+      py =
+        final.python3Packages.overrideScope (pyFinal: pyPrev:
+          fastmcp4 pyFinal pyPrev // {inherit (pyPrev) mcp mcp-types;});
+    in {
+      mcp-nixos = (inputs.mcp-nixos.lib.mkMcpNixos {pkgs = final;}).overridePythonAttrs (_: {
+        dependencies = [py.fastmcp py.requests py.beautifulsoup4];
+        passthru.pythonPackages = py;
+      });
     };
 
     sharedOverlays = [mcpNixosOverlay inputs.earthtone-nvim.overlays.default localPackages];

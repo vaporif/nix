@@ -1,5 +1,6 @@
-**Before writing a software design**, settle execution so the doc can
-record it:
+**Before writing a full software design**, settle execution so the doc
+can record it. A short design for a small change skips this; writing-plans
+derives these sections when the spec lacks them.
 
 1. **Name the units.** Split the system into small units, each with one
    clear purpose, an interface others use without reading its internals,

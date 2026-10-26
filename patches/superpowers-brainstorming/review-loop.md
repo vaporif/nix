@@ -1,11 +1,12 @@
 **Spec review loop (multi-agent, software designs).** The builder check
 finds questions for your human partner; this loop finds defects in the
-document. It runs once the builder check's answers are folded in, and
-the document is not handed over until it is clean. Without a subagent
+document. It runs on full designs once the builder check's answers are
+folded in, and the document is not handed over until it is clean. A short
+design for a small change skips it, as it skips the builder check. Without a subagent
 tool, do each finder and validator pass yourself, re-reading the
 document fresh each time.
 
-For a small design (3 or fewer tasks in the dependency graph), run the
+For a full design with 3 or fewer tasks in the dependency graph, run the
 same loop with one finder and one validator per iteration (skip the
 merge step) and cap it at 5 iterations. It still runs until clean, never
 a single pass. Otherwise iterate finder → merge → validator → fix until

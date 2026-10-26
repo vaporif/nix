@@ -33,7 +33,7 @@
       }
       substituteInPlace "$f" --replace-fail \
         "decide whether you go." \
-        "decide whether you go. Inside a code repo, the repo itself is the exception: read its files, docs, ADRs, and recent commits without asking, early enough that it sharpens your questions. Offer recon only for what lies outside it."
+        "decide whether you go. Inside a code repo, going deeper needs no offer: keep reading its files, docs, ADRs, and recent commits as your questions need. Offer recon only for what lies outside it."
       insertBefore "**Show, don't tell.**" ${dir}/approaches.md
       insertBefore 'If this is really several independent projects' ${dir}/sizing.md
       insertBefore '**Builder check**' ${dir}/execution.md

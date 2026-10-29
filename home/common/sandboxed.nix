@@ -106,6 +106,7 @@
     # Rust
     "RUST_SRC_PATH"
     "CARGO_NET_GIT_FETCH_WITH_CLI"
+    "CARGO_BUILD_JOBS"
     "LIBCLANG_PATH"
     "BINDGEN_EXTRA_CLANG_ARGS"
     # Nix stdenv / cc-wrapper / bintools-wrapper

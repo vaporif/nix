@@ -10,6 +10,25 @@
   claude = lib.getExe pkgs.claude-code;
   codex = lib.getExe pkgs.codex;
 
+  # Every agent shares agents.slice, so concurrent builds are capped together
+  # and the ssh/tmux session keeps its memory instead of being swapped into
+  # zram. `systemd-run --scope` execs in place, so the wrapper PID that the
+  # tuicr broker watches survives. Skipped when no user bus is reachable.
+  agentScope = ''
+    launcher=()
+    if [[ -S "''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/bus" ]]; then
+      launcher=(${lib.getExe' pkgs.systemd "systemd-run"} --user --scope --quiet --collect --slice=agents.slice --)
+    fi
+  '';
+
+  # Leave two vCPUs of headroom per build; agents.slice handles the rest.
+  # Nextest threads are deliberately not set: its env var outranks a repo's
+  # nextest.toml and would override profiles that serialize tests.
+  buildJobs = ''
+    CARGO_BUILD_JOBS=10
+    export CARGO_BUILD_JOBS
+  '';
+
   claudeLinux = pkgs.writeShellScriptBin "claude-sandboxed" ''
     bind_ro() { [[ -e "$1" ]] && args+=(--ro-bind "$1" "$1"); }
     bind_rw() { [[ -e "$1" ]] && args+=(--bind "$1" "$1"); }
@@ -19,6 +38,8 @@
     ${sandboxShared.secretPreload}
     ${sandboxShared.ghTokenPreload}
     ${sandboxShared.tuicrBrokerPreload}
+    ${buildJobs}
+    ${agentScope}
     CLAUDE_SANDBOX=1
     export CLAUDE_SANDBOX
     CARGO_NET_GIT_FETCH_WITH_CLI=true
@@ -146,7 +167,7 @@
       pass_env "$var"
     done
 
-    exec ${bwrap} "''${args[@]}" ${claude} "$@"
+    exec "''${launcher[@]}" ${bwrap} "''${args[@]}" ${claude} "$@"
   '';
 
   codexLinux = pkgs.writeShellScriptBin "codex-sandboxed" ''
@@ -157,6 +178,8 @@
     # Pre-load secrets before sandbox
     ${sandboxShared.secretPreload}
     ${sandboxShared.ghTokenPreload}
+    ${buildJobs}
+    ${agentScope}
     CODEX_SANDBOX=1
     export CODEX_SANDBOX
     CARGO_NET_GIT_FETCH_WITH_CLI=true
@@ -261,13 +284,21 @@
       pass_env "$var"
     done
 
-    exec ${bwrap} "''${args[@]}" ${codex} "$@"
+    exec "''${launcher[@]}" ${bwrap} "''${args[@]}" ${codex} "$@"
   '';
 
   # Passthrough wrappers when custom.claude.sandbox = false (bwrap can't nest).
   claudePlain = pkgs.writeShellScriptBin "claude-sandboxed" ''exec ${claude} "$@"'';
   codexPlain = pkgs.writeShellScriptBin "codex-sandboxed" ''exec ${codex} "$@"'';
 in {
+  config.systemd.user.slices.agents = lib.mkIf cfg.claude.sandbox {
+    Unit.Description = "Sandboxed coding agents";
+    Slice = {
+      MemoryHigh = "12G";
+      CPUWeight = 30;
+    };
+  };
+
   config.custom.sandboxedPackages = lib.mkMerge [
     (lib.mkIf cfg.claude.enable {
       claude =

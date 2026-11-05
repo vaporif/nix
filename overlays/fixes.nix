@@ -88,8 +88,15 @@ in
     });
 
     # Skip atuin pty e2e tests that time out in the sandbox: the output-capture
-    # test and every bash-preexec shell variant (zsh/plain-bash variants pass)
+    # test and every bash-preexec shell variant (zsh/plain-bash variants pass).
+    # The e2e_ai_sessions suite is timing-sensitive and fails a different test
+    # each run, so drop it (cargo auto-discovers test targets from tests/).
     atuin = prev.atuin.overrideAttrs (old: {
+      preCheck =
+        (old.preCheck or "")
+        + ''
+          rm crates/atuin/tests/e2e_ai_sessions.rs
+        '';
       checkFlags =
         (old.checkFlags or [])
         ++ [

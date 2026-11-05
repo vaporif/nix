@@ -8,7 +8,8 @@
 in rec {
   inherit (src) packageVersion firefox source;
 
-  extraPatches = ["${source}/patches/pref-pane/pref-pane-small.patch"];
+  # pref-pane-small.patch is listed in assets/patches.txt, applied in extraPostPatch.
+  extraPatches = [];
 
   extraConfigureFlags =
     [
@@ -43,6 +44,11 @@ in rec {
     done
 
     while read patch_name; do
+      # lw-dir.patch builds librewolf.cfg/policies.json/local-settings.js from lw/;
+      # those are shipped through the wrapper (extraPrefsFiles/extraPoliciesFiles) instead.
+      if [ "$patch_name" = patches/lw-dir.patch ]; then
+        continue
+      fi
       echo "applying LibreWolf patch: $patch_name"
       patch -p1 < ${source}/$patch_name
     done <${source}/assets/patches.txt

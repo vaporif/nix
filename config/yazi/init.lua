@@ -2,7 +2,7 @@ require('yafg'):setup {
   editor = 'nvim',
 }
 
-require('augment-command.config'):setup {
+require('augment-command.config').setup {
   smart_enter = true,
   smart_paste = false,
   smart_tab_create = false,

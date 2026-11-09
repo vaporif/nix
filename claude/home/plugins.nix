@@ -32,8 +32,8 @@
         substituteInPlace "$f" --replace-fail "$1" "$(cat "$2")"$'\n\n'"$1"
       }
       substituteInPlace "$f" --replace-fail \
-        "decide whether you go." \
-        "decide whether you go. Inside a code repo, going deeper needs no offer: keep reading its files, docs, ADRs, and recent commits as your questions need. Offer recon only for what lies outside it."
+        "Say what you looked for and what you found." \
+        "Say what you looked for and what you found. Inside a code repo, keep reading its files, docs, ADRs, and recent commits as your questions need. For what lies outside it (the web, their other files and data), offer first and say what you'd look for; they decide whether you go."
       insertBefore "**Show, don't tell.**" ${dir}/approaches.md
       insertBefore 'If this is really several independent projects' ${dir}/sizing.md
       insertBefore '**Builder check**' ${dir}/execution.md

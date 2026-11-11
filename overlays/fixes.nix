@@ -48,6 +48,30 @@ in
         })
       ];
 
+    # Drop timing-sensitive atuin pty e2e suites (cargo auto-discovers test
+    # targets from tests/, so removing the file removes the target):
+    #  - e2e_pty_proxy_stdin times out waiting for the proxy to exit on EOF
+    #    in containers (e.g. docker aarch64-linux builds)
+    #  - e2e_ai_sessions (darwin) fails a different test each run
+    # On darwin also skip the output-capture test and every bash-preexec shell
+    # variant, which time out in the sandbox (zsh/plain-bash variants pass).
+    atuin = prev.atuin.overrideAttrs (old: {
+      preCheck =
+        (old.preCheck or "")
+        + ''
+          rm crates/atuin/tests/e2e_pty_proxy_stdin.rs
+        ''
+        + lib.optionalString prev.stdenv.hostPlatform.isDarwin ''
+          rm crates/atuin/tests/e2e_ai_sessions.rs
+        '';
+      checkFlags =
+        (old.checkFlags or [])
+        ++ lib.optionals prev.stdenv.hostPlatform.isDarwin [
+          "--skip=filtered_commands_leave_no_captured_output"
+          "--skip=bash_preexec"
+        ];
+    });
+
     # Skip flaky mcp-nixos test (test_read_text_file matches "Error" in store file content)
     mcp-nixos = prev.mcp-nixos.overrideAttrs (_: {
       doInstallCheck = false;
@@ -85,24 +109,6 @@ in
     # Skip ast-grep check (test_scan_invalid_rule_id fails with illegal byte sequence in sandbox)
     ast-grep = prev.ast-grep.overrideAttrs (_: {
       doCheck = false;
-    });
-
-    # Skip atuin pty e2e tests that time out in the sandbox: the output-capture
-    # test and every bash-preexec shell variant (zsh/plain-bash variants pass).
-    # The e2e_ai_sessions suite is timing-sensitive and fails a different test
-    # each run, so drop it (cargo auto-discovers test targets from tests/).
-    atuin = prev.atuin.overrideAttrs (old: {
-      preCheck =
-        (old.preCheck or "")
-        + ''
-          rm crates/atuin/tests/e2e_ai_sessions.rs
-        '';
-      checkFlags =
-        (old.checkFlags or [])
-        ++ [
-          "--skip=filtered_commands_leave_no_captured_output"
-          "--skip=bash_preexec"
-        ];
     });
 
     # Skip curl-impersonate check (AppleIDN not compiled on macOS 15)

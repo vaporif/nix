@@ -16,3 +16,7 @@ Two thoughts mean you are under-sizing:
 - "I know this kind of app, so it's small." Familiarity isn't size. If
   there's no existing code here to change, it adds units, so it's a
   project.
+
+The first-message short design (nothing open, one sensible way) is for a
+small change only. If the work is a project by the rules above, lay out
+the approaches and write the full design, even when the way is obvious.

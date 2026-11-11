@@ -28,7 +28,8 @@
 ## Before Writing Code
 - Look for project-specific docs (CLAUDE.md, README, docs/) before starting
 - Check existing code patterns before introducing new approaches
-- Look for existing similar implementations before writing from scratch
+- Pick the first option that fully solves the task: does it need to exist at all → already in this codebase → stdlib/platform feature → an installed dependency → one readable line → only then the minimum new code. Never add a dependency for a few lines; never cut validation, error handling, or security to get smaller
+- Bug fix: grep every caller of the function before editing, then fix the root cause once in the shared code
 - Don't assume - verify with tests or by running the code
 - Don't make assumptions about requirements - ask
 - Search ferrex with `/recall` for relevant previous context, decisions, or solutions — do this silently without asking
@@ -39,6 +40,7 @@
 - Especially before complex multi-step tasks or when key decisions are made
 
 ## After Completing Code
+- End the reply with one or two lines: what was skipped or not verified, and any risk the user must know
 - When a feature or code implementation is complete, run `/cleanup`
 - Present suggested improvements and let the user decide what to apply
 - Run `/docs` to update documentation (CLAUDE.md, auto memory, ferrex)

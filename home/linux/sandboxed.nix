@@ -21,11 +21,12 @@
     fi
   '';
 
-  # Leave two vCPUs of headroom per build; agents.slice handles the rest.
+  # Per sandbox; jobservers do not span sessions, so this mostly caps the
+  # memory of concurrent agent builds.
   # Nextest threads are deliberately not set: its env var outranks a repo's
   # nextest.toml and would override profiles that serialize tests.
   buildJobs = ''
-    CARGO_BUILD_JOBS=10
+    CARGO_BUILD_JOBS=4
     export CARGO_BUILD_JOBS
   '';
 
@@ -294,8 +295,10 @@ in {
   config.systemd.user.slices.agents = lib.mkIf cfg.claude.sandbox {
     Unit.Description = "Sandboxed coding agents";
     Slice = {
-      MemoryHigh = "12G";
-      CPUWeight = 30;
+      MemoryHigh = "9G";
+      # SCHED_IDLE: agents only get CPU the interactive session leaves unused.
+      CPUWeight = "idle";
+      IOWeight = 10;
     };
   };
 

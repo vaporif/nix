@@ -115,13 +115,9 @@
       enable = true;
       package = pkgs.mcp-server-sequential-thinking;
     };
-    # mcp-server-time pins `mcp<2`, but nixpkgs' default python `mcp` is now
-    # 2.x and the runtime deps check fails; build it against `mcp_1` instead.
     time = {
       enable = true;
-      package = pkgs.mcp-server-time.override {
-        python3Packages = pkgs.python3Packages // {mcp = pkgs.python3Packages.mcp_1;};
-      };
+      package = pkgs.mcp-server-time;
       args = ["--local-timezone" cfg.timezone];
     };
   };

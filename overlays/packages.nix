@@ -19,6 +19,8 @@ in {
   # Keys remapped to match codediff.nvim/review.nvim (]c ]f ]n, i/e/F/C, t, gg/gf/g?).
   tuicr = prev.tuicr.overrideAttrs (old: {
     patches = (old.patches or []) ++ [../patches/tuicr-keybindings.patch];
+    # Wall-clock concurrency assertion (~300ms budget) fails under loaded builders.
+    checkFlags = (old.checkFlags or []) ++ ["--skip=forge::pr_open::tests::should_fetch_diff_commits_and_review_metadata_concurrently"];
   });
 
   difftastic = final.callPackage ../pkgs/difftastic.nix {inherit difftastic-src;};

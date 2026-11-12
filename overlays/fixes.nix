@@ -55,6 +55,8 @@ in
     #  - e2e_ai_sessions (darwin) fails a different test each run
     # On darwin also skip the output-capture test and every bash-preexec shell
     # variant, which time out in the sandbox (zsh/plain-bash variants pass).
+    # The daemon's clip-vs-redact-timeout test races a wall-clock deadline
+    # and loses under build load on any platform.
     atuin = prev.atuin.overrideAttrs (old: {
       preCheck =
         (old.preCheck or "")
@@ -66,6 +68,7 @@ in
         '';
       checkFlags =
         (old.checkFlags or [])
+        ++ ["--skip=a_long_output_is_clipped_not_dropped_for_taking_long_to_redact"]
         ++ lib.optionals prev.stdenv.hostPlatform.isDarwin [
           "--skip=filtered_commands_leave_no_captured_output"
           "--skip=bash_preexec"

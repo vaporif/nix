@@ -138,7 +138,9 @@
 
     # SSH agent
     if [[ -n "''${SSH_AUTH_SOCK:-}" ]] && [[ -S "$SSH_AUTH_SOCK" ]]; then
-      args+=(--bind "$SSH_AUTH_SOCK" "$SSH_AUTH_SOCK")
+      # may be the ~/.ssh/agent/current symlink; bind the socket it targets
+      sock="$(readlink -f "$SSH_AUTH_SOCK")"
+      args+=(--bind "$sock" "$sock")
     fi
 
     # tuicr-pane request fifo; the host end can only open a tuicr split.
@@ -261,7 +263,9 @@
 
     # SSH agent
     if [[ -n "''${SSH_AUTH_SOCK:-}" ]] && [[ -S "$SSH_AUTH_SOCK" ]]; then
-      args+=(--bind "$SSH_AUTH_SOCK" "$SSH_AUTH_SOCK")
+      # may be the ~/.ssh/agent/current symlink; bind the socket it targets
+      sock="$(readlink -f "$SSH_AUTH_SOCK")"
+      args+=(--bind "$sock" "$sock")
     fi
 
     # D-Bus for gh keyring (Secret Service API)

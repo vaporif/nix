@@ -300,6 +300,9 @@ in {
     Unit.Description = "Sandboxed coding agents";
     Slice = {
       MemoryHigh = "9G";
+      # Without a swap cap, MemoryHigh just pushes agents into swap and the
+      # whole machine thrashes; past 2G earlyoom kills a build instead.
+      MemorySwapMax = "2G";
       # SCHED_IDLE: agents only get CPU the interactive session leaves unused.
       CPUWeight = "idle";
       IOWeight = 10;

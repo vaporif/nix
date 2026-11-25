@@ -123,6 +123,9 @@ in {
   # `programs.rofi.font`.
   stylix.targets.rofi.enable = false;
 
+  # home-manager removed programs.wayprompt, but stylix's target still sets it.
+  stylix.targets.wayprompt.enable = false;
+
   programs = {
     home-manager.enable = true;
 

@@ -40,10 +40,10 @@ index 3fefd05..25b261f 100644
      /// interrupts the sequence.
      pub fn comment_vim_reset_pending(&mut self) {
 diff --git a/src/app/mod.rs b/src/app/mod.rs
-index ca99491..8cd739b 100644
+index fb776ac..811dd6a 100644
 --- a/src/app/mod.rs
 +++ b/src/app/mod.rs
-@@ -1091,6 +1091,8 @@ pub enum CommentVimPending {
+@@ -1142,6 +1142,8 @@ pub enum CommentVimPending {
      None,
      Save,
      Cancel,
@@ -53,12 +53,12 @@ index ca99491..8cd739b 100644
  
  pub struct App {
 diff --git a/src/app/tests/target_selector_tests.rs b/src/app/tests/target_selector_tests.rs
-index 9e34e71..4c0871d 100644
+index f87cc6f..17c2bee 100644
 --- a/src/app/tests/target_selector_tests.rs
 +++ b/src/app/tests/target_selector_tests.rs
-@@ -2878,3 +2878,29 @@ fn should_discard_stale_remote_threads_event_after_switching_pr() {
-     // then — stale result was dropped
-     assert!(app.forge_review_threads.is_empty());
+@@ -4862,3 +4862,29 @@ fn should_quit_on_zz_when_save_succeeds() {
+ 
+     assert!(app.should_quit);
  }
 +
 +#[test]
@@ -87,10 +87,10 @@ index 9e34e71..4c0871d 100644
 +    assert_eq!(app.input_mode, InputMode::Normal);
 +}
 diff --git a/src/handler.rs b/src/handler.rs
-index cff93bc..1790f56 100644
+index 1913a56..6bc0b04 100644
 --- a/src/handler.rs
 +++ b/src/handler.rs
-@@ -1817,6 +1817,7 @@ fn handle_shared_normal_action(app: &mut App, action: Action) {
+@@ -2005,6 +2005,7 @@ fn handle_shared_normal_action(app: &mut App, action: Action) {
              }
          }
          Action::EditFile => app.queue_editor_for_focused_item(),
@@ -99,7 +99,7 @@ index cff93bc..1790f56 100644
      }
  }
 diff --git a/src/input/keybindings.rs b/src/input/keybindings.rs
-index 15193c3..fd44d6b 100644
+index f3f8b45..62d3fce 100644
 --- a/src/input/keybindings.rs
 +++ b/src/input/keybindings.rs
 @@ -23,6 +23,9 @@ pub enum Action {
@@ -120,7 +120,7 @@ index 15193c3..fd44d6b 100644
      SearchNext,
      SearchPrev,
      ClearSearchHighlight,
-@@ -223,7 +227,7 @@ fn map_normal_mode_with_q_quits(key: KeyEvent, leader_key: char, q_quits: bool)
+@@ -250,7 +254,7 @@ fn map_normal_mode_with_q_quits(key: KeyEvent, leader_key: char, q_quits: bool)
          (KeyCode::Char('b'), KeyModifiers::CONTROL) => Action::PageUp,
          (KeyCode::PageDown, KeyModifiers::NONE) => Action::PageDown,
          (KeyCode::PageUp, KeyModifiers::NONE) => Action::PageUp,
@@ -129,7 +129,7 @@ index 15193c3..fd44d6b 100644
          (KeyCode::Char('G'), _) => Action::GoToBottom,
          (KeyCode::Char('z'), KeyModifiers::NONE) => Action::PendingZCommand,
          (KeyCode::Char('Z'), _) => Action::PendingShiftZCommand,
-@@ -231,8 +235,8 @@ fn map_normal_mode_with_q_quits(key: KeyEvent, leader_key: char, q_quits: bool)
+@@ -258,8 +262,8 @@ fn map_normal_mode_with_q_quits(key: KeyEvent, leader_key: char, q_quits: bool)
          // File navigation (use _ for modifiers since shift is implicit in the character)
          (KeyCode::Char('}'), _) => Action::NextFile,
          (KeyCode::Char('{'), _) => Action::PrevFile,
@@ -140,7 +140,7 @@ index 15193c3..fd44d6b 100644
          (KeyCode::Char('m'), KeyModifiers::NONE) => Action::NextComment,
          (KeyCode::Char('M'), _) => Action::PrevComment,
          (KeyCode::Char(')'), _) => Action::CycleCommitNext,
-@@ -252,14 +256,16 @@ fn map_normal_mode_with_q_quits(key: KeyEvent, leader_key: char, q_quits: bool)
+@@ -279,14 +283,16 @@ fn map_normal_mode_with_q_quits(key: KeyEvent, leader_key: char, q_quits: bool)
          (KeyCode::Char('r'), KeyModifiers::NONE) => Action::ToggleReviewed,
          (KeyCode::Char('R'), _) => Action::ToggleHunkReviewed,
          (KeyCode::Char('c'), KeyModifiers::NONE) => Action::AddLineComment,
@@ -160,16 +160,16 @@ index 15193c3..fd44d6b 100644
          (KeyCode::Char('n'), KeyModifiers::NONE) => Action::SearchNext,
          (KeyCode::Char('N'), _) => Action::SearchPrev,
  
-@@ -612,7 +618,7 @@ fn map_visual_mode_with_q_quits(key: KeyEvent, q_quits: bool) -> Action {
+@@ -670,7 +676,7 @@ fn map_visual_mode_with_q_quits(key: KeyEvent, q_quits: bool) -> Action {
          // Extend selection
          (KeyCode::Char('j') | KeyCode::Down, KeyModifiers::NONE) => Action::CursorDown(1),
          (KeyCode::Char('k') | KeyCode::Up, KeyModifiers::NONE) => Action::CursorUp(1),
 -        (KeyCode::Char('c'), KeyModifiers::NONE) => Action::AddRangeComment,
 +        (KeyCode::Char('c') | KeyCode::Char('i'), KeyModifiers::NONE) => Action::AddRangeComment,
+         (KeyCode::Char('s'), KeyModifiers::NONE) => Action::AddRangeSuggestion,
          (KeyCode::Enter, KeyModifiers::NONE) => Action::AddRangeComment,
          (KeyCode::Char('y'), KeyModifiers::NONE) => Action::ExportToClipboard,
-         (KeyCode::Esc, KeyModifiers::NONE) => Action::ExitMode,
-@@ -706,7 +712,7 @@ mod tests {
+@@ -765,7 +771,7 @@ mod tests {
          // reinterprets it as the include filter.
          assert_eq!(
              map_normal_mode(key(KeyCode::Char('i')), DEFAULT_LEADER_KEY),
@@ -178,7 +178,7 @@ index 15193c3..fd44d6b 100644
          );
          assert_eq!(
              map_normal_mode(key(KeyCode::Char('/')), DEFAULT_LEADER_KEY),
-@@ -778,7 +784,7 @@ mod tests {
+@@ -837,7 +843,7 @@ mod tests {
      #[test]
      fn should_map_i_and_shift_a_to_edit_comment_actions() {
          assert_eq!(
@@ -187,7 +187,7 @@ index 15193c3..fd44d6b 100644
              Action::EditComment
          );
          assert_eq!(
-@@ -856,13 +862,13 @@ mod tests {
+@@ -915,13 +921,13 @@ mod tests {
      #[test]
      fn should_map_lowercase_g_to_go_to_top_in_normal_mode() {
          let action = map_normal_mode(key(KeyCode::Char('g')), DEFAULT_LEADER_KEY);
@@ -204,10 +204,10 @@ index 15193c3..fd44d6b 100644
  
      #[test]
 diff --git a/src/main.rs b/src/main.rs
-index a1e5552..ca36405 100644
+index 6faa00c..bcbfec2 100644
 --- a/src/main.rs
 +++ b/src/main.rs
-@@ -412,6 +412,9 @@ fn main() -> anyhow::Result<()> {
+@@ -426,6 +426,9 @@ fn main() -> anyhow::Result<()> {
      let mut pending_d = false;
      // Track pending leader command for leader-prefixed actions.
      let mut pending_leader = false;
@@ -217,7 +217,7 @@ index a1e5552..ca36405 100644
      // Track pending Ctrl+C for "press twice to exit" (with timestamp for 2s timeout)
      let mut pending_ctrl_c: Option<Instant> = None;
      // Only re-render when state actually changed; the diff renderer rebuilds
-@@ -663,6 +666,29 @@ fn main() -> anyhow::Result<()> {
+@@ -720,6 +723,29 @@ fn main() -> anyhow::Result<()> {
                          // Otherwise fall through to normal handling
                      }
  
@@ -247,18 +247,20 @@ index a1e5552..ca36405 100644
                      // Vim modal editing: route comment-box keys to the edtui
                      // overlay (app-level keys handled inside).
                      if app.input_mode == InputMode::Comment && app.comment_vim_enabled {
-@@ -676,7 +702,9 @@ fn main() -> anyhow::Result<()> {
+@@ -733,7 +759,11 @@ fn main() -> anyhow::Result<()> {
                      // route through the filter-specific key map so typed
                      // characters update the filter buffer rather than driving
                      // commit-list navigation.
--                    let mut action = if app.input_mode == InputMode::CommitSelect
+-                    let mut action = handler::map_normal_path_key(&app, key);
 +                    let mut action = if let Some(chord) = chord {
 +                        chord
-+                    } else if app.input_mode == InputMode::CommitSelect
-                         && app.pr_filter_editing()
-                     {
-                         map_target_filter_mode(key)
-@@ -728,6 +756,19 @@ fn main() -> anyhow::Result<()> {
++                    } else {
++                        handler::map_normal_path_key(&app, key)
++                    };
+ 
+                     // Handle pending command setters (these work in any mode)
+                     match action {
+@@ -757,6 +787,19 @@ fn main() -> anyhow::Result<()> {
                              app.pending_count = None;
                              continue;
                          }
@@ -278,7 +280,7 @@ index a1e5552..ca36405 100644
                          _ => {}
                      }
  
-@@ -934,7 +975,11 @@ fn handle_comment_vim_key(app: &mut App, key: crossterm::event::KeyEvent) -> boo
+@@ -940,7 +983,11 @@ fn handle_comment_vim_key(app: &mut App, key: crossterm::event::KeyEvent) -> boo
      // directly, in any mode — no double-press. Alt is the one modified Enter/Esc
      // that reaches the app across terminals, including browser/web terminals
      // like zellij web (where Shift/Cmd+Enter get stripped or grabbed). Plain
@@ -291,7 +293,7 @@ index a1e5552..ca36405 100644
      if key.modifiers.contains(KeyModifiers::ALT) {
          match key.code {
              KeyCode::Enter => {
-@@ -951,14 +996,17 @@ fn handle_comment_vim_key(app: &mut App, key: crossterm::event::KeyEvent) -> boo
+@@ -957,14 +1004,17 @@ fn handle_comment_vim_key(app: &mut App, key: crossterm::event::KeyEvent) -> boo
  
      let normal = app.comment_vim_in_normal_mode();
  
@@ -316,10 +318,10 @@ index a1e5552..ca36405 100644
              KeyCode::Esc | KeyCode::Char('q') => {
                  app.comment_vim_esc_normal();
 diff --git a/src/ui/comment_panel.rs b/src/ui/comment_panel.rs
-index de028a6..9b8910a 100644
+index 1c4da2f..f09b845 100644
 --- a/src/ui/comment_panel.rs
 +++ b/src/ui/comment_panel.rs
-@@ -158,7 +158,7 @@ pub fn format_comment_input_lines(
+@@ -244,7 +244,7 @@ pub fn format_comment_input_lines(
      // Top border with type label and hints. In vim mode the hints describe the
      // modal bindings and a `[MODE]` tag is shown after the type label.
      let hint = match vim_mode {

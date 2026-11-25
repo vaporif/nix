@@ -13,7 +13,7 @@ name=$(jq -r '.tool_input.name // empty' <<<"$input")
 [[ -n $(jq -r '.tool_input.isolation // empty' <<<"$input") ]] && exit 0
 [[ $(jq -r '.tool_input.subagent_type // empty' <<<"$input") == fork ]] && exit 0
 
-max=${CLAUDE_MAX_TEAMMATES:-3}
+max=${CLAUDE_MAX_TEAMMATES:-@maxTeammates@}
 live=$( (pgrep -f -- '--agent-id [^ ]+@' || true) | wc -l)
 ((live < max)) && exit 0
 

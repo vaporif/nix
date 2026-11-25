@@ -151,6 +151,20 @@ in {
         default = true;
         description = "Write a state glyph into the terminal tab title from Claude Code hooks (working / waiting on you / done), so a background tab shows what that session needs. Takes the tab title over from Claude's own topic title.";
       };
+      agentLimits = {
+        swapMax = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          example = "2G";
+          description = "MemorySwapMax for agents.slice (Linux only). Without it MemoryHigh just pushes agents into swap and the whole box thrashes; with it an overloaded slice gets OOM-killed instead. null leaves swap uncapped.";
+        };
+        maxTeammates = lib.mkOption {
+          type = lib.types.nullOr lib.types.ints.positive;
+          default = null;
+          example = 3;
+          description = "Refuse to spawn an agent-team teammate once this many are alive (PreToolUse hook on Agent; CLAUDE_MAX_TEAMMATES overrides at runtime). Per team inside the Linux sandbox, box-wide elsewhere. null disables the hook.";
+        };
+      };
     };
     tmux.autoAttach = lib.mkEnableOption "auto-attach to a persistent tmux session on interactive SSH logins, keeping the shell and running programs alive across disconnects (e.g. the work VM)";
     gitlab.enable = lib.mkEnableOption "GitLab integration (work VM only): the read-only GitLab MCP server and gitlab.nvim for in-editor merge-request review. Both read the API URL and token from the gitlab-api-url and gitlab-token sops secrets";

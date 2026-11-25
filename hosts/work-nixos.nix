@@ -21,6 +21,10 @@
       publicKey = lib.mkForce "";
     };
     gitlab.enable = true;
+    claude.agentLimits = {
+      swapMax = "2G";
+      maxTeammates = 3;
+    };
     mattermost.enable = true;
     workSsh.enable = true;
     qdrant.enable = false;

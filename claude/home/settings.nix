@@ -39,6 +39,8 @@
       '';
     };
 
+  inherit (cfg.claude.agentLimits) maxTeammates;
+
   teammateCapHook = {
     matcher = "Agent";
     hooks = [
@@ -46,7 +48,9 @@
         command = lib.getExe (pkgs.writeShellApplication {
           name = "claude-teammate-cap";
           runtimeInputs = [pkgs.jq pkgs.procps pkgs.coreutils];
-          text = builtins.readFile ../teammate-cap.sh;
+          text =
+            builtins.replaceStrings ["@maxTeammates@"] [(toString maxTeammates)]
+            (builtins.readFile ../teammate-cap.sh);
         });
         type = "command";
       }
@@ -128,7 +132,7 @@ in {
         hooks = {
           PreToolUse =
             sec.hooks.PreToolUse
-            ++ [teammateCapHook]
+            ++ lib.optional (maxTeammates != null) teammateCapHook
             ++ lib.optionals isDarwin [
               (parryHook // {matcher = "Bash|Read|Write|Edit|Glob|Grep|WebFetch|WebSearch|NotebookEdit|Task|mcp__.*";})
             ];

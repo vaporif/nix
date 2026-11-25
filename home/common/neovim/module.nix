@@ -23,6 +23,13 @@ inputs: {
       doCheck = false;
     };
 
+  # rustaceanvim's busted integration spec (lsp_spec.lua) breaks against
+  # neovim 0.12.6 ("Invalid 'buf'", E95 on buffer reuse). The checks run on the
+  # luarocks derivation underneath, so the plugin is rebuilt from that.
+  rustaceanvim = pkgs.neovimUtils.buildNeovimPlugin {
+    luaAttr = pkgs.neovim-unwrapped.lua.pkgs.rustaceanvim.overrideAttrs {doCheck = false;};
+  };
+
   gitlab-nvim-server = pkgs.buildGoModule {
     pname = "gitlab-nvim-server";
     version = "4.1.2";
@@ -160,7 +167,7 @@ in {
       };
 
       rustaceanvim = {
-        data = pkgs.vimPlugins.rustaceanvim;
+        data = rustaceanvim;
         lazy = false;
       };
 

@@ -21,6 +21,12 @@ in
     nativeBuildInputs = [pkg-config];
     buildInputs = [openssl];
 
+    # cargo-setup-hook exports LIBGIT2_NO_VENDOR=1, but libgit2-sys 0.16 needs
+    # libgit2 1.7.x and nixpkgs ships 1.9, so fall back to the vendored copy.
+    preBuild = ''
+      export LIBGIT2_NO_VENDOR=0
+    '';
+
     # Patch to fix time crate Rust 1.80+ compatibility
     postPatch = ''
       for f in $(find $cargoDepsCopy -name "mod.rs" -path "*time-*/format_description/parse/*"); do
